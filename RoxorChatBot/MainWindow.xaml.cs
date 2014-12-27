@@ -341,14 +341,14 @@ namespace RoxorChatBot
 
                         items.Add(x);
                     }
-                    foreach (PlaylistItemList x in items)
-                        ret.AddRange(x.items);
                 }
                 catch (Exception e)
                 {
                     System.Diagnostics.Debug.WriteLine(e.ToString());
                 }
             }
+            foreach (PlaylistItemList x in items)
+                ret.AddRange(x.items);
             return ret;
         }
 
