@@ -76,6 +76,10 @@ namespace RoxorChatBot
                             return;
                         }
                     }
+
+                    if (items.aaData == null || items.aaData.Count > 5)
+                        return;
+
                     foreach (var song in items.aaData)
                     {
                         if (song[3].ToLower() == Properties.Settings.Default.twitch_login.ToLower())
@@ -98,6 +102,11 @@ namespace RoxorChatBot
                     }
                     tbVideosQueue.Text = "";
 
+                    if (playlist.Count < 1)
+                    {
+                        stopSending_Click(null, null);
+                        return;
+                    }
                     if (inQueue < 2)
                     {
                         Video video = playlist[0];
@@ -164,8 +173,8 @@ namespace RoxorChatBot
                         return;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.basePlaylist))
-                        playlist = getVideosInPlaylist();
+                    // if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.basePlaylist))
+                    //    playlist = getVideosInPlaylist();
 
                     Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
                     {
@@ -369,16 +378,19 @@ namespace RoxorChatBot
 
         void c_RawMessageReceived(object sender, IrcRawMessageEventArgs e)
         {
-            System.Diagnostics.Debug.Write("RawMessageReceived: Command: " + e.Message.Command + " Parameters: ");
+            /*System.Diagnostics.Debug.Write("RawMessageReceived: Command: " + e.Message.Command + " Parameters: ");
             foreach (string s in e.Message.Parameters)
                 if (!string.IsNullOrEmpty(s))
-                    System.Diagnostics.Debug.Write(s + ",");
-            System.Diagnostics.Debug.WriteLine("");
+                    System.Diagnostics.Debug.Write(s + ",");*/
+            if (e.RawContent != null)
+                System.Diagnostics.Debug.WriteLine("RawMessageReceived: " + e.RawContent);
 
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
                 handleRawMessage(e);
             else if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "horatobot" && e.Message.Parameters[1] == "HISTORYEND roxork0")
                 sendChatMessage("ItsBoshyTime KAPOW Keepo");
+            //else if(e.Message.Command == "PART" && e.Message.Source.Name.ToLower().Contains("horatobot"))
+             //   c.SendRawMessage("JOIN #roxork0");
         }
 
         private void handleRawMessage(IrcRawMessageEventArgs e)
@@ -584,7 +596,7 @@ namespace RoxorChatBot
                     List<Video> videos = ShuffleList(convertPlaylist(items));
                     Random rnd = new Random();
                     foreach (Video v in videos)
-                        playlist.Insert(rnd.Next(0, playlist.Count - 1), v);
+                        playlist.Insert(rnd.Next(0, playlist.Count == 0 ? 0 : playlist.Count - 1), v);
                     reDrawPlaylist();
                 }
                 else
