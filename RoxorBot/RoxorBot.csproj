@@ -111,6 +111,9 @@
     <Compile Include="AddDialog.xaml.cs">
       <DependentUpon>AddDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logic\Managers\DatabaseManager.cs" />
+    <Compile Include="Logic\Managers\FilterManager.cs" />
+    <Compile Include="Logic\Log.cs" />
     <Compile Include="Model\FilterItem.cs" />
     <Compile Include="Model\JSON\ChannelInfo.cs" />
     <Compile Include="Model\JSON\Chatters.cs" />
@@ -119,11 +122,13 @@
     <Compile Include="Model\JSON\Links.cs" />
     <Compile Include="Model\JSON\TwitchStream.cs" />
     <Compile Include="Model\Role.cs" />
-    <Compile Include="Prompt.cs" />
+    <Compile Include="Logic\Managers\PointsManager.cs" />
+    <Compile Include="Logic\Prompt.cs" />
     <Compile Include="Properties\Settings.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="TimeParser.cs" />
+    <Compile Include="Logic\TimeParser.cs" />
     <Compile Include="Model\User.cs" />
+    <Compile Include="Logic\Managers\UsersManager.cs" />
     <Page Include="AddDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -136,7 +141,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DurationParser.cs" />
+    <Compile Include="Logic\DurationParser.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

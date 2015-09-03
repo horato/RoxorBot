@@ -7,8 +7,8 @@
         <Grid x:Name="MainGrid"  Visibility="Visible">
             <Button Name="Connect_Button" Content="Connect" HorizontalAlignment="Left" Margin="60,23,0,0" VerticalAlignment="Top" Width="120" Click="Connect_Click" Background="Black" Foreground="White"/>
             <TextBlock x:Name="tbStatus" HorizontalAlignment="Left" Margin="467,5,0,0" TextWrapping="Wrap" Text="Not connected" VerticalAlignment="Top" Width="132" Height="18"/>
-            <Button x:Name="Disconnect_Button" Content="Disconnect" HorizontalAlignment="Left" Margin="185,23,0,0" VerticalAlignment="Top" Width="120" Click="Disconnect_Click" Foreground="#FFF9F9F9" Background="Black"/>
-            <Button x:Name="Start_Button" Content="Start" HorizontalAlignment="Left" Margin="403,23,0,0" VerticalAlignment="Top" Width="120" Click="Start_Button_OnClick" Background="Black" Foreground="White"/>
+            <Button x:Name="Disconnect_Button" Content="Disconnect" IsEnabled="False" HorizontalAlignment="Left" Margin="185,23,0,0" VerticalAlignment="Top" Width="120" Click="Disconnect_Click" Foreground="#FFF9F9F9" Background="Black"/>
+            <Button x:Name="Start_Button" Content="Start" IsEnabled="False" HorizontalAlignment="Left" Margin="403,23,0,0" VerticalAlignment="Top" Width="120" Click="Start_Button_OnClick" Background="Black" Foreground="White"/>
             <Button x:Name="Stop_Button" Content="Stop" HorizontalAlignment="Left" Margin="528,23,0,0" VerticalAlignment="Top" Width="120" Click="Stop_Button_OnClick" IsEnabled="False" Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="SettingsButton" Content="Settings" HorizontalAlignment="Left" Margin="528,573,0,0" VerticalAlignment="Top" Width="120" Click="SettingsButton_OnClick"  Foreground="#FFF9F9F9" Background="Black"/>
             <TextBox x:Name="tbConsole" IsReadOnly="True" HorizontalAlignment="Left" Height="121" Margin="10,53,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="638" BorderThickness="3" VerticalScrollBarVisibility="Visible"/>

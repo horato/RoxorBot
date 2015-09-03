@@ -37,71 +37,45 @@ using MahApps.Metro.Controls;
 using RoxorBot.Model;
 using System.Text.RegularExpressions;
 using RoxorBot.Model.JSON;
+using System.Reflection;
 
 namespace RoxorBot
 {
     public partial class MainWindow : MetroWindow
     {
         private IrcClient c;
-        private SQLiteConnection dbConnection;
+
         private List<DateTime> queue;
         private System.Timers.Timer floodTimer;
         private System.Timers.Timer rewardTimer;
-        private List<User> users;
-        private Dictionary<string, int> points;
+
         private int timerReward = 108; //per hour
-        private List<FilterItem> filters;
+
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
-        private static HttpListener _listener;
 
         public MainWindow()
         {
+            WriteToLog.ExecutingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            WriteToLog.LogfileName = "RoxorBot.Log";
+            WriteToLog.CreateLogFile();
+
+            AppDomain.CurrentDomain.FirstChanceException += Logger.CurrentDomain_FirstChanceException;
+            AppDomain.CurrentDomain.UnhandledException += Logger.CurrentDomain_UnhandledException;
             //var x = Regex.Match("http://www.twitch.tv/", @"^(https?://)?([\da-z.-]+).([a-z.]{2,6})([/\w .-]*)*/?$");
 
             InitializeComponent();
 
-            Disconnect_Button.IsEnabled = false;
             queue = new List<DateTime>();
-            users = new List<User>();
-            points = new Dictionary<string, int>();
-            filters = new List<FilterItem>();
+
             OnListChanged += MainWindow_OnListChanged;
 
-            initDB();
-            _listener = new HttpListener();
-            _listener.Prefixes.Add("http://127.0.0.1:60024/");
-            _listener.Start();
-            _listener.BeginGetContext(new AsyncCallback(ProcessRequest), null);
-        }
-        private void ProcessRequest(IAsyncResult result)
-        {
-            HttpListenerContext context = _listener.EndGetContext(result);
-            HttpListenerRequest request = context.Request;
+            DatabaseManager.getInstance();
+            PointsManager.getInstance();
+            FilterManager.getInstance();
 
-            var sr = new StreamReader(request.InputStream);
-            var command = sr.ReadToEnd();
-
-            string responseString;
-            if (command != "action=getCommand")
-            {
-                command = command.Split(new string[] { "data=" }, StringSplitOptions.None)[1];
-                System.Diagnostics.Debug.WriteLine(command);
-                responseString = "null";
-            }
-            else
-                responseString = "API.getVolume()";
-
-            HttpListenerResponse response = context.Response;
-            response.ContentType = "text/html";
-            response.Headers.Add("Access-Control-Allow-Origin", "*");
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-            response.ContentLength64 = buffer.Length;
-            Stream output = response.OutputStream;
-
-            output.Write(buffer, 0, buffer.Length);
-            output.Close();
-            _listener.BeginGetContext(new AsyncCallback(ProcessRequest), null);
+            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + PointsManager.getInstance().getUsersCount() + " viewers from database." + Environment.NewLine;
+            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + FilterManager.getInstance().getFiltersCount() + " filtered words from database." + Environment.NewLine;
         }
 
         private void Connect_Click(object sender, RoutedEventArgs e)
@@ -121,11 +95,15 @@ namespace RoxorBot
                 {
                     string json = client.DownloadString("http://tmi.twitch.tv/group/user/roxork0/chatters?rand=" + Environment.TickCount);
                     Chatters chatters = new JavaScriptSerializer().Deserialize<Chatters>(json);
-                    initUsers(chatters.chatters.staff, Role.Saff);
-                    initUsers(chatters.chatters.admins, Role.Admins);
-                    initUsers(chatters.chatters.global_mods, Role.Global_mods);
-                    initUsers(chatters.chatters.moderators, Role.Moderators);
-                    initUsers(chatters.chatters.viewers, Role.Viewers);
+                    UsersManager.getInstance().initUsers(chatters.chatters.staff, Role.Saff);
+                    UsersManager.getInstance().initUsers(chatters.chatters.admins, Role.Admins);
+                    UsersManager.getInstance().initUsers(chatters.chatters.global_mods, Role.Global_mods);
+                    UsersManager.getInstance().initUsers(chatters.chatters.moderators, Role.Moderators);
+                    UsersManager.getInstance().initUsers(chatters.chatters.viewers, Role.Viewers);
+
+                    if (OnListChanged != null)
+                        OnListChanged();
+
                     tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + chatters.chatter_count + " online viewers." + Environment.NewLine;
                 }
 
@@ -141,7 +119,7 @@ namespace RoxorBot
                 {
                     c = new IrcClient();
                     var connectedEvent = new ManualResetEventSlim(false);
-                    IPEndPoint point = new IPEndPoint(Dns.GetHostAddresses("irc.twitch.tv")[0], 80);
+                    IPEndPoint point = new IPEndPoint(Dns.GetHostAddresses("irc.twitch.tv")[0], 6667);
                     c.Connected += (sender2, e2) => connectedEvent.Set();
                     c.RawMessageReceived += c_RawMessageReceived;
                     c.RawMessageSent += (arg1, arg2) =>
@@ -160,6 +138,7 @@ namespace RoxorBot
                     {
                         c.Dispose();
                         System.Diagnostics.Debug.WriteLine("timed out");
+                        Connect_Button.IsEnabled = true;
                         return;
                     }
 
@@ -186,6 +165,7 @@ namespace RoxorBot
                         tbStatus.Text = "Connected";
 
                         Disconnect_Button.IsEnabled = true;
+                        Start_Button.IsEnabled = true;
                     }));
                 }
                 catch (Exception exc)
@@ -203,15 +183,12 @@ namespace RoxorBot
             rewardTimer.AutoReset = true;
             rewardTimer.Elapsed += (a, b) =>
             {
+                var users = UsersManager.getInstance().getAllUsers();
                 foreach (User user in users)
-                {
-                    if (!points.ContainsKey(user.InternalName))
-                        points.Add(user.InternalName, timerReward / 12);
-                    else
-                        points[user.InternalName] += timerReward / 12;
-                }
-                foreach (KeyValuePair<string, int> kvp in points)
-                    new SQLiteCommand("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + kvp.Key + "\"," + kvp.Value + ");", dbConnection).ExecuteNonQuery();
+                    PointsManager.getInstance().addPoints(user.InternalName, timerReward / 12);
+
+                PointsManager.getInstance().save();
+
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Timer tick. " + users.Count + " users awarded " + timerReward / 12 + " points." + Environment.NewLine;
@@ -241,15 +218,25 @@ namespace RoxorBot
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
                 handleRawMessage(e);
             else if (e.Message.Command == "JOIN")
-                addUser(e.Message.Source.Name, Role.Viewers);
+            {
+                UsersManager.getInstance().addUser(e.Message.Source.Name, Role.Viewers);
+                if (OnListChanged != null)
+                    OnListChanged();
+            }
             else if (e.Message.Command == "PART")
-                removeUser(e.Message.Source.Name);
+            {
+                UsersManager.getInstance().removeUser(e.Message.Source.Name);
+                if (OnListChanged != null)
+                    OnListChanged();
+            }
             else if (e.Message.Command == "MODE")
                 handleMODE(e);
             else if (e.Message.Command == "366" && e.Message.Parameters[2] == "End of /NAMES list")
                 sendChatMessage("ItsBoshyTime KAPOW Keepo");
             //else if(e.Message.Command == "PART" && e.Message.Source.Name.ToLower().Contains("roxork0bot"))
             //   c.SendRawMessage("JOIN #roxork0");
+            //else if(e.Message.Command == "NOTICE") //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
+            //  return;
         }
 
         private void handleMODE(IrcRawMessageEventArgs e)
@@ -257,7 +244,7 @@ namespace RoxorBot
             bool add = e.Message.Parameters[1].ToLower() == "+o";
             string nick = e.Message.Parameters[2];
 
-            User user = users.Find(x => x.InternalName == nick.ToLower());
+            User user = UsersManager.getInstance().getUser(nick);
             if (user == null)
                 return;
 
@@ -299,11 +286,8 @@ namespace RoxorBot
             }
             else if (e.Message.Parameters[1] == "!points")
             {
-                string user = e.Message.Source.Name.ToLower();
-                if (points.ContainsKey(user))
-                    sendChatMessage(e.Message.Source.Name + ": You have " + points[user] + " points.");
-                else
-                    sendChatMessage(e.Message.Source.Name + ": You don't have any points.");
+                string user = e.Message.Source.Name;
+                sendChatMessage(user + ": You have " + PointsManager.getInstance().getPointsForUser(user) + " points.");
             }
             else if (e.Message.Parameters[1].StartsWith("!addpoints ") && e.Message.Source.Name.ToLower() == "roxork0")
             {
@@ -314,14 +298,7 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                if (!points.ContainsKey(name))
-                    points.Add(name, value);
-                else
-                    points[name] += value;
-
-                new SQLiteCommand("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + name + "\"," + points[name] + ");", dbConnection).ExecuteNonQuery();
-
-                sendChatMessage(e.Message.Source.Name + " added " + value + " points to " + name + ". " + name + " now has " + points[name] + " points.");
+                PointsManager.getInstance().addPoints(name, value);
             }
             else if (e.Message.Parameters[1].StartsWith("!removepoints ") && e.Message.Source.Name.ToLower() == "roxork0")
             {
@@ -332,19 +309,14 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                if (points.ContainsKey(name))
+                if (PointsManager.getInstance().userExists(name))
                 {
-                    if (points[name] < value)
-                        points[name] = 0;
-                    else
-                        points[name] -= value;
+                    PointsManager.getInstance().removePoints(name, value);
 
-                    new SQLiteCommand("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + name + "\"," + points[name] + ");", dbConnection).ExecuteNonQuery();
-
-                    sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + points[name] + " points.");
+                    sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + PointsManager.getInstance().getPointsForUser(name) + " points.");
                 }
             }
-            else if (e.Message.Parameters[1].StartsWith("!addfilter ") && users.Any(x => x.InternalName == e.Message.Source.Name.ToLower() && x.Role != Role.Viewers))
+            else if (e.Message.Parameters[1].StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string word = commands[1].ToLower();
@@ -353,26 +325,24 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                if (filters.Any(x => x.word == word))
+                if (FilterManager.getInstance().filterExists(word))
                     return;
 
-                filters.Add(new FilterItem { word = word, duration = value.ToString(), addedBy = e.Message.Source.Name, isRegex = false });
-                new SQLiteCommand("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex) VALUES (\"" + word + "\",\"" + value + "\",\"" + e.Message.Source.Name + "\",0);", dbConnection).ExecuteNonQuery();
+                FilterManager.getInstance().addFilterWord(word, value, e.Message.Source.Name, false);
 
-                sendChatMessage(e.Message.Source.Name + " the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
+                sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
             }
-            else if (e.Message.Parameters[1].StartsWith("!removefilter ") && users.Any(x => x.InternalName == e.Message.Source.Name.ToLower() && x.Role != Role.Viewers))
+            else if (e.Message.Parameters[1].StartsWith("!removefilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string word = commands[1].ToLower();
 
-                if (!filters.Any(x => x.word == word))
+                if (!FilterManager.getInstance().filterExists(word))
                     return;
 
-                filters.RemoveAll(x => x.word == word);
-                new SQLiteCommand("DELETE FROM filters WHERE word==\"" + word + "\";", dbConnection).ExecuteNonQuery();
+                FilterManager.getInstance().removeFilterWord(word);
 
-                sendChatMessage(e.Message.Source.Name + " the word " + word + " was successfully removed from database.");
+                sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
             }
             else if (e.Message.Parameters[1] == "!uptime")
             {
@@ -401,12 +371,12 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
-            else if (checkFilter(e))
+            else if (FilterManager.getInstance().checkFilter(e))
             {
-                var item = filters.Find(x => e.Message.Parameters[1].Contains(x.word));
+                var item = FilterManager.getInstance().getFilter(e.Message.Parameters[1]);
                 if (item == null)
                 {
-                    var temp = filters.FindAll(x => x.isRegex);
+                    var temp = FilterManager.getInstance().getAllFilters(FilterMode.Regex);
                     foreach (var filter in temp)
                         if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
                             item = filter;
@@ -423,19 +393,6 @@ namespace RoxorBot
             }
         }
 
-        private bool checkFilter(IrcRawMessageEventArgs e)
-        {
-            var exists = filters.Any(x => e.Message.Parameters[1].ToLower().Contains(x.word.ToLower()));
-            if (!exists)
-            {
-                var temp = filters.FindAll(x => x.isRegex);
-                foreach (var filter in temp)
-                    if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
-                        exists = true;
-            }
-            return exists && users.Any(x => x.InternalName == e.Message.Source.Name.ToLower() && x.Role == Role.Viewers);
-        }
-
         private void sendChatMessage(string message)
         {
             if (queue.Count > 90)
@@ -447,9 +404,17 @@ namespace RoxorBot
         }
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
-            users.Clear();
+            UsersManager.getInstance().clear();
+            if (floodTimer != null)
+                floodTimer.Stop();
+            if (rewardTimer != null)
+                rewardTimer.Stop();
+
             Disconnect_Button.IsEnabled = false;
             Connect_Button.IsEnabled = true;
+            Stop_Button.IsEnabled = false;
+            Start_Button.IsEnabled = true;
+
             try
             {
                 c.SendRawMessage("PART #roxork0");
@@ -458,70 +423,13 @@ namespace RoxorBot
             catch (Exception exc) { MessageBox.Show(exc.ToString()); }
         }
 
-        private void initDB()
-        {
-            if (!File.Exists("botDatabase.sqlite"))
-            {
-                SQLiteConnection.CreateFile("botDatabase.sqlite");
-                dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                dbConnection.Open();
-                new SQLiteCommand("CREATE TABLE points (name VARCHAR(64) PRIMARY KEY, score INT);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE filters (word TEXT PRIMARY KEY, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT false);", dbConnection).ExecuteNonQuery();
-            }
-            else
-            {
-                dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                dbConnection.Open();
-            }
-
-            SQLiteDataReader reader = new SQLiteCommand("SELECT * FROM points;", dbConnection).ExecuteReader();
-            while (reader.Read())
-                points.Add((string)reader["name"], (int)reader["score"]);
-
-            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + points.Count + " viewers from database." + Environment.NewLine;
-
-            reader = new SQLiteCommand("SELECT * FROM filters;", dbConnection).ExecuteReader();
-            while (reader.Read())
-                filters.Add(new FilterItem
-                {
-                    word = (string)reader["word"],
-                    duration = (string)reader["duration"],
-                    addedBy = (string)reader["addedBy"],
-                    isRegex = (bool)reader["isRegex"]
-                });
-
-            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + filters.Count + " filtered words from database." + Environment.NewLine;
-        }
-
-        private void initUsers(string[] list, Role role)
-        {
-            foreach (string s in list)
-                users.Add(new User { Name = s, InternalName = s.ToLower(), Role = role });
-            if (OnListChanged != null)
-                OnListChanged();
-        }
-
-        private void addUser(string user, Role role)
-        {
-            if (!users.Any(x => x.InternalName == user.ToLower()))
-                users.Add(new User { Name = user, InternalName = user.ToLower(), Role = role });
-            if (OnListChanged != null)
-                OnListChanged();
-        }
-
-        private void removeUser(String user)
-        {
-            users.RemoveAll(x => x.InternalName == user.ToLower());
-            if (OnListChanged != null)
-                OnListChanged();
-        }
-
         private void MainWindow_OnListChanged()
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 UsersListView.Items.Clear();
                 var temp = new List<User>();
+                var users = UsersManager.getInstance().getAllUsers();
 
                 foreach (User u in users)
                     temp.Add(new User { Name = u.Name, InternalName = u.InternalName, Role = u.Role });
@@ -565,8 +473,9 @@ namespace RoxorBot
                     return;
                 OverlayContainer.Visibility = Visibility.Hidden;
                 SettingsGrid.Opacity = 1;
-                filters.Add(new FilterItem { word = dialog.FilterWordBox.Text, duration = dialog.DurationBox.Text, addedBy = "AdminConsole", isRegex = (bool)dialog.IsRegexCheckBox.IsChecked });
-                new SQLiteCommand("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex) VALUES (\"" + dialog.FilterWordBox.Text + "\",\"" + dialog.DurationBox.Text + "\", \"AdminConsole\", " + ((bool)dialog.IsRegexCheckBox.IsChecked ? "1" : "0") + ");", dbConnection).ExecuteNonQuery();
+
+                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, int.Parse(dialog.DurationBox.Text), "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked);
+
                 drawFilters();
                 SettingsGrid.IsEnabled = true;
             };
@@ -583,6 +492,7 @@ namespace RoxorBot
         private void drawFilters()
         {
             FilterListDataGrid.Items.Clear();
+            var filters = FilterManager.getInstance().getAllFilters(FilterMode.All);
             foreach (FilterItem item in filters)
                 FilterListDataGrid.Items.Add(item);
         }
@@ -599,15 +509,14 @@ namespace RoxorBot
 
             if (Prompt.Ask("Do you wish to delete " + filterItem.word + "?", "Delete"))
             {
-                filters.RemoveAll(x => x.word == filterItem.word);
-                new SQLiteCommand("DELETE FROM filters WHERE word==\"" + filterItem.word + "\";", dbConnection).ExecuteNonQuery();
+                FilterManager.getInstance().removeFilterWord(filterItem.word);
                 drawFilters();
             }
         }
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            dbConnection.Close();
+            DatabaseManager.getInstance().close();
         }
     }
 }
