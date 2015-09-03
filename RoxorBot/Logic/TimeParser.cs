@@ -11,15 +11,16 @@ namespace RoxorBot
         /// <summary>
         /// The duration regex expression
         /// </summary>
-        private static readonly string durationRegexExpression1 = @"(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z";
+        private static readonly string durationRegexExpression1 = @"(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)\+(\d+):(\d+)";
+        private static readonly string durationRegexExpression2 = @"(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z";
         /// <summary>
         /// Gets the duration.
         /// </summary>
         /// <param name="durationStr">The duration string.</param>
         /// <returns>return ticks of the song</returns>
-        public static DateTime GetDuration(string durationStr)
+        public static DateTime GetDuration(string durationStr, bool since = true)
         {
-            Regex regexNamespaceInitializations = new Regex(durationRegexExpression1, RegexOptions.None);
+            Regex regexNamespaceInitializations = new Regex(since ? durationRegexExpression1 : durationRegexExpression2, RegexOptions.None);
             Match m = regexNamespaceInitializations.Match(durationStr);
             if (m.Success)
             {
@@ -29,9 +30,9 @@ namespace RoxorBot
                 int hour = int.Parse(m.Groups[4].Value);
                 int minute = int.Parse(m.Groups[5].Value);
                 int second = int.Parse(m.Groups[6].Value);
-                return new DateTime(year,month,day,hour, minute, second);
+                return new DateTime(year, month, day, hour, minute, second);
             }
-            return new DateTime(999,999,999);
+            return new DateTime(999, 12, 30);
         }
     }
 }

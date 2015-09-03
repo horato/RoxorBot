@@ -15,8 +15,49 @@ namespace RoxorBot
         private PointsManager()
         {
             Logger.Log("Initializing PointsManager...");
-
+            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
             Points = loadViewers();
+        }
+
+        void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
+        {
+            if (!(sender is MainWindow))
+                return;
+
+            var mainWindow = ((MainWindow)sender);
+
+            if (e.Message.Parameters[1] == "!points")
+            {
+                string user = e.Message.Source.Name;
+                mainWindow.sendChatMessage(user + ": You have " + getPointsForUser(user) + " points.");
+            }
+            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && e.Message.Source.Name.ToLower() == "roxork0")
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                int value;
+
+                if (!int.TryParse(commands[2], out value))
+                    return;
+
+                addPoints(name, value);
+            }
+            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && e.Message.Source.Name.ToLower() == "roxork0")
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                int value;
+
+                if (!int.TryParse(commands[2], out value))
+                    return;
+
+                if (userExists(name))
+                {
+                    removePoints(name, value);
+
+                    mainWindow.sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + PointsManager.getInstance().getPointsForUser(name) + " points.");
+                }
+            }
         }
 
         public void addPoints(string user, int points)

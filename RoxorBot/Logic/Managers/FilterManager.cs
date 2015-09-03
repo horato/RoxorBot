@@ -19,6 +19,8 @@ namespace RoxorBot
         {
             Logger.Log("Loading FilterManager...");
 
+            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
+
             Filters = loadFilters();
         }
 
@@ -98,6 +100,64 @@ namespace RoxorBot
                     break;
             }
             return result;
+        }
+
+
+        void MainWindow_ChatMessageReceived(object sender, IrcRawMessageEventArgs e)
+        {
+            if (!(sender is MainWindow))
+                return;
+
+            var mainWindow = ((MainWindow)sender);
+
+            if (e.Message.Parameters[1].StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string word = commands[1].ToLower();
+                int value;
+
+                if (!int.TryParse(commands[2], out value))
+                    return;
+
+                if (filterExists(word))
+                    return;
+
+                addFilterWord(word, value, e.Message.Source.Name, false);
+
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
+            }
+            else if (e.Message.Parameters[1].StartsWith("!removefilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string word = commands[1].ToLower();
+
+                if (!filterExists(word))
+                    return;
+
+                removeFilterWord(word);
+
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
+            }
+            else if (checkFilter(e))
+            {
+                var item = getFilter(e.Message.Parameters[1]);
+                if (item == null)
+                {
+                    var temp = getAllFilters(FilterMode.Regex);
+                    foreach (var filter in temp)
+                        if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
+                            item = filter;
+                }
+
+                if (item == null)
+                    return;
+
+                if (item.duration == "-1")
+                    mainWindow.sendChatMessage(".ban " + e.Message.Source.Name);
+                else
+                    mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration);
+                mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
+            }
         }
 
         public static FilterManager getInstance()

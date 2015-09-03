@@ -53,6 +53,7 @@ namespace RoxorBot
 
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
+        public static event EventHandler<IrcRawMessageEventArgs> ChatMessageReceived;
 
         public MainWindow()
         {
@@ -216,7 +217,11 @@ namespace RoxorBot
             System.Diagnostics.Debug.WriteLine("");
 
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
+            {
+                if (ChatMessageReceived != null)
+                    ChatMessageReceived(this, e);
                 handleRawMessage(e);
+            }
             else if (e.Message.Command == "JOIN")
             {
                 UsersManager.getInstance().addUser(e.Message.Source.Name, Role.Viewers);
@@ -271,7 +276,7 @@ namespace RoxorBot
                         else
                         {
                             DateTime time = TimeParser.GetDuration(followers.created_at);
-                            if (time.Month == 999)
+                            if (time.Year == 999)
                                 System.Diagnostics.Debug.WriteLine("Error !since: parsing time: " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
                             else
                                 sendChatMessage(e.Message.Source.Name + string.Format(" is following since {0}.{1:D2}.{2} {3}:{4:D2}:{5:D2}", time.Day, time.Month, time.Year, time.Hour, time.Minute, time.Second));
@@ -283,66 +288,6 @@ namespace RoxorBot
                 {
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
-            }
-            else if (e.Message.Parameters[1] == "!points")
-            {
-                string user = e.Message.Source.Name;
-                sendChatMessage(user + ": You have " + PointsManager.getInstance().getPointsForUser(user) + " points.");
-            }
-            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && e.Message.Source.Name.ToLower() == "roxork0")
-            {
-                string[] commands = e.Message.Parameters[1].Split(' ');
-                string name = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                PointsManager.getInstance().addPoints(name, value);
-            }
-            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && e.Message.Source.Name.ToLower() == "roxork0")
-            {
-                string[] commands = e.Message.Parameters[1].Split(' ');
-                string name = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                if (PointsManager.getInstance().userExists(name))
-                {
-                    PointsManager.getInstance().removePoints(name, value);
-
-                    sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + PointsManager.getInstance().getPointsForUser(name) + " points.");
-                }
-            }
-            else if (e.Message.Parameters[1].StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
-            {
-                string[] commands = e.Message.Parameters[1].Split(' ');
-                string word = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                if (FilterManager.getInstance().filterExists(word))
-                    return;
-
-                FilterManager.getInstance().addFilterWord(word, value, e.Message.Source.Name, false);
-
-                sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
-            }
-            else if (e.Message.Parameters[1].StartsWith("!removefilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
-            {
-                string[] commands = e.Message.Parameters[1].Split(' ');
-                string word = commands[1].ToLower();
-
-                if (!FilterManager.getInstance().filterExists(word))
-                    return;
-
-                FilterManager.getInstance().removeFilterWord(word);
-
-                sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
             }
             else if (e.Message.Parameters[1] == "!uptime")
             {
@@ -356,7 +301,7 @@ namespace RoxorBot
                             return;
 
                         var stream = info.streams[0];
-                        var start = TimeParser.GetDuration(stream.created_at);
+                        var start = TimeParser.GetDuration(stream.created_at, false);
                         if (start.Month != 999)
                         {
                             var time = DateTime.Now - start;
@@ -371,29 +316,9 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
-            else if (FilterManager.getInstance().checkFilter(e))
-            {
-                var item = FilterManager.getInstance().getFilter(e.Message.Parameters[1]);
-                if (item == null)
-                {
-                    var temp = FilterManager.getInstance().getAllFilters(FilterMode.Regex);
-                    foreach (var filter in temp)
-                        if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
-                            item = filter;
-                }
-
-                if (item == null)
-                    return;
-
-                sendChatMessage(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                if (item.duration == "-1")
-                    sendChatMessage(".ban " + e.Message.Source.Name);
-                else
-                    sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration);
-            }
         }
 
-        private void sendChatMessage(string message)
+        public void sendChatMessage(string message)
         {
             if (queue.Count > 90)
             {
