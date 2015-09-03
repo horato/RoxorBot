@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace RoxorChatBot.Properties {
+namespace RoxorBot.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -20,18 +20,6 @@ namespace RoxorChatBot.Properties {
         public static Settings Default {
             get {
                 return defaultInstance;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string youtube_key {
-            get {
-                return ((string)(this["youtube_key"]));
-            }
-            set {
-                this["youtube_key"] = value;
             }
         }
         
@@ -56,18 +44,6 @@ namespace RoxorChatBot.Properties {
             }
             set {
                 this["twitch_login"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string basePlaylist {
-            get {
-                return ((string)(this["basePlaylist"]));
-            }
-            set {
-                this["basePlaylist"] = value;
             }
         }
     }
