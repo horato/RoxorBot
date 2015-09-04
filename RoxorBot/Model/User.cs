@@ -11,5 +11,8 @@ namespace RoxorBot.Model
         public string Name { get; set; }
         public string InternalName { get; set; }
         public Role Role { get; set; }
+        public bool isOnline { get; set; }
+        public int Points { get; set; }
+        public bool IsFollower { get; set; }
     }
 }

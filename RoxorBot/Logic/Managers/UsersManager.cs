@@ -14,17 +14,19 @@ namespace RoxorBot
 
         private UsersManager()
         {
+            Logger.Log("Loading UsersManager...");
+
             users = new List<User>();
         }
 
         /// <summary>
         /// Don't forget to call OnListChanged!
+        /// Added user is automatically set as online with 0 points!
         /// </summary>
         /// <param name="list"></param>
         /// <param name="role"></param>
         public void initUsers(string[] list, Role role)
         {
-            Logger.Log("Loading UsersManager...");
             foreach (string s in list)
                 addUser(s, role);
         }
@@ -34,19 +36,30 @@ namespace RoxorBot
         /// </summary>
         /// <param name="user"></param>
         /// <param name="role"></param>
-        public void addUser(string user, Role role)
+        public User addUser(string user, Role role)
         {
-            if (!users.Any(x => x.InternalName == user.ToLower()))
-                users.Add(new User { Name = user, InternalName = user.ToLower(), Role = role });
+            var u = getUser(user);
+
+            if (u == null)
+            {
+                u = new User { Name = user, InternalName = user.ToLower(), Role = role, isOnline = false, Points = 0, IsFollower = false };
+                users.Add(u);
+            }
+
+            return u;
         }
 
         /// <summary>
         /// Don't forget to call OnListChanged!
         /// </summary>
         /// <param name="user"></param>
-        public void removeUser(String user)
+        public void changeOnlineStatus(string user, bool isOnline)
         {
-            users.RemoveAll(x => x.InternalName == user.ToLower());
+            var u = users.Find(x => x.InternalName == user.ToLower());
+            if (u == null)
+                return;
+
+            u.isOnline = isOnline;
         }
 
         public List<User> getAllUsers()
@@ -73,11 +86,9 @@ namespace RoxorBot
             return user.Role != Role.Viewers;
         }
 
-        public void clear()
+        public int getUsersCount()
         {
-            users.Clear();
-            users = null;
-            _instance = null;
+            return users.Count;
         }
 
         public static UsersManager getInstance()

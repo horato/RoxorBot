@@ -5,7 +5,7 @@
         Title="ChatBot for #RoXoRk0 by horato" Height="638.075" Width="665.701" Closing="MainWindow_OnClosing">
     <Grid Background="LightBlue">
         <Grid x:Name="MainGrid"  Visibility="Visible">
-            <Button Name="Connect_Button" Content="Connect" HorizontalAlignment="Left" Margin="60,23,0,0" VerticalAlignment="Top" Width="120" Click="Connect_Click" Background="Black" Foreground="White"/>
+            <Button Name="Connect_Button" Content="Connect" IsEnabled="False" HorizontalAlignment="Left" Margin="60,23,0,0" VerticalAlignment="Top" Width="120" Click="Connect_Click" Background="Black" Foreground="White"/>
             <TextBlock x:Name="tbStatus" HorizontalAlignment="Left" Margin="467,5,0,0" TextWrapping="Wrap" Text="Not connected" VerticalAlignment="Top" Width="132" Height="18"/>
             <Button x:Name="Disconnect_Button" Content="Disconnect" IsEnabled="False" HorizontalAlignment="Left" Margin="185,23,0,0" VerticalAlignment="Top" Width="120" Click="Disconnect_Click" Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="Start_Button" Content="Start" IsEnabled="False" HorizontalAlignment="Left" Margin="403,23,0,0" VerticalAlignment="Top" Width="120" Click="Start_Button_OnClick" Background="Black" Foreground="White"/>

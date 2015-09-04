@@ -114,10 +114,15 @@
     <Compile Include="Logic\Managers\DatabaseManager.cs" />
     <Compile Include="Logic\Managers\FilterManager.cs" />
     <Compile Include="Logic\Log.cs" />
+    <Compile Include="Logic\Managers\FollowerManager.cs" />
     <Compile Include="Model\FilterItem.cs" />
     <Compile Include="Model\JSON\ChannelInfo.cs" />
     <Compile Include="Model\JSON\Chatters.cs" />
     <Compile Include="Model\JSON\ChattersList.cs" />
+    <Compile Include="Model\JSON\FollowerManager\Followers_FollowerManager.cs" />
+    <Compile Include="Model\JSON\FollowerManager\Follower_FollowerManager.cs" />
+    <Compile Include="Model\JSON\FollowerManager\Links_FollowerManager.cs" />
+    <Compile Include="Model\JSON\FollowerManager\User_FollowerManager.cs" />
     <Compile Include="Model\JSON\Followers.cs" />
     <Compile Include="Model\JSON\Links.cs" />
     <Compile Include="Model\JSON\TwitchStream.cs" />
@@ -192,6 +197,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

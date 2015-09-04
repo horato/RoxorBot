@@ -10,13 +10,12 @@ namespace RoxorBot
     class PointsManager
     {
         private static PointsManager _instance;
-        private Dictionary<string, int> Points;
 
         private PointsManager()
         {
             Logger.Log("Initializing PointsManager...");
             MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
-            Points = loadViewers();
+            loadViewers();
         }
 
         void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
@@ -55,7 +54,7 @@ namespace RoxorBot
                 {
                     removePoints(name, value);
 
-                    mainWindow.sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + PointsManager.getInstance().getPointsForUser(name) + " points.");
+                    mainWindow.sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + getPointsForUser(name) + " points.");
                 }
             }
         }
@@ -73,51 +72,53 @@ namespace RoxorBot
                 setPoints(user, getPointsForUser(user) - points);
         }
 
-        public void setPoints(string user, int points)
+        public void setPoints(string user, int points, bool dbUpdate = true)
         {
-            if (!userExists(user))
-                Points.Add(user.ToLower(), points);
-            else
-                Points[user.ToLower()] = points;
+            var u = UsersManager.getInstance().getUser(user);
+            if (u == null)
+                u = UsersManager.getInstance().addUser(user, Model.Role.Viewers);
 
-            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.ToLower() + "\"," + Points[user.ToLower()] + ");");
+            u.Points = points;
+
+            if (dbUpdate)
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.ToLower() + "\"," + getPointsForUser(user) + ");");
         }
 
-        public bool userExists(string user)
+        public bool userExists(string name)
         {
-            return Points.ContainsKey(user.ToLower());
+            return (UsersManager.getInstance().getUser(name) != null);
         }
 
-        public int getPointsForUser(string user)
+        public int getPointsForUser(string name)
         {
-            if (userExists(user))
-                return Points[user.ToLower()];
-            else
+            var user = UsersManager.getInstance().getUser(name);
+            if (user == null)
                 return 0;
+            else
+                return user.Points;
         }
 
         public int getUsersCount()
         {
-            return Points.Count;
+            return UsersManager.getInstance().getUsersCount();
         }
 
         public void save()
         {
-            foreach (KeyValuePair<string, int> kvp in Points)
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + kvp.Key + "\"," + kvp.Value + ");");
+            var users = UsersManager.getInstance().getAllUsers();
+            foreach (var user in users)
+                if (user.Points > 0)
+                    DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.InternalName + "\"," + user.Points + ");");
         }
 
-        private Dictionary<string, int> loadViewers()
+        private void loadViewers()
         {
-            Dictionary<string, int> result = new Dictionary<string, int>();
             SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM points;");
 
             while (reader.Read())
-                result.Add((string)reader["name"], (int)reader["score"]);
+                setPoints((string)reader["name"], (int)reader["score"], false);
 
-            Logger.Log("Loaded " + result.Count + " viewers from database.");
-
-            return result;
+            Logger.Log("Loaded " + getUsersCount() + " viewers from database.");
         }
 
         public static PointsManager getInstance()

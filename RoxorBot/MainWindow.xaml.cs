@@ -71,12 +71,26 @@ namespace RoxorBot
 
             OnListChanged += MainWindow_OnListChanged;
 
-            DatabaseManager.getInstance();
-            PointsManager.getInstance();
-            FilterManager.getInstance();
+            addToConsole("Initializing...");
+            new Thread(new ThreadStart(load)).Start();
+        }
 
-            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + PointsManager.getInstance().getUsersCount() + " viewers from database." + Environment.NewLine;
-            tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + FilterManager.getInstance().getFiltersCount() + " filtered words from database." + Environment.NewLine;
+        private void load()
+        {
+            DatabaseManager.getInstance();
+            UsersManager.getInstance();
+            PointsManager.getInstance();
+            addToConsole("Loaded " + PointsManager.getInstance().getUsersCount() + " viewers from database.");
+            FilterManager.getInstance();
+            addToConsole("Loaded " + FilterManager.getInstance().getFiltersCount() + " filtered words from database.");
+            FollowerManager.getInstance();
+            addToConsole("Loaded " + FollowerManager.getInstance().getFollowersCount() + " followers.");
+            addToConsole("Init finished.");
+
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                Connect_Button.IsEnabled = true;
+            }));
         }
 
         private void Connect_Click(object sender, RoutedEventArgs e)
@@ -105,13 +119,13 @@ namespace RoxorBot
                     if (OnListChanged != null)
                         OnListChanged();
 
-                    tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Loaded " + chatters.chatter_count + " online viewers." + Environment.NewLine;
+                    addToConsole("Loaded " + chatters.chatter_count + " online viewers.");
                 }
 
             }
             catch (Exception ee)
             {
-                tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + ee.ToString() + Environment.NewLine;
+                addToConsole(ee.ToString());
             }
 
             new Thread(() =>
@@ -192,7 +206,7 @@ namespace RoxorBot
 
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
-                    tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Timer tick. " + users.Count + " users awarded " + timerReward / 12 + " points." + Environment.NewLine;
+                    addToConsole("Timer tick. " + users.Count + " users awarded " + timerReward / 12 + " points.");
                 }));
 
             };
@@ -225,12 +239,14 @@ namespace RoxorBot
             else if (e.Message.Command == "JOIN")
             {
                 UsersManager.getInstance().addUser(e.Message.Source.Name, Role.Viewers);
+                UsersManager.getInstance().changeOnlineStatus(e.Message.Source.Name, true);
+
                 if (OnListChanged != null)
                     OnListChanged();
             }
             else if (e.Message.Command == "PART")
             {
-                UsersManager.getInstance().removeUser(e.Message.Source.Name);
+                UsersManager.getInstance().changeOnlineStatus(e.Message.Source.Name, false);
                 if (OnListChanged != null)
                     OnListChanged();
             }
@@ -240,8 +256,22 @@ namespace RoxorBot
                 sendChatMessage("ItsBoshyTime KAPOW Keepo");
             //else if(e.Message.Command == "PART" && e.Message.Source.Name.ToLower().Contains("roxork0bot"))
             //   c.SendRawMessage("JOIN #roxork0");
-            //else if(e.Message.Command == "NOTICE") //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
-            //  return;
+            else if (e.Message.Command == "NOTICE") //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
+            {
+                if (e.Message.Parameters[1].ToLower().Contains("error logging in"))
+                {
+                    addToConsole("Error logging in. Wrong password/oauth?");
+                    Disconnect_Click(null, null);
+                }
+                else
+                {
+                    string msg = "";
+                    foreach (string s in e.Message.Parameters)
+                        if (!string.IsNullOrEmpty(s))
+                            msg += s + ",";
+                    addToConsole("NOTICE RECEIVED: " + msg);
+                }
+            }
         }
 
         private void handleMODE(IrcRawMessageEventArgs e)
@@ -272,12 +302,16 @@ namespace RoxorBot
                         if (followers.status != 0)
                         {
                             System.Diagnostics.Debug.WriteLine("Error !since: error: " + followers.error + " Message: " + followers.message + ":::   " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
+                            Logger.Log("Error !since: error: " + followers.error + " Message: " + followers.message + ":::   " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
                         }
                         else
                         {
                             DateTime time = TimeParser.GetDuration(followers.created_at);
                             if (time.Year == 999)
+                            {
                                 System.Diagnostics.Debug.WriteLine("Error !since: parsing time: " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
+                                Logger.Log("Error !since: parsing time: " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
+                            }
                             else
                                 sendChatMessage(e.Message.Source.Name + string.Format(" is following since {0}.{1:D2}.{2} {3}:{4:D2}:{5:D2}", time.Day, time.Month, time.Year, time.Hour, time.Minute, time.Second));
                         }
@@ -309,6 +343,7 @@ namespace RoxorBot
                             return;
                         }
                         System.Diagnostics.Debug.WriteLine("Error !uptime: parsing time: https://api.twitch.tv/kraken/streams?channel=roxork0");
+                        Logger.Log("Error !uptime: parsing time: https://api.twitch.tv/kraken/streams?channel=roxork0");
                     }
                 }
                 catch (Exception ee)
@@ -322,14 +357,14 @@ namespace RoxorBot
         {
             if (queue.Count > 90)
             {
-                tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] Queue limit reached. Ignoring: " + message + Environment.NewLine;
+                addToConsole("Queue limit reached. Ignoring: " + message);
                 return;
             }
             c.SendRawMessage("PRIVMSG #roxork0 :" + message);
         }
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
-            UsersManager.getInstance().clear();
+            PointsManager.getInstance().save();
             if (floodTimer != null)
                 floodTimer.Stop();
             if (rewardTimer != null)
@@ -357,7 +392,8 @@ namespace RoxorBot
                 var users = UsersManager.getInstance().getAllUsers();
 
                 foreach (User u in users)
-                    temp.Add(new User { Name = u.Name, InternalName = u.InternalName, Role = u.Role });
+                    if (u.isOnline)
+                        temp.Add(new User { Name = u.Name, InternalName = u.InternalName, Role = u.Role, isOnline = u.isOnline, Points = u.Points, IsFollower = u.IsFollower });
 
                 foreach (User u in temp)
                     if (u.Role != Role.Viewers)
@@ -439,8 +475,17 @@ namespace RoxorBot
             }
         }
 
+        public void addToConsole(string text)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text + Environment.NewLine;
+            }));
+        }
+
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
+            PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
         }
     }
