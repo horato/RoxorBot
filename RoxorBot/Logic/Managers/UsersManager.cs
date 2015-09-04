@@ -28,7 +28,10 @@ namespace RoxorBot
         public void initUsers(string[] list, Role role)
         {
             foreach (string s in list)
-                addUser(s, role);
+            {
+                var u = addUser(s, role);
+                u.isOnline = true;
+            }
         }
 
         /// <summary>
@@ -50,7 +53,8 @@ namespace RoxorBot
         }
 
         /// <summary>
-        /// Don't forget to call OnListChanged!
+        /// Don't forget to call OnListChanged!<br>
+        /// This resets reward timer!
         /// </summary>
         /// <param name="user"></param>
         public void changeOnlineStatus(string user, bool isOnline)
@@ -60,6 +64,7 @@ namespace RoxorBot
                 return;
 
             u.isOnline = isOnline;
+            u.RewardTimer = 0;
         }
 
         public List<User> getAllUsers()

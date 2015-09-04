@@ -49,7 +49,7 @@ namespace RoxorBot
         private System.Timers.Timer floodTimer;
         private System.Timers.Timer rewardTimer;
 
-        private int timerReward = 108; //per hour
+        private int timerReward = 100; //per 30m
 
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
@@ -135,6 +135,7 @@ namespace RoxorBot
                     c = new IrcClient();
                     var connectedEvent = new ManualResetEventSlim(false);
                     IPEndPoint point = new IPEndPoint(Dns.GetHostAddresses("irc.twitch.tv")[0], 6667);
+
                     c.Connected += (sender2, e2) => connectedEvent.Set();
                     c.RawMessageReceived += c_RawMessageReceived;
                     c.RawMessageSent += (arg1, arg2) =>
@@ -173,6 +174,9 @@ namespace RoxorBot
                     };
                     floodTimer.Start();
 
+                    c.SendRawMessage("CAP REQ :twitch.tv/membership");
+                    c.SendRawMessage("CAP REQ :twitch.tv/commands");
+
                     c.SendRawMessage("JOIN #roxork0");
 
                     Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
@@ -182,6 +186,7 @@ namespace RoxorBot
                         Disconnect_Button.IsEnabled = true;
                         Start_Button.IsEnabled = true;
                     }));
+                    Whispers.connect();
                 }
                 catch (Exception exc)
                 {
@@ -194,21 +199,35 @@ namespace RoxorBot
 
         private void Start_Button_OnClick(object sender, RoutedEventArgs e)
         {
-            rewardTimer = new System.Timers.Timer(300000);
+            rewardTimer = new System.Timers.Timer(5 * 60 * 1000);
             rewardTimer.AutoReset = true;
             rewardTimer.Elapsed += (a, b) =>
             {
                 var users = UsersManager.getInstance().getAllUsers();
+                var changed = false;
+
                 foreach (User user in users)
-                    PointsManager.getInstance().addPoints(user.InternalName, timerReward / 12);
-
-                PointsManager.getInstance().save();
-
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
-                    addToConsole("Timer tick. " + users.Count + " users awarded " + timerReward / 12 + " points.");
-                }));
+                    if (user.IsFollower && user.isOnline)
+                    {
+                        if (user.RewardTimer < 25)
+                        {
+                            user.RewardTimer += 5;
+                        }
+                        else
+                        {
+                            user.RewardTimer = 0;
+                            PointsManager.getInstance().addPoints(user.InternalName, timerReward);
+                            changed = true;
+                            Whispers.sendPrivateMessage(user.InternalName, "You were awarded " + timerReward + " points for staying with us another 30 minutes.");
+                        }
+                    }
+                }
 
+                if (changed)
+                    PointsManager.getInstance().save();
+
+                addToConsole("Timer tick.");
             };
             rewardTimer.Start();
             Start_Button.IsEnabled = false;
@@ -247,6 +266,7 @@ namespace RoxorBot
             else if (e.Message.Command == "PART")
             {
                 UsersManager.getInstance().changeOnlineStatus(e.Message.Source.Name, false);
+
                 if (OnListChanged != null)
                     OnListChanged();
             }
@@ -351,6 +371,16 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
+            else if (e.Message.Parameters[1].StartsWith("!isfollower "))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                var u = UsersManager.getInstance().getUser(name);
+                if (u == null || !u.IsFollower)
+                    sendChatMessage("いいえ, " + name + "さんはともでわありません。");
+                else
+                    sendChatMessage("はい, " + name + "さんはともです。");
+            }
         }
 
         public void sendChatMessage(string message)
@@ -362,6 +392,7 @@ namespace RoxorBot
             }
             c.SendRawMessage("PRIVMSG #roxork0 :" + message);
         }
+
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
             PointsManager.getInstance().save();
@@ -487,6 +518,11 @@ namespace RoxorBot
         {
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            c.SendRawMessage("PING tmi.twitch.tv");
         }
     }
 }

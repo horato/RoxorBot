@@ -134,6 +134,7 @@
     <Compile Include="Logic\TimeParser.cs" />
     <Compile Include="Model\User.cs" />
     <Compile Include="Logic\Managers\UsersManager.cs" />
+    <Compile Include="Whispers.cs" />
     <Page Include="AddDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
