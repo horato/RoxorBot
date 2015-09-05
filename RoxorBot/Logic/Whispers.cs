@@ -11,20 +11,23 @@ namespace RoxorBot
 {
     static class Whispers
     {
-        private static IrcClient c;
+        private static StandardIrcClient c;
         private static bool connected = false;
 
         public static void connect()
         {
+            if (connected)
+                return;
+
             new Thread(() =>
             {
                 try
                 {
-                    c = new IrcClient();
+                    c = new StandardIrcClient();
                     var connectedEvent = new ManualResetEventSlim(false);
                     IPEndPoint point = new IPEndPoint(Dns.GetHostAddresses("199.9.253.119")[0], 6667); //whispers
                     c.Connected += (sender2, e2) => connectedEvent.Set();
-
+                    c.RawMessageSent += (a, b) => { if (b != null) System.Diagnostics.Debug.WriteLine(b.RawContent); };
                     c.Connect(point, false, new IrcUserRegistrationInfo()
                     {
                         UserName = Properties.Settings.Default.twitch_login,
@@ -53,7 +56,19 @@ namespace RoxorBot
         }
         public static void sendPrivateMessage(string user, string message)
         {
-            c.SendRawMessage("PRIVMSG #jtv :/w " + user + " " + message);
+            if (connected)
+                c.SendRawMessage("PRIVMSG #jtv :/w " + user + " " + message);
+        }
+        public static void disconnect()
+        {
+            try
+            {
+                connected = false;
+                c.Disconnect();
+            }
+            catch
+            {
+            }
         }
     }
 }

@@ -18,9 +18,9 @@ namespace RoxorBot
     /// <summary>
     /// Interaction logic for AddDialog.xaml
     /// </summary>
-    public partial class AddDialog : UserControl
+    public partial class AddFilterDialog : UserControl
     {
-        public AddDialog()
+        public AddFilterDialog()
         {
             InitializeComponent();
         }

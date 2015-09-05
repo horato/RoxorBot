@@ -43,11 +43,12 @@ namespace RoxorBot
 {
     public partial class MainWindow : MetroWindow
     {
-        private IrcClient c;
+        private StandardIrcClient c;
 
         private List<DateTime> queue;
         private System.Timers.Timer floodTimer;
         private System.Timers.Timer rewardTimer;
+        private System.Timers.Timer disconnectCheckTimer;
 
         private int timerReward = 100; //per 30m
 
@@ -85,6 +86,8 @@ namespace RoxorBot
             addToConsole("Loaded " + FilterManager.getInstance().getFiltersCount() + " filtered words from database.");
             FollowerManager.getInstance();
             addToConsole("Loaded " + FollowerManager.getInstance().getFollowersCount() + " followers.");
+            MessagesManager.getInstance().setReference(this);
+            addToConsole("Loaded " + MessagesManager.getInstance().getMessagesCount() + " messages from database.");
             addToConsole("Init finished.");
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
@@ -121,7 +124,6 @@ namespace RoxorBot
 
                     addToConsole("Loaded " + chatters.chatter_count + " online viewers.");
                 }
-
             }
             catch (Exception ee)
             {
@@ -132,7 +134,7 @@ namespace RoxorBot
             {
                 try
                 {
-                    c = new IrcClient();
+                    c = new StandardIrcClient();
                     var connectedEvent = new ManualResetEventSlim(false);
                     IPEndPoint point = new IPEndPoint(Dns.GetHostAddresses("irc.twitch.tv")[0], 6667);
 
@@ -141,7 +143,7 @@ namespace RoxorBot
                     c.RawMessageSent += (arg1, arg2) =>
                     {
                         if (arg2 != null)
-                            System.Diagnostics.Debug.WriteLine("sent " + arg2.Message.Command);
+                            System.Diagnostics.Debug.WriteLine("sent " + arg2.RawContent);
                         queue.Add(DateTime.Now);
                     };
                     c.Connect(point, false, new IrcUserRegistrationInfo()
@@ -187,6 +189,19 @@ namespace RoxorBot
                         Start_Button.IsEnabled = true;
                     }));
                     Whispers.connect();
+                    MessagesManager.getInstance().startAllTimers();
+                    disconnectCheckTimer = new System.Timers.Timer(2000);
+                    disconnectCheckTimer.AutoReset = false;
+                    disconnectCheckTimer.Elapsed += (a, b) =>
+                    {
+                        Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                            {
+                                Disconnect_Click(null, null);
+                                Connect_Click(null, null);
+                                if (Stop_Button.IsEnabled)
+                                    rewardTimer.Start();
+                            }));
+                    };
                 }
                 catch (Exception exc)
                 {
@@ -292,6 +307,14 @@ namespace RoxorBot
                     addToConsole("NOTICE RECEIVED: " + msg);
                 }
             }
+            else if (e.Message.Command == "PING")
+            {
+                c.SendRawMessage("PONG tmi.twitch.tv");
+            }
+            else if (e.Message.Command == "PONG")
+            {
+                disconnectCheckTimer.Stop();
+            }
         }
 
         private void handleMODE(IrcRawMessageEventArgs e)
@@ -381,6 +404,16 @@ namespace RoxorBot
                 else
                     sendChatMessage("はい, " + name + "さんはともです。");
             }
+            else if (e.Message.Parameters[1].StartsWith("!gettimer "))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                var u = UsersManager.getInstance().getUser(name);
+                if (u == null)
+                    sendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
+                else
+                    sendChatMessage(e.Message.Source.Name + ": " + u.Name + " has " + u.RewardTimer + " reward timer out of 30.");
+            }
         }
 
         public void sendChatMessage(string message)
@@ -396,6 +429,7 @@ namespace RoxorBot
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
             PointsManager.getInstance().save();
+            MessagesManager.getInstance().stoptAllTimers();
             if (floodTimer != null)
                 floodTimer.Stop();
             if (rewardTimer != null)
@@ -412,6 +446,7 @@ namespace RoxorBot
                 c.Disconnect();
             }
             catch (Exception exc) { MessageBox.Show(exc.ToString()); }
+            Whispers.disconnect();
         }
 
         private void MainWindow_OnListChanged()
@@ -440,6 +475,7 @@ namespace RoxorBot
         private void SettingsButton_OnClick(object sender, RoutedEventArgs e)
         {
             drawFilters();
+            drawMessages();
 
             MainGrid.Opacity = 0.1;
             MainGrid.IsEnabled = false;
@@ -457,7 +493,7 @@ namespace RoxorBot
         {
             SettingsGrid.Opacity = 0.5;
             SettingsGrid.IsEnabled = false;
-            var dialog = new AddDialog();
+            var dialog = new AddFilterDialog();
             dialog.AddButton.Click += (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(dialog.FilterWordBox.Text) ||
@@ -479,6 +515,58 @@ namespace RoxorBot
             };
             OverlayContainer.Content = dialog;
             OverlayContainer.Visibility = Visibility.Visible;
+        }
+
+        private void AddAutomatedMessage_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsGrid.Opacity = 0.5;
+            SettingsGrid.IsEnabled = false;
+            var dialog = new AddMessageDialog();
+            dialog.AddButton.Click += (a, b) =>
+            {
+                if (string.IsNullOrWhiteSpace(dialog.MessageBox.Text) ||
+                    string.IsNullOrWhiteSpace(dialog.IntervalBox.Text))
+                    return;
+                OverlayContainer.Visibility = Visibility.Hidden;
+                SettingsGrid.Opacity = 1;
+
+                MessagesManager.getInstance().addFilterWord(dialog.MessageBox.Text, int.Parse(dialog.IntervalBox.Text), (c != null && c.IsConnected));
+
+                drawMessages();
+                SettingsGrid.IsEnabled = true;
+            };
+            dialog.CancelButton.Click += (a, b) =>
+            {
+                OverlayContainer.Visibility = Visibility.Hidden;
+                SettingsGrid.Opacity = 1;
+                SettingsGrid.IsEnabled = true;
+            };
+            OverlayContainer.Content = dialog;
+            OverlayContainer.Visibility = Visibility.Visible;
+        }
+
+        private void AutomatedMessageDataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!(sender is DataGrid))
+                return;
+
+            var dg = (DataGrid)sender;
+            var msg = dg.SelectedItem as AutomatedMessage;
+            if (msg == null)
+                return;
+
+            if (Prompt.Ask("Do you wish to delete selected message?", "Delete"))
+            {
+                MessagesManager.getInstance().removeMessage(msg);
+                drawMessages();
+            }
+        }
+        private void drawMessages()
+        {
+            AutomatedMessagesDataGrid.Items.Clear();
+            var msgs = MessagesManager.getInstance().getAllMessages();
+            foreach (AutomatedMessage item in msgs)
+                AutomatedMessagesDataGrid.Items.Add(item);
         }
 
         private void drawFilters()
@@ -523,6 +611,7 @@ namespace RoxorBot
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             c.SendRawMessage("PING tmi.twitch.tv");
+            disconnectCheckTimer.Start();
         }
     }
 }

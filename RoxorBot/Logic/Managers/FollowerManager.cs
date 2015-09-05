@@ -49,8 +49,6 @@ namespace RoxorBot
             }
         }
 
-
-
         public static FollowerManager getInstance()
         {
             if (_instance == null)
