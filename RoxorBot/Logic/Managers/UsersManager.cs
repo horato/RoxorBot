@@ -64,7 +64,7 @@ namespace RoxorBot
                 return;
 
             u.isOnline = isOnline;
-            u.RewardTimer = 0;
+            //u.RewardTimer = 0;
         }
 
         public List<User> getAllUsers()

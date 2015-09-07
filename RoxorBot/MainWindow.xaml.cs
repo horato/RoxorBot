@@ -38,6 +38,7 @@ using RoxorBot.Model;
 using System.Text.RegularExpressions;
 using RoxorBot.Model.JSON;
 using System.Reflection;
+using System.Net.Sockets;
 
 namespace RoxorBot
 {
@@ -50,6 +51,7 @@ namespace RoxorBot
         private System.Timers.Timer rewardTimer;
         private System.Timers.Timer disconnectCheckTimer;
 
+        private int floodTicksElapsed = 0;
         private int timerReward = 100; //per 30m
 
         private delegate void ListChanged();
@@ -164,14 +166,24 @@ namespace RoxorBot
                     floodTimer.AutoReset = true;
                     floodTimer.Elapsed += (arg1, arg2) =>
                     {
+                        floodTicksElapsed++;
+                        if (!disconnectCheckTimer.Enabled && floodTicksElapsed > 15)
+                        {
+                            floodTicksElapsed = 0;
+                            disconnectCheckTimer.Start();
+                            c.SendRawMessage("PING tmi.twitch.tv");
+                        }
                         Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                List<DateTime> temp = new List<DateTime>();
-                                foreach (var item in queue)
-                                    temp.Add(item);
-                                foreach (var item in temp)
-                                    if (item.AddSeconds(30) < DateTime.Now)
-                                        queue.Remove(item);
+                                lock (queue)
+                                {
+                                    List<DateTime> temp = new List<DateTime>();
+                                    foreach (var item in queue)
+                                        temp.Add(item);
+                                    foreach (var item in temp)
+                                        if (item.AddSeconds(30) < DateTime.Now)
+                                            queue.Remove(item);
+                                }
                             }));
                     };
                     floodTimer.Start();
@@ -186,16 +198,21 @@ namespace RoxorBot
                         tbStatus.Text = "Connected";
 
                         Disconnect_Button.IsEnabled = true;
-                        Start_Button.IsEnabled = true;
+                        if (!Stop_Button.IsEnabled)
+                            Start_Button.IsEnabled = true;
                     }));
                     Whispers.connect();
                     MessagesManager.getInstance().startAllTimers();
-                    disconnectCheckTimer = new System.Timers.Timer(2000);
+
+                    if (!(disconnectCheckTimer == null))
+                        return;
+                    disconnectCheckTimer = new System.Timers.Timer(5000);
                     disconnectCheckTimer.AutoReset = false;
                     disconnectCheckTimer.Elapsed += (a, b) =>
                     {
                         Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
+                                addToConsole("Chat blocked, reconnecting...");
                                 Disconnect_Click(null, null);
                                 Connect_Click(null, null);
                                 if (Stop_Button.IsEnabled)
@@ -207,7 +224,10 @@ namespace RoxorBot
                 {
                     MessageBox.Show(exc.ToString());
                     System.Diagnostics.Debug.WriteLine(exc.ToString());
-                    Connect_Button.IsEnabled = true;
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        Connect_Button.IsEnabled = true;
+                    }));
                 }
             }).Start();
         }
@@ -432,13 +452,9 @@ namespace RoxorBot
             MessagesManager.getInstance().stoptAllTimers();
             if (floodTimer != null)
                 floodTimer.Stop();
-            if (rewardTimer != null)
-                rewardTimer.Stop();
 
             Disconnect_Button.IsEnabled = false;
             Connect_Button.IsEnabled = true;
-            Stop_Button.IsEnabled = false;
-            Start_Button.IsEnabled = true;
 
             try
             {
