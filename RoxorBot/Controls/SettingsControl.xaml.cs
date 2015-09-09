@@ -1,0 +1,82 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace RoxorBot
+{
+    /// <summary>
+    /// Interaction logic for SettingsControl.xaml
+    /// </summary>
+    public partial class SettingsControl : UserControl
+    {
+        public SettingsControl()
+        {
+            InitializeComponent();
+            if (Properties.Settings.Default.timerReward != null)
+                TimerRewardTextBox.Text = Properties.Settings.Default.timerReward.ToString();
+            if (Properties.Settings.Default.twitch_login != null)
+                TwitchLoginTextBox.Text = Properties.Settings.Default.twitch_login;
+
+            var button = new Button();
+            button.Content = "Show Password";
+            button.Click += (a, b) =>
+            {
+                if (Prompt.Ask("Are you sure?", "Neukazuj to na strimu pyčo."))
+                {
+                    if (Properties.Settings.Default.twitch_oauth != null)
+                        renderOauth();
+                    else
+                        TwitchPasswordContentControl.Content = "";
+                }
+            };
+            TwitchPasswordContentControl.Content = button;
+        }
+
+        private void renderOauth()
+        {
+            var textbox = new TextBox();
+            textbox.BorderThickness = new Thickness(0);
+            textbox.Background = System.Windows.Media.Brushes.Transparent;
+            textbox.Text = Properties.Settings.Default.twitch_oauth;
+            textbox.KeyUp += textbox_KeyUp;
+            TwitchPasswordContentControl.Content = textbox;
+        }
+
+        private void TimerRewardTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !Char.IsNumber(Convert.ToChar(e.Text));
+        }
+
+        private void TimerRewardTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            e.Handled = (e.Key == Key.Space);
+        }
+
+        private void TimerRewardTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            Properties.Settings.Default.timerReward = int.Parse(TimerRewardTextBox.Text);
+        }
+
+        void textbox_KeyUp(object sender, KeyEventArgs e)
+        {
+            Properties.Settings.Default.twitch_oauth = ((TextBox)sender).Text;
+        }
+
+        private void TwitchLogin_KeyUp(object sender, KeyEventArgs e)
+        {
+            Properties.Settings.Default.twitch_login = ((TextBox)sender).Text;
+        }
+
+    }
+}

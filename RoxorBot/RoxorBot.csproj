@@ -109,11 +109,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AddMessageDialog.xaml.cs">
+    <Compile Include="Controls\AddMessageDialog.xaml.cs">
       <DependentUpon>AddMessageDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AddFilterDialog.xaml.cs">
+    <Compile Include="Controls\AddFilterDialog.xaml.cs">
       <DependentUpon>AddFilterDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SettingsControl.xaml.cs">
+      <DependentUpon>SettingsControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Logic\Managers\DatabaseManager.cs" />
     <Compile Include="Logic\Managers\FilterManager.cs" />
@@ -141,11 +144,15 @@
     <Compile Include="Model\User.cs" />
     <Compile Include="Logic\Managers\UsersManager.cs" />
     <Compile Include="Logic\Whispers.cs" />
-    <Page Include="AddMessageDialog.xaml">
+    <Page Include="Controls\AddMessageDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="AddFilterDialog.xaml">
+    <Page Include="Controls\AddFilterDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\SettingsControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

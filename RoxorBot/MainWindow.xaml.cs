@@ -39,6 +39,7 @@ using System.Text.RegularExpressions;
 using RoxorBot.Model.JSON;
 using System.Reflection;
 using System.Net.Sockets;
+using System.Windows.Media;
 
 namespace RoxorBot
 {
@@ -52,7 +53,7 @@ namespace RoxorBot
         private System.Timers.Timer disconnectCheckTimer;
 
         private int floodTicksElapsed = 0;
-        private int timerReward = 100; //per 30m
+        private int timerReward; //per 30m
 
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
@@ -67,14 +68,13 @@ namespace RoxorBot
             AppDomain.CurrentDomain.FirstChanceException += Logger.CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += Logger.CurrentDomain_UnhandledException;
             //var x = Regex.Match("http://www.twitch.tv/", @"^(https?://)?([\da-z.-]+).([a-z.]{2,6})([/\w .-]*)*/?$");
+            addToConsole("Initializing...");
 
             InitializeComponent();
-
             queue = new List<DateTime>();
-
             OnListChanged += MainWindow_OnListChanged;
+            timerReward = Properties.Settings.Default.timerReward;
 
-            addToConsole("Initializing...");
             new Thread(new ThreadStart(load)).Start();
         }
 
@@ -95,6 +95,7 @@ namespace RoxorBot
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 Connect_Button.IsEnabled = true;
+                SettingsButton.IsEnabled = true;
             }));
         }
 
@@ -173,18 +174,31 @@ namespace RoxorBot
                             disconnectCheckTimer.Start();
                             c.SendRawMessage("PING tmi.twitch.tv");
                         }
+
+                        lock (queue)
+                        {
+                            List<DateTime> temp = new List<DateTime>();
+                            foreach (var item in queue)
+                                temp.Add(item);
+                            foreach (var item in temp)
+                                if (item.AddSeconds(30) < DateTime.Now)
+                                    queue.Remove(item);
+                        }
                         Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            FloodQueueCount.Content = "Messages sent in last 30s: " + queue.Count;
+                            if (rewardTimer != null && rewardTimer.Enabled)
                             {
-                                lock (queue)
-                                {
-                                    List<DateTime> temp = new List<DateTime>();
-                                    foreach (var item in queue)
-                                        temp.Add(item);
-                                    foreach (var item in temp)
-                                        if (item.AddSeconds(30) < DateTime.Now)
-                                            queue.Remove(item);
-                                }
-                            }));
+                                TimerLabel.Foreground = new SolidColorBrush(Colors.Green);
+                                TimerLabel.Content = "Timer is running.";
+                            }
+                            else
+                            {
+                                TimerLabel.Foreground = new SolidColorBrush(Colors.Red);
+                                TimerLabel.Content = "Timer is not running.";
+                            }
+                        }));
+
                     };
                     floodTimer.Start();
 
@@ -239,7 +253,6 @@ namespace RoxorBot
             rewardTimer.Elapsed += (a, b) =>
             {
                 var users = UsersManager.getInstance().getAllUsers();
-                var changed = false;
 
                 foreach (User user in users)
                 {
@@ -253,18 +266,15 @@ namespace RoxorBot
                         {
                             user.RewardTimer = 0;
                             PointsManager.getInstance().addPoints(user.InternalName, timerReward);
-                            changed = true;
                             Whispers.sendPrivateMessage(user.InternalName, "You were awarded " + timerReward + " points for staying with us another 30 minutes.");
                         }
                     }
                 }
 
-                if (changed)
-                    PointsManager.getInstance().save();
-
                 addToConsole("Timer tick.");
             };
             rewardTimer.Start();
+
             Start_Button.IsEnabled = false;
             Stop_Button.IsEnabled = true;
         }
@@ -307,10 +317,10 @@ namespace RoxorBot
             }
             else if (e.Message.Command == "MODE")
                 handleMODE(e);
-            else if (e.Message.Command == "366" && e.Message.Parameters[2] == "End of /NAMES list")
-                sendChatMessage("ItsBoshyTime KAPOW Keepo");
+            //else if (e.Message.Command == "366" && e.Message.Parameters[2] == "End of /NAMES list")
+            //    sendChatMessage("ItsBoshyTime KAPOW Keepo");
             //else if(e.Message.Command == "PART" && e.Message.Source.Name.ToLower().Contains("roxork0bot"))
-            //   c.SendRawMessage("JOIN #roxork0");
+            //    c.SendRawMessage("JOIN #roxork0");
             else if (e.Message.Command == "NOTICE") //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
             {
                 if (e.Message.Parameters[1].ToLower().Contains("error logging in"))
@@ -325,6 +335,7 @@ namespace RoxorBot
                         if (!string.IsNullOrEmpty(s))
                             msg += s + ",";
                     addToConsole("NOTICE RECEIVED: " + msg);
+                    Logger.Log("NOTICE RECEIVED: " + msg);
                 }
             }
             else if (e.Message.Command == "PING")
@@ -441,6 +452,7 @@ namespace RoxorBot
             if (queue.Count > 90)
             {
                 addToConsole("Queue limit reached. Ignoring: " + message);
+                Logger.Log("Queue limit reached. Ignoring: " + message);
                 return;
             }
             c.SendRawMessage("PRIVMSG #roxork0 :" + message);
@@ -449,13 +461,17 @@ namespace RoxorBot
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
             PointsManager.getInstance().save();
-            MessagesManager.getInstance().stoptAllTimers();
+            MessagesManager.getInstance().stopAllTimers();
             if (floodTimer != null)
                 floodTimer.Stop();
 
+            if (!Stop_Button.IsEnabled)
+                Start_Button.IsEnabled = false;
             Disconnect_Button.IsEnabled = false;
             Connect_Button.IsEnabled = true;
 
+            FloodQueueCount.Content = 0;
+            
             try
             {
                 c.SendRawMessage("PART #roxork0");
@@ -492,6 +508,8 @@ namespace RoxorBot
         {
             drawFilters();
             drawMessages();
+            drawPoints();
+            SettingsContentControl.Content = new SettingsControl().Content;
 
             MainGrid.Opacity = 0.1;
             MainGrid.IsEnabled = false;
@@ -500,6 +518,7 @@ namespace RoxorBot
 
         private void CloseSettingsButton_OnClick(object sender, RoutedEventArgs e)
         {
+            Properties.Settings.Default.Save();
             MainGrid.Opacity = 1;
             MainGrid.IsEnabled = true;
             SettingsGrid.Visibility = Visibility.Hidden;
@@ -593,6 +612,15 @@ namespace RoxorBot
                 FilterListDataGrid.Items.Add(item);
         }
 
+        private void drawPoints()
+        {
+            PointsDataGrid.Items.Clear();
+            var msgs = UsersManager.getInstance().getAllUsers();
+            foreach (User item in msgs)
+                if (item.Points > 0)
+                    PointsDataGrid.Items.Add(item);
+        }
+
         private void FilterListDataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (!(sender is DataGrid))
@@ -610,16 +638,31 @@ namespace RoxorBot
             }
         }
 
+        private void PointsDataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            return;
+            //Todo
+            if (!(sender is DataGrid))
+                return;
+
+            var dg = (DataGrid)sender;
+            var filterItem = dg.SelectedItem as User;
+            if (filterItem == null)
+                return;
+        }
+
         public void addToConsole(string text)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 tbConsole.Text += "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text + Environment.NewLine;
+                tbConsole.ScrollToEnd();
             }));
         }
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
+            Properties.Settings.Default.Save();
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
         }

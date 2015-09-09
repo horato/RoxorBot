@@ -86,7 +86,7 @@ namespace RoxorBot
                 if (msg.timer != null)
                     msg.timer.Start();
         }
-        public void stoptAllTimers()
+        public void stopAllTimers()
         {
             foreach (var msg in messages.Values)
                 if (msg.timer != null)
