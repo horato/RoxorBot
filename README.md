@@ -1,4 +1,4 @@
-RoxorChatBot
+RoxorBot
 ============
 
 Twitch bot for http://www.twitch.tv/roxork0
