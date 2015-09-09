@@ -23,8 +23,7 @@ namespace RoxorBot
         public SettingsControl()
         {
             InitializeComponent();
-            if (Properties.Settings.Default.timerReward != null)
-                TimerRewardTextBox.Text = Properties.Settings.Default.timerReward.ToString();
+            TimerRewardTextBox.Text = Properties.Settings.Default.timerReward.ToString();
             if (Properties.Settings.Default.twitch_login != null)
                 TwitchLoginTextBox.Text = Properties.Settings.Default.twitch_login;
 
@@ -70,11 +69,17 @@ namespace RoxorBot
 
         void textbox_KeyUp(object sender, KeyEventArgs e)
         {
+            if (!(sender is TextBox))
+                return;
+
             Properties.Settings.Default.twitch_oauth = ((TextBox)sender).Text;
         }
 
         private void TwitchLogin_KeyUp(object sender, KeyEventArgs e)
         {
+            if (!(sender is TextBox))
+                return;
+
             Properties.Settings.Default.twitch_login = ((TextBox)sender).Text;
         }
 

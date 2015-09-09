@@ -13,11 +13,13 @@ namespace RoxorBot
         private static MessagesManager _instance;
         private Dictionary<string, AutomatedMessage> messages;
         private MainWindow mainWindow;
+        private bool isRunning;
 
         private MessagesManager()
         {
             Logger.Log("Initializing MessagesManager...");
             messages = loadFilters();
+            isRunning = false;
         }
 
         public static MessagesManager getInstance()
@@ -80,17 +82,26 @@ namespace RoxorBot
             return result;
         }
 
+        /// <summary>
+        /// Don't forget to change button's enabled status!
+        /// </summary>
         public void startAllTimers()
         {
             foreach (var msg in messages.Values)
                 if (msg.timer != null)
                     msg.timer.Start();
+            isRunning = true;
         }
+
+        /// <summary>
+        /// Don't forget to change button's enabled status!
+        /// </summary>
         public void stopAllTimers()
         {
             foreach (var msg in messages.Values)
                 if (msg.timer != null)
                     msg.timer.Stop();
+            isRunning = false;
         }
 
         public List<AutomatedMessage> getAllMessages()
@@ -101,6 +112,11 @@ namespace RoxorBot
         public int getMessagesCount()
         {
             return messages.Count;
+        }
+
+        public bool isActive()
+        {
+            return isRunning;
         }
 
         internal void setReference(MainWindow mainWindow)

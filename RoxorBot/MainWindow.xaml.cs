@@ -90,6 +90,7 @@ namespace RoxorBot
             addToConsole("Loaded " + FollowerManager.getInstance().getFollowersCount() + " followers.");
             MessagesManager.getInstance().setReference(this);
             addToConsole("Loaded " + MessagesManager.getInstance().getMessagesCount() + " messages from database.");
+            RaffleManager.getInstance().setReference(this);
             addToConsole("Init finished.");
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
@@ -147,7 +148,8 @@ namespace RoxorBot
                     {
                         if (arg2 != null)
                             System.Diagnostics.Debug.WriteLine("sent " + arg2.RawContent);
-                        queue.Add(DateTime.Now);
+                        lock (queue)
+                            queue.Add(DateTime.Now);
                     };
                     c.Connect(point, false, new IrcUserRegistrationInfo()
                         {
@@ -186,17 +188,7 @@ namespace RoxorBot
                         }
                         Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                         {
-                            FloodQueueCount.Content = "Messages sent in last 30s: " + queue.Count;
-                            if (rewardTimer != null && rewardTimer.Enabled)
-                            {
-                                TimerLabel.Foreground = new SolidColorBrush(Colors.Green);
-                                TimerLabel.Content = "Timer is running.";
-                            }
-                            else
-                            {
-                                TimerLabel.Foreground = new SolidColorBrush(Colors.Red);
-                                TimerLabel.Content = "Timer is not running.";
-                            }
+                            updateStatusLabels();
                         }));
 
                     };
@@ -207,6 +199,9 @@ namespace RoxorBot
 
                     c.SendRawMessage("JOIN #roxork0");
 
+                    Whispers.connect();
+                    MessagesManager.getInstance().startAllTimers();
+
                     Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
                     {
                         tbStatus.Text = "Connected";
@@ -214,9 +209,10 @@ namespace RoxorBot
                         Disconnect_Button.IsEnabled = true;
                         if (!Stop_Button.IsEnabled)
                             Start_Button.IsEnabled = true;
+                        RaffleButton.IsEnabled = true;
+                        AutomatedMessagesButton_Stop.IsEnabled = true;
+                        AutomatedMessagesButton_Start.IsEnabled = false;
                     }));
-                    Whispers.connect();
-                    MessagesManager.getInstance().startAllTimers();
 
                     if (!(disconnectCheckTimer == null))
                         return;
@@ -277,6 +273,7 @@ namespace RoxorBot
 
             Start_Button.IsEnabled = false;
             Stop_Button.IsEnabled = true;
+            updateStatusLabels();
         }
 
         private void Stop_Button_OnClick(object sender, RoutedEventArgs e)
@@ -284,6 +281,7 @@ namespace RoxorBot
             rewardTimer.Stop();
             Start_Button.IsEnabled = true;
             Stop_Button.IsEnabled = false;
+            updateStatusLabels();
         }
 
         void c_RawMessageReceived(object sender, IrcRawMessageEventArgs e)
@@ -468,17 +466,47 @@ namespace RoxorBot
             if (!Stop_Button.IsEnabled)
                 Start_Button.IsEnabled = false;
             Disconnect_Button.IsEnabled = false;
+            RaffleButton.IsEnabled = false;
             Connect_Button.IsEnabled = true;
 
+            AutomatedMessagesButton_Stop.IsEnabled = false;
+            AutomatedMessagesButton_Start.IsEnabled = false;
+            updateStatusLabels();
+
             FloodQueueCount.Content = 0;
-            
+
             try
             {
                 c.SendRawMessage("PART #roxork0");
                 c.Disconnect();
             }
-            catch (Exception exc) { MessageBox.Show(exc.ToString()); }
+            catch (Exception) { }
             Whispers.disconnect();
+        }
+
+        private void updateStatusLabels()
+        {
+            FloodQueueCount.Content = "Messages sent in last 30s: " + queue.Count;
+            if (rewardTimer != null && rewardTimer.Enabled)
+            {
+                TimerLabel.Foreground = new SolidColorBrush(Colors.Green);
+                TimerLabel.Content = "Timer is running.";
+            }
+            else
+            {
+                TimerLabel.Foreground = new SolidColorBrush(Colors.Red);
+                TimerLabel.Content = "Timer is not running.";
+            }
+            if (MessagesManager.getInstance().isActive())
+            {
+                AutomatedMessagesLabel.Foreground = new SolidColorBrush(Colors.Green);
+                AutomatedMessagesLabel.Content = "Automated messages are being sent.";
+            }
+            else
+            {
+                AutomatedMessagesLabel.Foreground = new SolidColorBrush(Colors.Red);
+                AutomatedMessagesLabel.Content = "Automated messages are stopped.";
+            }
         }
 
         private void MainWindow_OnListChanged()
@@ -671,6 +699,38 @@ namespace RoxorBot
         {
             c.SendRawMessage("PING tmi.twitch.tv");
             disconnectCheckTimer.Start();
+        }
+
+        private void RaffleButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainGrid.Opacity = 0.5;
+            MainGrid.IsEnabled = false;
+            var raffle = new RaffleWindow();
+            raffle.CloseButton.Click += (a, b) =>
+            {
+                RaffleManager.getInstance().OnUIClosing();
+                OverlayContainer.Visibility = Visibility.Hidden;
+                MainGrid.Opacity = 1;
+                MainGrid.IsEnabled = true;
+            };
+            OverlayContainer.Content = raffle;
+            OverlayContainer.Visibility = Visibility.Visible;
+        }
+
+        private void AutomatedMessagesButton_Start_Click(object sender, RoutedEventArgs e)
+        {
+            MessagesManager.getInstance().startAllTimers();
+            AutomatedMessagesButton_Stop.IsEnabled = true;
+            AutomatedMessagesButton_Start.IsEnabled = false;
+            updateStatusLabels();
+        }
+
+        private void AutomatedMessagesButton_Stop_Click(object sender, RoutedEventArgs e)
+        {
+            MessagesManager.getInstance().stopAllTimers();
+            AutomatedMessagesButton_Stop.IsEnabled = false;
+            AutomatedMessagesButton_Start.IsEnabled = true;
+            updateStatusLabels();
         }
     }
 }

@@ -10,12 +10,16 @@
             <Button x:Name="Disconnect_Button" Content="Disconnect" IsEnabled="False" HorizontalAlignment="Left" Margin="135,23,0,0" VerticalAlignment="Top" Width="120" Click="Disconnect_Click" Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="Start_Button" Content="Start timer" IsEnabled="False" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="120" Click="Start_Button_OnClick" Background="Black" Foreground="White"/>
             <Button x:Name="Stop_Button" Content="Stop timer" HorizontalAlignment="Left" Margin="135,179,0,0" VerticalAlignment="Top" Width="120" Click="Stop_Button_OnClick" IsEnabled="False" Foreground="#FFF9F9F9" Background="Black"/>
+            <Button x:Name="AutomatedMessagesButton_Start" Content="Start sending" IsEnabled="False" HorizontalAlignment="Left" Margin="10,209,0,0" VerticalAlignment="Top" Width="120" Click="AutomatedMessagesButton_Start_Click" Background="Black" Foreground="White"/>
+            <Button x:Name="AutomatedMessagesButton_Stop" Content="Stop sending" HorizontalAlignment="Left" Margin="135,209,0,0" VerticalAlignment="Top" Width="120" Click="AutomatedMessagesButton_Stop_Click" IsEnabled="False" Foreground="#FFF9F9F9" Background="Black"/>
+            <Button x:Name="RaffleButton" Content="Open Raffle Menu" HorizontalAlignment="Left" Margin="10,239,0,0" VerticalAlignment="Top" Width="120" Click="RaffleButton_Click"  IsEnabled="False" Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="SettingsButton" Content="Settings" IsEnabled="False" HorizontalAlignment="Left" Margin="528,573,0,0" VerticalAlignment="Top" Width="120" Click="SettingsButton_OnClick"  Foreground="#FFF9F9F9" Background="Black"/>
             <TextBox x:Name="tbConsole" IsReadOnly="True" HorizontalAlignment="Left" Height="121" Margin="10,53,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="638" BorderThickness="3" VerticalScrollBarVisibility="Visible"/>
             <ListView x:Name="UsersListView" HorizontalAlignment="Left" Height="369" Margin="467,179,0,0" VerticalAlignment="Top" Width="181" />
             <Button Content="Button" Visibility="Hidden" HorizontalAlignment="Left" Margin="448,573,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
             <Label Content="Messages sent in last 30s: 0" x:Name="FloodQueueCount" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="467,10,0,0" VerticalAlignment="Top" Height="38" Width="191"/>
             <Label Content="Timer is not running." Foreground="Red" x:Name="TimerLabel" HorizontalAlignment="Left" Margin="269,179,0,0" VerticalAlignment="Top" Width="193"/>
+            <Label Content="Automated messages are stopped." Foreground="Red" x:Name="AutomatedMessagesLabel" HorizontalAlignment="Left" Margin="269,208,0,0" VerticalAlignment="Top" Width="193"/>
         </Grid>
         <Grid x:Name="SettingsGrid" Margin="-10,48,10,162" Visibility="Hidden">
             <TabControl Margin="0,-27,0,-19">

@@ -30,7 +30,7 @@ namespace RoxorBot
                 string user = e.Message.Source.Name;
                 mainWindow.sendChatMessage(user + ": You have " + getPointsForUser(user) + " points.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && e.Message.Source.Name.ToLower() == "roxork0")
+            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && (e.Message.Source.Name.ToLower() == "roxork0" || e.Message.Source.Name.ToLower() == "horato2"))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();
@@ -40,8 +40,9 @@ namespace RoxorBot
                     return;
 
                 addPoints(name, value);
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
             }
-            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && e.Message.Source.Name.ToLower() == "roxork0")
+            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && (e.Message.Source.Name.ToLower() == "roxork0" || e.Message.Source.Name.ToLower() == "horato2"))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();
@@ -54,7 +55,7 @@ namespace RoxorBot
                 {
                     removePoints(name, value);
 
-                    mainWindow.sendChatMessage(e.Message.Source.Name + " subtracted " + value + " points from " + name + ". " + name + " now has " + getPointsForUser(name) + " points.");
+                    mainWindow.sendChatMessage(e.Message.Source.Name + " Subtracted " + value + " points from " + name + ". " + name + " now has " + getPointsForUser(name) + " points.");
                 }
             }
         }

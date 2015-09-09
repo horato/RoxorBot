@@ -123,6 +123,7 @@
     <Compile Include="Logic\Log.cs" />
     <Compile Include="Logic\Managers\FollowerManager.cs" />
     <Compile Include="Logic\Managers\MessagesManager.cs" />
+    <Compile Include="Logic\Managers\RaffleManager.cs" />
     <Compile Include="Model\AutomatedMessage.cs" />
     <Compile Include="Model\FilterItem.cs" />
     <Compile Include="Model\JSON\ChannelInfo.cs" />
@@ -144,6 +145,9 @@
     <Compile Include="Model\User.cs" />
     <Compile Include="Logic\Managers\UsersManager.cs" />
     <Compile Include="Logic\Whispers.cs" />
+    <Compile Include="RaffleWindow.xaml.cs">
+      <DependentUpon>RaffleWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="Controls\AddMessageDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -169,6 +173,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="RaffleWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
