@@ -39,6 +39,13 @@
                                 <DataGridTextColumn Header="Added by" Binding="{Binding Path=addedBy}" Width="100" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="is Regex" Binding="{Binding Path=isRegex}" Width="*" IsReadOnly="True"/>
                             </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
+                                    <MenuItem Header="Edit" Click="EditFilterMenuItem_Click"/>
+                                    <MenuItem Header="Remove" Click="RemoveFilterMenuItem_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                         </DataGrid>
                         <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
                     </Grid>
@@ -50,6 +57,13 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="553" IsReadOnly="True"/>
                             </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
+                                    <MenuItem Header="Edit" Click="EditWhitelistMenuItem_Click"/>
+                                    <MenuItem Header="Remove" Click="RemoveWhitelistMenuItem_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                         </DataGrid>
                         <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
                     </Grid>
@@ -69,6 +83,13 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add" Click="AddMessageMenuItem_Click"/>
+                                    <MenuItem Header="Edit" Click="EditMessageMenuItem_Click"/>
+                                    <MenuItem Header="Remove" Click="RemoveMessageMenuItem_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                         </DataGrid>
                         <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddAutomatedMessage_Click"/>
                     </Grid>

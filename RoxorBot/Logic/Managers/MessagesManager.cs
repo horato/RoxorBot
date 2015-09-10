@@ -29,18 +29,22 @@ namespace RoxorBot
             return _instance;
         }
 
-        public void addFilterWord(string msg, int interval, bool start)
+        public void addAutomatedMessage(string msg, int interval, bool start)
         {
-            var message = new AutomatedMessage();
+            var message = getMessage(msg);
+            if (message == null)
+            {
+                message = new AutomatedMessage();
+                message.timer = new System.Timers.Timer(interval * 60 * 1000);
+                message.active = true;
+                if (start)
+                    message.timer.Start();
+                fillTimer(message.timer, msg);
+                messages.Add(msg, message);
+            }
             message.message = msg;
             message.interval = interval;
-            message.timer = new System.Timers.Timer(interval * 60 * 1000);
-            message.active = true;
-            fillTimer(message.timer, msg);
-            if (start)
-                message.timer.Start();
             DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (message, interval, enabled) VALUES ('" + msg + "', " + interval + ", 1);");
-            messages.Add(msg, message);
         }
 
         private void fillTimer(System.Timers.Timer timer, string message)
@@ -111,7 +115,19 @@ namespace RoxorBot
 
         public List<AutomatedMessage> getAllMessages()
         {
-            return messages.Values.ToList();
+            lock (messages)
+                return messages.Values.ToList();
+        }
+
+        public AutomatedMessage getMessage(string msg)
+        {
+            lock (messages)
+            {
+                if (messages.ContainsKey(msg))
+                    return messages[msg];
+                else
+                    return null;
+            }
         }
 
         public int getMessagesCount()

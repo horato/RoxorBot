@@ -76,14 +76,32 @@ namespace RoxorBot
 
         public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
         {
-            Filters.Add(new FilterItem { word = word, duration = banDuration.ToString(), addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
-            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+            lock (Filters)
+            {
+                if (filterExists(word))
+                {
+                    var filter = getFilter(word);
+                    filter.word = word;
+                    filter.addedBy = addedBy;
+                    filter.duration = banDuration.ToString();
+                    filter.isRegex = isRegex;
+                    filter.isWhitelist = isWhitelist;
+                }
+                else
+                {
+                    Filters.Add(new FilterItem { word = word, duration = banDuration.ToString(), addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
+                }
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+            }
         }
 
         public void removeFilterWord(string word)
         {
-            Filters.RemoveAll(x => x.word == word);
-            DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE word==\"" + word + "\";");
+            lock (Filters)
+            {
+                Filters.RemoveAll(x => x.word == word);
+                DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE word==\"" + word + "\";");
+            }
         }
 
         private bool checkFilter(IrcRawMessageEventArgs e)

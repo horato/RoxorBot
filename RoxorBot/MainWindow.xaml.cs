@@ -585,11 +585,8 @@ namespace RoxorBot
 
                 var isWhitelist = (bool)dialog.IsWhitelistCheckBox.IsChecked.Value;
                 FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, int.Parse(dialog.DurationBox.Text), "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist);
-
-                if (isWhitelist)
-                    drawWhitelist();
-                else
-                    drawFilters();
+                drawWhitelist();
+                drawFilters();
                 SettingsGrid.IsEnabled = true;
             };
             dialog.CancelButton.Click += (a, b) =>
@@ -598,6 +595,18 @@ namespace RoxorBot
                 SettingsGrid.Opacity = 1;
                 SettingsGrid.IsEnabled = true;
             };
+            if (sender != null && sender is DataGrid)
+            {
+                var grid = sender as DataGrid;
+                var selectedItem = grid.SelectedItem as FilterItem;
+                if (selectedItem != null)
+                {
+                    dialog.FilterWordBox.Text = selectedItem.word;
+                    dialog.DurationBox.Text = selectedItem.duration;
+                    dialog.IsRegexCheckBox.IsChecked = selectedItem.isRegex;
+                    dialog.IsWhitelistCheckBox.IsChecked = selectedItem.isWhitelist;
+                }
+            }
             OverlayContainer.Content = dialog;
             OverlayContainer.Visibility = Visibility.Visible;
         }
@@ -615,7 +624,7 @@ namespace RoxorBot
                 OverlayContainer.Visibility = Visibility.Hidden;
                 SettingsGrid.Opacity = 1;
 
-                MessagesManager.getInstance().addFilterWord(dialog.MessageBox.Text, int.Parse(dialog.IntervalBox.Text), (c != null && c.IsConnected));
+                MessagesManager.getInstance().addAutomatedMessage(dialog.MessageBox.Text, int.Parse(dialog.IntervalBox.Text), (c != null && c.IsConnected));
 
                 drawMessages();
                 SettingsGrid.IsEnabled = true;
@@ -626,6 +635,16 @@ namespace RoxorBot
                 SettingsGrid.Opacity = 1;
                 SettingsGrid.IsEnabled = true;
             };
+            if(sender != null && sender is DataGrid)
+            {
+                var grid = sender as DataGrid;
+                var msg = grid.SelectedItem as AutomatedMessage;
+                if (msg != null)
+                {
+                    dialog.MessageBox.Text = msg.message;
+                    dialog.IntervalBox.Text = msg.interval.ToString();
+                }
+            }
             OverlayContainer.Content = dialog;
             OverlayContainer.Visibility = Visibility.Visible;
         }
@@ -659,7 +678,8 @@ namespace RoxorBot
             FilterListDataGrid.Items.Clear();
             var filters = FilterManager.getInstance().getAllFilters(FilterMode.All);
             foreach (FilterItem item in filters)
-                FilterListDataGrid.Items.Add(item);
+                if (!item.isWhitelist)
+                    FilterListDataGrid.Items.Add(item);
         }
 
         private void drawWhitelist()
@@ -667,7 +687,8 @@ namespace RoxorBot
             WhitelistDataGrid.Items.Clear();
             var filters = FilterManager.getInstance().getAllFilters(FilterMode.Whitelist);
             foreach (FilterItem item in filters)
-                WhitelistDataGrid.Items.Add(item);
+                if (item.isWhitelist)
+                    WhitelistDataGrid.Items.Add(item);
         }
 
         private void drawPoints()
@@ -692,10 +713,8 @@ namespace RoxorBot
             if (Prompt.Ask("Do you wish to delete " + filterItem.word + "?", "Delete"))
             {
                 FilterManager.getInstance().removeFilterWord(filterItem.word);
-                if (filterItem.isWhitelist)
-                    drawWhitelist();
-                else
-                    drawFilters();
+                drawWhitelist();
+                drawFilters();
             }
         }
 
@@ -764,6 +783,44 @@ namespace RoxorBot
             AutomatedMessagesButton_Stop.IsEnabled = false;
             AutomatedMessagesButton_Start.IsEnabled = true;
             updateStatusLabels();
+        }
+
+        private void AddFilterMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddFilterButton_Click(null, null);
+        }
+
+        private void EditFilterMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddFilterButton_Click(FilterListDataGrid, null);
+        }
+
+        private void RemoveFilterMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            FilterListDataGrid_OnMouseDoubleClick(FilterListDataGrid, null);
+        }
+        private void EditWhitelistMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddFilterButton_Click(WhitelistDataGrid, null);
+        }
+
+        private void RemoveWhitelistMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            FilterListDataGrid_OnMouseDoubleClick(WhitelistDataGrid, null);
+        }
+        private void AddMessageMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddAutomatedMessage_Click(null, null);
+        }
+
+        private void EditMessageMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddAutomatedMessage_Click(AutomatedMessagesDataGrid, null);
+        }
+
+        private void RemoveMessageMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AutomatedMessageDataGrid_OnMouseDoubleClick(AutomatedMessagesDataGrid, null);
         }
     }
 }
