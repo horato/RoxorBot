@@ -14,9 +14,10 @@ namespace RoxorBot
         private bool isFollowersOnly;
         private int entryPointsRequired;
         private bool isRunning;
-        private List<string> words;
+        private List<string> acceptedWords;
         private List<User> users;
         private bool winnerSelected;
+        private string raffleName;
 
         private RaffleManager()
         {
@@ -25,7 +26,8 @@ namespace RoxorBot
             isFollowersOnly = false;
             isRunning = false;
             winnerSelected = false;
-            words = new List<string>() { "!raffle", "!join", "prdel" };
+            raffleName = "";
+            acceptedWords = new List<string>() { "!raffle", "!join" };
             users = new List<User>();
 
             MainWindow.ChatMessageReceived += mainWindow_ChatMessageReceived;
@@ -33,10 +35,10 @@ namespace RoxorBot
 
         private void mainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
         {
-            if (!isRunning)
+            if (!isRunning || (e.Message.Source.Name.ToLower() == Properties.Settings.Default.twitch_login.ToLower()))
                 return;
 
-            if (words.Contains(e.Message.Parameters[1].ToLower()))
+            if (acceptedWords.Contains(e.Message.Parameters[1]))
             {
                 var user = UsersManager.getInstance().getUser(e.Message.Source.Name);
 
@@ -51,7 +53,7 @@ namespace RoxorBot
 
                 PointsManager.getInstance().removePoints(user.InternalName, entryPointsRequired);
                 users.Add(user);
-                Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You now have " + user.Points + " points remaining.");
+                Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
             }
         }
 
@@ -71,7 +73,7 @@ namespace RoxorBot
         {
             isRunning = true;
             winnerSelected = false;
-            mainWindow.sendChatMessage("Raffle started with a " + entryPointsRequired + " points " + (isFollowersOnly ? "and followers only" : "") + " entry requirement. There is/are " + words.Count + " accepted word(s).");
+            mainWindow.sendChatMessage("Raffle " + raffleName + " started with a " + entryPointsRequired + " points " + (isFollowersOnly ? "and followers only" : "") + " entry requirement. There is/are " + acceptedWords.Count + " accepted word(s).");
         }
 
         internal void StopRaffle()
@@ -125,7 +127,24 @@ namespace RoxorBot
                 }
             }
             winnerSelected = false;
+            raffleName = "";
             users.Clear();
+        }
+
+        public void setRaffleName(string name)
+        {
+            raffleName = name;
+        }
+
+        public void setAcceptedWords(string words)
+        {
+            acceptedWords.Clear();
+            if (string.IsNullOrEmpty(words))
+                return;
+
+            var split = words.Split(';');
+            foreach (var s in split)
+                acceptedWords.Add(s);
         }
     }
 }

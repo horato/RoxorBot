@@ -43,13 +43,31 @@
                         <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
                     </Grid>
                 </TabItem>
+                <TabItem Header="Whitelist" Margin="75,72,-75,-72">
+                    <Grid>
+                        <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
+                        <DataGrid x:Name="WhitelistDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="FilterListDataGrid_OnMouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="553" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
+                    </Grid>
+                </TabItem>
                 <TabItem Header="Messages" Margin="75,72,-75,-72">
                     <Grid>
                         <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                        <DataGrid x:Name="AutomatedMessagesDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="AutomatedMessageDataGrid_OnMouseDoubleClick">
+                        <DataGrid x:Name="AutomatedMessagesDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="AutomatedMessageDataGrid_OnMouseDoubleClick" SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Message" Binding="{Binding Path=message}" Width="440" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Timer" Binding="{Binding Path=interval}" Width="113" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Message" Binding="{Binding Path=message}" Width="350" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Timer" Binding="{Binding Path=interval}" Width="100" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Enabled" Width="103">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding active, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                         <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddAutomatedMessage_Click"/>

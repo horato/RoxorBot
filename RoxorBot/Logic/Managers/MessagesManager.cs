@@ -18,7 +18,7 @@ namespace RoxorBot
         private MessagesManager()
         {
             Logger.Log("Initializing MessagesManager...");
-            messages = loadFilters();
+            messages = loadMessages();
             isRunning = false;
         }
 
@@ -34,11 +34,12 @@ namespace RoxorBot
             var message = new AutomatedMessage();
             message.message = msg;
             message.interval = interval;
-            message.timer = new System.Timers.Timer(interval*60*1000);
+            message.timer = new System.Timers.Timer(interval * 60 * 1000);
+            message.active = true;
             fillTimer(message.timer, msg);
-            if(start)
+            if (start)
                 message.timer.Start();
-            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (message, interval) VALUES ('" + msg + "', " + interval + ");");
+            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (message, interval, enabled) VALUES ('" + msg + "', " + interval + ", 1);");
             messages.Add(msg, message);
         }
 
@@ -47,7 +48,8 @@ namespace RoxorBot
             timer.AutoReset = true;
             timer.Elapsed += (a, b) =>
             {
-                mainWindow.sendChatMessage(message);
+                if (isRunning && messages[message].active)
+                    mainWindow.sendChatMessage(message);
             };
         }
 
@@ -58,7 +60,8 @@ namespace RoxorBot
             messages.Remove(msg.message);
             DatabaseManager.getInstance().executeNonQuery("DELETE FROM messages WHERE message='" + msg.message + "';");
         }
-        private Dictionary<string, AutomatedMessage> loadFilters()
+
+        private Dictionary<string, AutomatedMessage> loadMessages()
         {
             Dictionary<string, AutomatedMessage> result = new Dictionary<string, AutomatedMessage>();
             SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM messages;");
@@ -67,13 +70,15 @@ namespace RoxorBot
             {
                 var msg = (string)reader["message"];
                 var interval = (int)reader["interval"];
-                var timer = new System.Timers.Timer(interval*60*1000);
+                var timer = new System.Timers.Timer(interval * 60 * 1000);
+                var enabled = (bool)reader["enabled"];
                 fillTimer(timer, msg);
                 result.Add(msg, new AutomatedMessage
                 {
                     message = msg,
                     interval = interval,
-                    timer = timer
+                    timer = timer,
+                    active = enabled
                 });
             }
 

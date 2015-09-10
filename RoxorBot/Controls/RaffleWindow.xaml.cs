@@ -44,6 +44,8 @@ namespace RoxorBot
             PointsRequiredTextBox.IsEnabled = false;
             FollowersOnlyCheckbox.IsEnabled = false;
             PickWinnerButton.IsEnabled = false;
+            RaffleNameTextBox.IsEnabled = false;
+            AcceptedWordsTextBox.IsEnabled = false;
             RaffleManager.getInstance().StartRaffle();
             isRunning = true;
         }
@@ -55,6 +57,8 @@ namespace RoxorBot
             PointsRequiredTextBox.IsEnabled = true;
             FollowersOnlyCheckbox.IsEnabled = true;
             PickWinnerButton.IsEnabled = true;
+            RaffleNameTextBox.IsEnabled = true;
+            AcceptedWordsTextBox.IsEnabled = true;
             RaffleManager.getInstance().StopRaffle();
             isRunning = false;
         }
@@ -78,6 +82,18 @@ namespace RoxorBot
         {
             if (!isRunning)
                 RaffleManager.getInstance().setPointsRequired(int.Parse(PointsRequiredTextBox.Text));
+        }
+
+        private void RaffleNameTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!isRunning)
+                RaffleManager.getInstance().setRaffleName(RaffleNameTextBox.Text);
+        }
+
+        private void AcceptedWordsTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!isRunning)
+                RaffleManager.getInstance().setAcceptedWords(AcceptedWordsTextBox.Text);
         }
     }
 }

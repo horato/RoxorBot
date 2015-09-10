@@ -28,8 +28,8 @@ namespace RoxorBot
                 dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
                 dbConnection.Open();
                 new SQLiteCommand("CREATE TABLE points (name VARCHAR(64) PRIMARY KEY, score INT);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE filters (word TEXT PRIMARY KEY, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT false);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE messages (message TEXT PRIMARY KEY, interval INT);", dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE filters (word TEXT PRIMARY KEY, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE messages (message TEXT PRIMARY KEY, interval INT, 'enabled' BOOL DEFAULT 1);", dbConnection).ExecuteNonQuery();
                 new SQLiteCommand("CREATE TABLE allowedUsers (name VARCHAR(64) PRIMARY KEY, allowed BOOL);", dbConnection).ExecuteNonQuery();
             }
             else

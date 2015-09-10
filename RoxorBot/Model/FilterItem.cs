@@ -12,5 +12,6 @@ namespace RoxorBot.Model
         public string duration { get; set; }
         public string addedBy { get; set; }
         public bool isRegex { get; set; }
+        public bool isWhitelist { get; set; }
     }
 }

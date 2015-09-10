@@ -41,7 +41,8 @@ namespace RoxorBot
                     word = (string)reader["word"],
                     duration = (string)reader["duration"],
                     addedBy = (string)reader["addedBy"],
-                    isRegex = (bool)reader["isRegex"]
+                    isRegex = (bool)reader["isRegex"],
+                    isWhitelist = (bool)reader["isWhitelist"]
                 });
 
             Logger.Log("Loaded " + result.Count + " filters from database.");
@@ -73,10 +74,10 @@ namespace RoxorBot
             return Filters.Any(x => x.word == word);
         }
 
-        public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex)
+        public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
         {
-            Filters.Add(new FilterItem { word = word, duration = banDuration.ToString(), addedBy = addedBy, isRegex = isRegex });
-            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ");");
+            Filters.Add(new FilterItem { word = word, duration = banDuration.ToString(), addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
+            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
         }
 
         public void removeFilterWord(string word)
@@ -87,19 +88,34 @@ namespace RoxorBot
 
         private bool checkFilter(IrcRawMessageEventArgs e)
         {
-            var exists = Filters.Any(x => e.Message.Parameters[1].ToLower().Contains(x.word.ToLower()));
+            if (isAdminOrAllowed(e.Message.Source.Name.ToLower()))
+                return false;
+
+            var items = Filters.FindAll(x => e.Message.Parameters[1].ToLower().Contains(x.word.ToLower()));
+            var exists = (items != null && items.Count > 0);
+            if (exists && items.Any(x => x.isWhitelist))
+                return false;
+
             if (!exists)
             {
                 var temp = Filters.FindAll(x => x.isRegex);
+                var toCheck = new List<FilterItem>();
+
                 foreach (var filter in temp)
                     if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
-                        exists = true;
+                        toCheck.Add(filter);
+
+                if (toCheck.Count > 0 && toCheck.Any(x => x.isWhitelist))
+                    return false;
+
+                exists = toCheck.Count > 0;
             }
-            return exists && !isAdminOrAllowed(e.Message.Source.Name.ToLower());
+            return exists;
         }
 
         private bool isAdminOrAllowed(string user)
         {
+            return false;
             return UsersManager.getInstance().isAdmin(user) || UsersManager.getInstance().isAllowed(user);
         }
 
@@ -111,18 +127,23 @@ namespace RoxorBot
         public List<FilterItem> getAllFilters(FilterMode mode)
         {
             List<FilterItem> result = new List<FilterItem>();
-
-            switch (mode)
+            lock (Filters)
             {
-                case FilterMode.All:
-                    result.AddRange(Filters);
-                    break;
-                case FilterMode.Plain:
-                    result.AddRange(Filters.FindAll(x => !x.isRegex));
-                    break;
-                case FilterMode.Regex:
-                    result.AddRange(Filters.FindAll(x => x.isRegex));
-                    break;
+                switch (mode)
+                {
+                    case FilterMode.All:
+                        result.AddRange(Filters.FindAll(x => !x.isWhitelist));
+                        break;
+                    case FilterMode.Plain:
+                        result.AddRange(Filters.FindAll(x => !x.isRegex && !x.isWhitelist));
+                        break;
+                    case FilterMode.Regex:
+                        result.AddRange(Filters.FindAll(x => x.isRegex && !x.isWhitelist));
+                        break;
+                    case FilterMode.Whitelist:
+                        result.AddRange(Filters.FindAll(x => x.isWhitelist));
+                        break;
+                }
             }
             return result;
         }
@@ -147,11 +168,23 @@ namespace RoxorBot
                 if (filterExists(word))
                     return;
 
-                addFilterWord(word, value, e.Message.Source.Name, false);
+                addFilterWord(word, value, e.Message.Source.Name, false, false);
 
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
             }
-            else if (e.Message.Parameters[1].StartsWith("!removefilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            if (e.Message.Parameters[1].StartsWith("!whitelist ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string word = commands[1].ToLower();
+
+                if (filterExists(word))
+                    return;
+
+                addFilterWord(word, 1, e.Message.Source.Name, false, true);
+
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " is now whitelisted.");
+            }
+            else if ((e.Message.Parameters[1].StartsWith("!removefilter ") || e.Message.Parameters[1].StartsWith("!removewhitelist ")) && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string word = commands[1].ToLower();
@@ -222,6 +255,7 @@ namespace RoxorBot
     {
         All,
         Regex,
-        Plain
+        Plain,
+        Whitelist
     }
 }

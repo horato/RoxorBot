@@ -40,6 +40,7 @@ using RoxorBot.Model.JSON;
 using System.Reflection;
 using System.Net.Sockets;
 using System.Windows.Media;
+using System.Collections;
 
 namespace RoxorBot
 {
@@ -200,7 +201,6 @@ namespace RoxorBot
                     c.SendRawMessage("JOIN #roxork0");
 
                     Whispers.connect();
-                    MessagesManager.getInstance().startAllTimers();
 
                     Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
                     {
@@ -210,8 +210,13 @@ namespace RoxorBot
                         if (!Stop_Button.IsEnabled)
                             Start_Button.IsEnabled = true;
                         RaffleButton.IsEnabled = true;
-                        AutomatedMessagesButton_Stop.IsEnabled = true;
-                        AutomatedMessagesButton_Start.IsEnabled = false;
+                        if (AutomatedMessagesButton_Stop.IsEnabled)
+                        {
+                            AutomatedMessagesButton_Start.IsEnabled = false;
+                            MessagesManager.getInstance().startAllTimers();
+                        }
+                        else
+                            AutomatedMessagesButton_Start.IsEnabled = true;
                     }));
 
                     if (!(disconnectCheckTimer == null))
@@ -469,18 +474,19 @@ namespace RoxorBot
         private void Disconnect_Click(object sender, RoutedEventArgs e)
         {
             PointsManager.getInstance().save();
-            MessagesManager.getInstance().stopAllTimers();
+
             if (floodTimer != null)
                 floodTimer.Stop();
 
             if (!Stop_Button.IsEnabled)
                 Start_Button.IsEnabled = false;
+            if (!AutomatedMessagesButton_Stop.IsEnabled)
+                AutomatedMessagesButton_Start.IsEnabled = true;
+
             Disconnect_Button.IsEnabled = false;
             RaffleButton.IsEnabled = false;
             Connect_Button.IsEnabled = true;
 
-            AutomatedMessagesButton_Stop.IsEnabled = false;
-            AutomatedMessagesButton_Start.IsEnabled = false;
             updateStatusLabels();
 
             FloodQueueCount.Content = 0;
@@ -546,6 +552,7 @@ namespace RoxorBot
         {
             drawFilters();
             drawMessages();
+            drawWhitelist();
             drawPoints();
             SettingsContentControl.Content = new SettingsControl().Content;
 
@@ -560,6 +567,7 @@ namespace RoxorBot
             MainGrid.Opacity = 1;
             MainGrid.IsEnabled = true;
             SettingsGrid.Visibility = Visibility.Hidden;
+            AutomatedMessagesDataGrid.SelectedItem = null;
         }
 
         private void AddFilterButton_Click(object sender, RoutedEventArgs e)
@@ -575,9 +583,13 @@ namespace RoxorBot
                 OverlayContainer.Visibility = Visibility.Hidden;
                 SettingsGrid.Opacity = 1;
 
-                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, int.Parse(dialog.DurationBox.Text), "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked);
+                var isWhitelist = (bool)dialog.IsWhitelistCheckBox.IsChecked.Value;
+                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, int.Parse(dialog.DurationBox.Text), "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist);
 
-                drawFilters();
+                if (isWhitelist)
+                    drawWhitelist();
+                else
+                    drawFilters();
                 SettingsGrid.IsEnabled = true;
             };
             dialog.CancelButton.Click += (a, b) =>
@@ -650,6 +662,14 @@ namespace RoxorBot
                 FilterListDataGrid.Items.Add(item);
         }
 
+        private void drawWhitelist()
+        {
+            WhitelistDataGrid.Items.Clear();
+            var filters = FilterManager.getInstance().getAllFilters(FilterMode.Whitelist);
+            foreach (FilterItem item in filters)
+                WhitelistDataGrid.Items.Add(item);
+        }
+
         private void drawPoints()
         {
             PointsDataGrid.Items.Clear();
@@ -672,7 +692,10 @@ namespace RoxorBot
             if (Prompt.Ask("Do you wish to delete " + filterItem.word + "?", "Delete"))
             {
                 FilterManager.getInstance().removeFilterWord(filterItem.word);
-                drawFilters();
+                if (filterItem.isWhitelist)
+                    drawWhitelist();
+                else
+                    drawFilters();
             }
         }
 
