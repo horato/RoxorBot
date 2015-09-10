@@ -21,6 +21,9 @@ namespace RoxorBot.Model
         public bool IsFollower { get; set; }
 
         [System.ComponentModel.DefaultValue(0)]
-        public int RewardTimer { get; set; } 
+        public int RewardTimer { get; set; }
+
+        [System.ComponentModel.DefaultValue(false)]
+        public bool isAllowed { get; set; } 
     }
 }

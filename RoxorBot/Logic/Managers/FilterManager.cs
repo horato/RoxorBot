@@ -22,6 +22,7 @@ namespace RoxorBot
             MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
 
             Filters = loadFilters();
+            loadAllowedUsers();
         }
 
         public int getFiltersCount()
@@ -48,6 +49,25 @@ namespace RoxorBot
             return result;
         }
 
+        private void loadAllowedUsers()
+        {
+            SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM allowedUsers;");
+
+            while (reader.Read())
+            {
+                var name = (string)reader["name"];
+                var isAllowed = (bool)reader["allowed"];
+
+                var user = UsersManager.getInstance().getUser(name);
+                if (user == null)
+                    user = UsersManager.getInstance().addUser(name, Role.Viewers);
+
+                user.isAllowed = isAllowed;
+            }
+
+            Logger.Log("Loaded " + reader.StepCount + " allowed users from database.");
+        }
+
         public bool filterExists(string word)
         {
             return Filters.Any(x => x.word == word);
@@ -65,7 +85,7 @@ namespace RoxorBot
             DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE word==\"" + word + "\";");
         }
 
-        public bool checkFilter(IrcRawMessageEventArgs e)
+        private bool checkFilter(IrcRawMessageEventArgs e)
         {
             var exists = Filters.Any(x => e.Message.Parameters[1].ToLower().Contains(x.word.ToLower()));
             if (!exists)
@@ -75,7 +95,12 @@ namespace RoxorBot
                     if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
                         exists = true;
             }
-            return exists && !UsersManager.getInstance().isAdmin(e.Message.Source.Name.ToLower());
+            return exists && !isAdminOrAllowed(e.Message.Source.Name.ToLower());
+        }
+
+        private bool isAdminOrAllowed(string user)
+        {
+            return UsersManager.getInstance().isAdmin(user) || UsersManager.getInstance().isAllowed(user);
         }
 
         public FilterItem getFilter(string text)
@@ -138,6 +163,30 @@ namespace RoxorBot
 
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
             }
+            else if (e.Message.Parameters[1].StartsWith("!allow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+
+                var user = UsersManager.getInstance().getUser(name);
+                if (user != null)
+                {
+                    UsersManager.getInstance().allowUser(name);
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + user.Name + " is now allowed.");
+                }
+            }
+            else if (e.Message.Parameters[1].StartsWith("!unallow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+
+                var user = UsersManager.getInstance().getUser(name);
+                if (user != null)
+                {
+                    UsersManager.getInstance().revokeAllowUser(name);
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
+                }
+            }
             else if (checkFilter(e))
             {
                 var item = getFilter(e.Message.Parameters[1]);
@@ -153,10 +202,11 @@ namespace RoxorBot
                     return;
 
                 if (item.duration == "-1")
-                    mainWindow.sendChatMessage(".ban " + e.Message.Source.Name);
+                    mainWindow.sendChatMessage(".ban " + e.Message.Source.Name, true);
                 else
-                    mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration);
+                    mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
                 mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
+                mainWindow.addToConsole(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
             }
         }
 

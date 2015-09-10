@@ -423,7 +423,7 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
-            else if (e.Message.Parameters[1].StartsWith("!isfollower "))
+            else if (e.Message.Parameters[1].StartsWith("!isfollower ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();
@@ -433,7 +433,7 @@ namespace RoxorBot
                 else
                     sendChatMessage("はい, " + name + "さんはともです。");
             }
-            else if (e.Message.Parameters[1].StartsWith("!gettimer "))
+            else if (e.Message.Parameters[1].StartsWith("!gettimer ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();
@@ -443,11 +443,21 @@ namespace RoxorBot
                 else
                     sendChatMessage(e.Message.Source.Name + ": " + u.Name + " has " + u.RewardTimer + " reward timer out of 30.");
             }
+            else if (e.Message.Parameters[1].StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                var u = UsersManager.getInstance().getUser(name);
+                if (u == null)
+                    sendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
+                else
+                    sendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
+            }
         }
 
-        public void sendChatMessage(string message)
+        public void sendChatMessage(string message, bool overrideFloodQueue = false)
         {
-            if (queue.Count > 90)
+            if (queue.Count > 90 && !overrideFloodQueue)
             {
                 addToConsole("Queue limit reached. Ignoring: " + message);
                 Logger.Log("Queue limit reached. Ignoring: " + message);
@@ -519,7 +529,7 @@ namespace RoxorBot
 
                 foreach (User u in users)
                     if (u.isOnline)
-                        temp.Add(new User { Name = u.Name, InternalName = u.InternalName, Role = u.Role, isOnline = u.isOnline, Points = u.Points, IsFollower = u.IsFollower });
+                        temp.Add(new User { Name = u.Name, InternalName = u.InternalName, Role = u.Role, isOnline = u.isOnline, Points = u.Points, IsFollower = u.IsFollower, isAllowed = u.isAllowed, RewardTimer = u.RewardTimer });
 
                 foreach (User u in temp)
                     if (u.Role != Role.Viewers)

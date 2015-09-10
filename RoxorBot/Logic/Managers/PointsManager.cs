@@ -30,7 +30,7 @@ namespace RoxorBot
                 string user = e.Message.Source.Name;
                 mainWindow.sendChatMessage(user + ": You have " + getPointsForUser(user) + " points.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && (e.Message.Source.Name.ToLower() == "roxork0" || e.Message.Source.Name.ToLower() == "horato2"))
+            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();
@@ -42,7 +42,7 @@ namespace RoxorBot
                 addPoints(name, value);
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
             }
-            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && (e.Message.Source.Name.ToLower() == "roxork0" || e.Message.Source.Name.ToLower() == "horato2"))
+            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
                 string name = commands[1].ToLower();

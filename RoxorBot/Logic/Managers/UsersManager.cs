@@ -11,12 +11,14 @@ namespace RoxorBot
     {
         private static UsersManager _instance;
         private List<User> users;
+        private List<string> superAdmins;
 
         private UsersManager()
         {
             Logger.Log("Loading UsersManager...");
 
             users = new List<User>();
+            superAdmins = new List<string>() { "roxork0", "horato2" };
         }
 
         /// <summary>
@@ -46,10 +48,31 @@ namespace RoxorBot
             if (u == null)
             {
                 u = new User { Name = user, InternalName = user.ToLower(), Role = role, isOnline = false, Points = 0, IsFollower = false };
-                users.Add(u);
+                lock (users)
+                    users.Add(u);
             }
 
             return u;
+        }
+
+        public void allowUser(string nick)
+        {
+            var user = getUser(nick);
+            if (user != null)
+            {
+                user.isAllowed = true;
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 1);");
+            }
+        }
+
+        public void revokeAllowUser(string nick)
+        {
+            var user = getUser(nick);
+            if (user != null)
+            {
+                user.isAllowed = false;
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 0);");
+            }
         }
 
         /// <summary>
@@ -79,6 +102,9 @@ namespace RoxorBot
 
         public bool isAdmin(string name)
         {
+            if (isSuperAdmin(name))
+                return true;
+
             var user = users.Find(x => x.InternalName == name.ToLower());
             return isAdmin(user);
         }
@@ -89,6 +115,30 @@ namespace RoxorBot
                 return false;
 
             return user.Role != Role.Viewers;
+        }
+
+        /// <summary>
+        /// Todo someday
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public bool isSuperAdmin(string user)
+        {
+            return superAdmins.Contains(user.ToLower());
+        }
+
+        public bool isAllowed(string name)
+        {
+            var user = users.Find(x => x.InternalName == name.ToLower());
+            return isAllowed(user);
+        }
+
+        public bool isAllowed(User user)
+        {
+            if (user == null)
+                return false;
+
+            return user.isAllowed;
         }
 
         public int getUsersCount()
