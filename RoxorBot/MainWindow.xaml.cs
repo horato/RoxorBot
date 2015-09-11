@@ -335,7 +335,10 @@ namespace RoxorBot
                 if (e.Message.Parameters[1].ToLower().Contains("error logging in"))
                 {
                     addToConsole("Error logging in. Wrong password/oauth?");
-                    Disconnect_Click(null, null);
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        Disconnect_Click(null, null);
+                    }));
                 }
                 else
                 {
