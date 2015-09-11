@@ -13,7 +13,8 @@ namespace RoxorBot
 		{
 			WriteToLog.Log("A first chance exception was thrown", "EXCEPTION");
 			WriteToLog.Log(e.Exception.Message, "EXCEPTION");
-			WriteToLog.Log(e.Exception.StackTrace, "EXCEPTION");
+			WriteToLog.Log(e.ToString(), "EXCEPTION");
+
 		}
 
 		public static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs x)
@@ -21,7 +22,7 @@ namespace RoxorBot
 			WriteToLog.Log("An unhandled exception was thrown", "UNHANDLEDEXCEPTION");
 			var ex = (Exception)x.ExceptionObject;
 			WriteToLog.Log(ex.Message, "UNHANDLEDEXCEPTION");
-			WriteToLog.Log(ex.StackTrace, "UNHANDLEDEXCEPTION");
+            WriteToLog.Log(ex.ToString(), "UNHANDLEDEXCEPTION");
 		}
 		
 		public static void Log(string lines, string type = "LOG")

@@ -133,7 +133,6 @@ namespace RoxorBot
 
         private bool isAdminOrAllowed(string user)
         {
-            return false;
             return UsersManager.getInstance().isAdmin(user) || UsersManager.getInstance().isAllowed(user);
         }
 

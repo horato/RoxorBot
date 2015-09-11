@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RoxorBot.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace RoxorBot
 {
@@ -26,6 +28,8 @@ namespace RoxorBot
         {
             InitializeComponent();
             isRunning = false;
+            RaffleManager.getInstance().OnUserAdd += RaffleWindow_OnUserAdd;
+            RaffleManager.getInstance().OnWinnerPicked += RaffleWindow_OnWinnerPicked;
         }
 
         private void FollowersOnlyCheckbox_CheckedChanged(object sender, RoutedEventArgs e)
@@ -94,6 +98,22 @@ namespace RoxorBot
         {
             if (!isRunning)
                 RaffleManager.getInstance().setAcceptedWords(AcceptedWordsTextBox.Text);
+        }
+
+        void RaffleWindow_OnUserAdd(object sender, User e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                ParticipantsListView.Items.Add(e);
+            }));
+        }
+
+        void RaffleWindow_OnWinnerPicked(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                ParticipantsListView.Items.Clear();
+            }));
         }
     }
 }

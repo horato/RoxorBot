@@ -18,6 +18,8 @@ namespace RoxorBot
         private List<User> users;
         private bool winnerSelected;
         private string raffleName;
+        public event EventHandler<User> OnUserAdd;
+        public event EventHandler OnWinnerPicked;
 
         private RaffleManager()
         {
@@ -52,7 +54,12 @@ namespace RoxorBot
                     return;
 
                 PointsManager.getInstance().removePoints(user.InternalName, entryPointsRequired);
-                users.Add(user);
+                lock (users)
+                    users.Add(user);
+
+                if (OnUserAdd != null)
+                    OnUserAdd(this, user);
+
                 Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
             }
         }
@@ -89,12 +96,17 @@ namespace RoxorBot
 
             lock (users)
             {
+                if (isFollowersOnly)
+                    users.RemoveAll(x => !x.IsFollower);
+
                 Random rnd = new Random();
                 int num = rnd.Next(0, users.Count - 1);
                 var winner = users[num];
                 mainWindow.sendChatMessage("Winner is " + winner.Name + ". Random number selected from interval <0," + (users.Count - 1) + "> was " + num + ". Congratulations.");
                 winnerSelected = true;
                 users.Clear();
+                if (OnWinnerPicked != null)
+                    OnWinnerPicked(this, null);
             }
         }
 

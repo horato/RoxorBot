@@ -299,6 +299,12 @@ namespace RoxorBot
 
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
             {
+                if (e.Message.Parameters[1].Length > 200)
+                {
+                    sendChatMessage(".timeout " + e.Message.Source.Name + " 120", true);
+                    sendChatMessage("Pls no spamerino " + e.Message.Source.Name + " Keepo");
+                    return;
+                }
                 if (ChatMessageReceived != null)
                     ChatMessageReceived(this, e);
                 handleRawMessage(e);
@@ -602,6 +608,7 @@ namespace RoxorBot
                 if (selectedItem != null)
                 {
                     dialog.FilterWordBox.Text = selectedItem.word;
+                    dialog.FilterWordBox.IsEnabled = false;
                     dialog.DurationBox.Text = selectedItem.duration;
                     dialog.IsRegexCheckBox.IsChecked = selectedItem.isRegex;
                     dialog.IsWhitelistCheckBox.IsChecked = selectedItem.isWhitelist;
@@ -635,14 +642,60 @@ namespace RoxorBot
                 SettingsGrid.Opacity = 1;
                 SettingsGrid.IsEnabled = true;
             };
-            if(sender != null && sender is DataGrid)
+            if (sender != null && sender is DataGrid)
             {
                 var grid = sender as DataGrid;
                 var msg = grid.SelectedItem as AutomatedMessage;
                 if (msg != null)
                 {
                     dialog.MessageBox.Text = msg.message;
+                    dialog.MessageBox.IsEnabled = false;
                     dialog.IntervalBox.Text = msg.interval.ToString();
+                }
+            }
+            OverlayContainer.Content = dialog;
+            OverlayContainer.Visibility = Visibility.Visible;
+        }
+
+        private void AddPointsButton_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsGrid.Opacity = 0.5;
+            SettingsGrid.IsEnabled = false;
+            var dialog = new AddPointsDialog();
+            dialog.AddButton.Click += (a, b) =>
+            {
+                if (string.IsNullOrWhiteSpace(dialog.NickTextBox.Text) ||
+                    string.IsNullOrWhiteSpace(dialog.PointsTextBox.Text))
+                    return;
+                OverlayContainer.Visibility = Visibility.Hidden;
+                SettingsGrid.Opacity = 1;
+
+                int value;
+                if (!int.TryParse(dialog.PointsTextBox.Text, out value))
+                    return;
+
+                if (value < 0)
+                    value = 0;
+
+                PointsManager.getInstance().setPoints(dialog.NickTextBox.Text, value);
+                drawPoints();
+                SettingsGrid.IsEnabled = true;
+            };
+            dialog.CancelButton.Click += (a, b) =>
+            {
+                OverlayContainer.Visibility = Visibility.Hidden;
+                SettingsGrid.Opacity = 1;
+                SettingsGrid.IsEnabled = true;
+            };
+            if (sender != null && sender is DataGrid)
+            {
+                var grid = sender as DataGrid;
+                var selectedItem = grid.SelectedItem as User;
+                if (selectedItem != null)
+                {
+                    dialog.NickTextBox.Text = selectedItem.Name;
+                    dialog.NickTextBox.IsEnabled = false;
+                    dialog.PointsTextBox.Text = selectedItem.Points.ToString();
                 }
             }
             OverlayContainer.Content = dialog;
@@ -720,8 +773,6 @@ namespace RoxorBot
 
         private void PointsDataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            return;
-            //Todo
             if (!(sender is DataGrid))
                 return;
 
@@ -729,6 +780,13 @@ namespace RoxorBot
             var filterItem = dg.SelectedItem as User;
             if (filterItem == null)
                 return;
+
+            if (Prompt.Ask("Do you wish to delete all of " + filterItem.Name + " points?", "Delete"))
+            {
+                PointsManager.getInstance().setPoints(filterItem.InternalName, 0);
+                drawPoints();
+            }
+
         }
 
         public void addToConsole(string text)
@@ -821,6 +879,21 @@ namespace RoxorBot
         private void RemoveMessageMenuItem_Click(object sender, RoutedEventArgs e)
         {
             AutomatedMessageDataGrid_OnMouseDoubleClick(AutomatedMessagesDataGrid, null);
+        }
+
+        private void AddPointsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddPointsButton_Click(null, null);
+        }
+
+        private void EditPointsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddPointsButton_Click(PointsDataGrid, null);
+        }
+
+        private void RemovePointsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            PointsDataGrid_OnMouseDoubleClick(PointsDataGrid, null);
         }
     }
 }

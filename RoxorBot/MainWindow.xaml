@@ -97,11 +97,19 @@
                 <TabItem Header="Points" Margin="75,72,-75,-72">
                     <Grid>
                         <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
+                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddPointsButton_Click"/>
                         <DataGrid x:Name="PointsDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="PointsDataGrid_OnMouseDoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="User" Binding="{Binding Path=Name}" Width="440" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Points" Binding="{Binding Path=Points}" Width="113" IsReadOnly="True"/>
                             </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add" Click="AddPointsMenuItem_Click"/>
+                                    <MenuItem Header="Edit" Click="EditPointsMenuItem_Click"/>
+                                    <MenuItem Header="Remove" Click="RemovePointsMenuItem_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                         </DataGrid>
                     </Grid>
                 </TabItem>
