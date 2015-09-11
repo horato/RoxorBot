@@ -76,7 +76,7 @@ namespace RoxorBot
             OnListChanged += MainWindow_OnListChanged;
             timerReward = Properties.Settings.Default.timerReward;
 
-            SettingsButton.IsEnabled = true;//new Thread(new ThreadStart(load)).Start();
+            new Thread(new ThreadStart(load)).Start();
         }
 
         private void load()
