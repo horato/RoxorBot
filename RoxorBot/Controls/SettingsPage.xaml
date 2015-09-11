@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="RoxorBot.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" Height="955.224" Width="1080.597">
+    <Grid x:Name="SettingsGrid" Margin="-10,48,10,162" Visibility="Visible">
+        <TabControl Margin="75,72,0,0">
+            <TabItem Header="Settings">
+                <Grid>
+                    <ContentControl x:Name="SettingsContentControl"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Filters">
+                <Grid>
+                    <DataGrid x:Name="FilterListDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="FilterListDataGrid_OnMouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="240" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Ban Duration" Binding="{Binding Path=duration}" Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Added by" Binding="{Binding Path=addedBy}" Width="100" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="is Regex" Binding="{Binding Path=isRegex}" Width="*" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
+                                <MenuItem Header="Edit" Click="EditFilterMenuItem_Click"/>
+                                <MenuItem Header="Remove" Click="RemoveFilterMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <Button Content="Add" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Whitelist">
+                <Grid>
+                    <DataGrid x:Name="WhitelistDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="FilterListDataGrid_OnMouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="553" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
+                                <MenuItem Header="Edit" Click="EditWhitelistMenuItem_Click"/>
+                                <MenuItem Header="Remove" Click="RemoveWhitelistMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <Button Content="Add" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Messages">
+                <Grid>
+                    <DataGrid x:Name="AutomatedMessagesDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="AutomatedMessageDataGrid_OnMouseDoubleClick" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Message" Binding="{Binding Path=message}" Width="350" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Timer" Binding="{Binding Path=interval}" Width="100" IsReadOnly="True"/>
+                            <DataGridTemplateColumn Header="Enabled" Width="103">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding active, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add" Click="AddMessageMenuItem_Click"/>
+                                <MenuItem Header="Edit" Click="EditMessageMenuItem_Click"/>
+                                <MenuItem Header="Remove" Click="RemoveMessageMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <Button Content="Add" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddAutomatedMessage_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Points">
+                <Grid>
+                    <Button Content="Add" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddPointsButton_Click"/>
+                    <DataGrid x:Name="PointsDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="PointsDataGrid_OnMouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="User" Binding="{Binding Path=Name}" Width="440" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Points" Binding="{Binding Path=Points}" Width="113" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add" Click="AddPointsMenuItem_Click"/>
+                                <MenuItem Header="Edit" Click="EditPointsMenuItem_Click"/>
+                                <MenuItem Header="Remove" Click="RemovePointsMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Height="32" Margin="466,417,0,0" VerticalAlignment="Top" Width="166" />
+    </Grid>
+</UserControl>

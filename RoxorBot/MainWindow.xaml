@@ -4,7 +4,7 @@
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         Title="ChatBot for #RoXoRk0 by horato" Height="638.075" Width="665.701" Closing="MainWindow_OnClosing" ResizeMode="NoResize">
     <Grid Background="LightBlue">
-        <Grid x:Name="MainGrid"  Visibility="Visible">
+        <Grid x:Name="MainGrid">
             <Button Name="Connect_Button" Content="Connect" IsEnabled="False" HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Width="120" Click="Connect_Click" Background="Black" Foreground="White"/>
             <TextBlock x:Name="tbStatus" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Not connected" VerticalAlignment="Top" Width="132" Height="18"/>
             <Button x:Name="Disconnect_Button" Content="Disconnect" IsEnabled="False" HorizontalAlignment="Left" Margin="135,23,0,0" VerticalAlignment="Top" Width="120" Click="Disconnect_Click" Foreground="#FFF9F9F9" Background="Black"/>
@@ -21,100 +21,7 @@
             <Label Content="Timer is not running." Foreground="Red" x:Name="TimerLabel" HorizontalAlignment="Left" Margin="269,179,0,0" VerticalAlignment="Top" Width="193"/>
             <Label Content="Automated messages are stopped." Foreground="Red" x:Name="AutomatedMessagesLabel" HorizontalAlignment="Left" Margin="269,208,0,0" VerticalAlignment="Top" Width="193"/>
         </Grid>
-        <Grid x:Name="SettingsGrid" Margin="-10,48,10,162" Visibility="Hidden">
-            <TabControl Margin="0,-27,0,-19">
-                <TabItem Header="Settings" Margin="75,72,-75,-72">
-                    <Grid>
-                        <ContentControl x:Name="SettingsContentControl" Margin="75,72,-75,-72"/>
-                        <Button Content="Save" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Filters" Margin="75,72,-75,-72">
-                    <Grid>
-                        <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                        <DataGrid x:Name="FilterListDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="FilterListDataGrid_OnMouseDoubleClick">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="240" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Ban Duration" Binding="{Binding Path=duration}" Width="120" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Added by" Binding="{Binding Path=addedBy}" Width="100" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="is Regex" Binding="{Binding Path=isRegex}" Width="*" IsReadOnly="True"/>
-                            </DataGrid.Columns>
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
-                                    <MenuItem Header="Edit" Click="EditFilterMenuItem_Click"/>
-                                    <MenuItem Header="Remove" Click="RemoveFilterMenuItem_Click"/>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Whitelist" Margin="75,72,-75,-72">
-                    <Grid>
-                        <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                        <DataGrid x:Name="WhitelistDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="FilterListDataGrid_OnMouseDoubleClick">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Word" Binding="{Binding Path=word}" Width="553" IsReadOnly="True"/>
-                            </DataGrid.Columns>
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add" Click="AddFilterMenuItem_Click"/>
-                                    <MenuItem Header="Edit" Click="EditWhitelistMenuItem_Click"/>
-                                    <MenuItem Header="Remove" Click="RemoveWhitelistMenuItem_Click"/>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddFilterButton_Click"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Messages" Margin="75,72,-75,-72">
-                    <Grid>
-                        <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                        <DataGrid x:Name="AutomatedMessagesDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="AutomatedMessageDataGrid_OnMouseDoubleClick" SelectionMode="Single">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Message" Binding="{Binding Path=message}" Width="350" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Timer" Binding="{Binding Path=interval}" Width="100" IsReadOnly="True"/>
-                                <DataGridTemplateColumn Header="Enabled" Width="103">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <CheckBox IsChecked="{Binding active, UpdateSourceTrigger=PropertyChanged}"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add" Click="AddMessageMenuItem_Click"/>
-                                    <MenuItem Header="Edit" Click="EditMessageMenuItem_Click"/>
-                                    <MenuItem Header="Remove" Click="RemoveMessageMenuItem_Click"/>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddAutomatedMessage_Click"/>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Points" Margin="75,72,-75,-72">
-                    <Grid>
-                        <Button Content="Close" HorizontalAlignment="Left" Height="32" Margin="457,360,0,0" VerticalAlignment="Top" Width="166" Click="CloseSettingsButton_OnClick"/>
-                        <Button Content="Add" HorizontalAlignment="Left" Margin="70,360,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddPointsButton_Click"/>
-                        <DataGrid x:Name="PointsDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" Margin="70,72,0,0" VerticalAlignment="Top" Width="553" MouseDoubleClick="PointsDataGrid_OnMouseDoubleClick">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="User" Binding="{Binding Path=Name}" Width="440" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Points" Binding="{Binding Path=Points}" Width="113" IsReadOnly="True"/>
-                            </DataGrid.Columns>
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Add" Click="AddPointsMenuItem_Click"/>
-                                    <MenuItem Header="Edit" Click="EditPointsMenuItem_Click"/>
-                                    <MenuItem Header="Remove" Click="RemovePointsMenuItem_Click"/>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                    </Grid>
-                </TabItem>
-            </TabControl>
-        </Grid>
+        <ContentControl x:Name="SettingsGrid"/>
         <ContentControl x:Name="OverlayContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Height="auto" Width="300" Visibility="Hidden"/>
     </Grid>
 </Controls:MetroWindow>
