@@ -58,5 +58,17 @@ namespace RoxorBot.Properties {
                 this["timerReward"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public int maxMessageLength {
+            get {
+                return ((int)(this["maxMessageLength"]));
+            }
+            set {
+                this["maxMessageLength"] = value;
+            }
+        }
     }
 }

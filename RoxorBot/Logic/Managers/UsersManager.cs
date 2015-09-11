@@ -114,6 +114,9 @@ namespace RoxorBot
             if (user == null)
                 return false;
 
+            if (isSuperAdmin(user.InternalName))
+                return true;
+
             return user.Role != Role.Viewers;
         }
 

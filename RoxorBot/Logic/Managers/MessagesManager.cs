@@ -86,7 +86,7 @@ namespace RoxorBot
                 });
             }
 
-            Logger.Log("Loaded " + result.Count + " filters from database.");
+            Logger.Log("Loaded " + result.Count + " automated messages from database.");
 
             return result;
         }

@@ -26,6 +26,7 @@ namespace RoxorBot
             TimerRewardTextBox.Text = Properties.Settings.Default.timerReward.ToString();
             if (Properties.Settings.Default.twitch_login != null)
                 TwitchLoginTextBox.Text = Properties.Settings.Default.twitch_login;
+            MaxMessageLengthTextBox.Text = Properties.Settings.Default.maxMessageLength.ToString();
 
             var button = new Button();
             button.Content = "Show Password";
@@ -83,5 +84,12 @@ namespace RoxorBot
             Properties.Settings.Default.twitch_login = ((TextBox)sender).Text;
         }
 
+        private void MaxMessageLengthTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!(sender is TextBox))
+                return;
+
+            Properties.Settings.Default.maxMessageLength = int.Parse(((TextBox)sender).Text);
+        }
     }
 }

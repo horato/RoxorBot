@@ -299,7 +299,7 @@ namespace RoxorBot
 
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
             {
-                if (e.Message.Parameters[1].Length > 200)
+                if (e.Message.Parameters[1].Length > Properties.Settings.Default.maxMessageLength && !UsersManager.getInstance().isAdmin(e.Message.Source.Name))
                 {
                     sendChatMessage(".timeout " + e.Message.Source.Name + " 120", true);
                     sendChatMessage("Pls no spamerino " + e.Message.Source.Name + " Keepo");

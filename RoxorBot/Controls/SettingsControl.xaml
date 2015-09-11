@@ -8,10 +8,12 @@
     <Grid>
         <Label Content="Timer Reward per 30m" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <TextBox x:Name="TimerRewardTextBox" HorizontalAlignment="Left" Height="23" Margin="224,0,0,0" BorderThickness="0" TextWrapping="Wrap" Background="Transparent" Text="undefined" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="TimerRewardTextBox_KeyUp"/>
-        <Label Content="Twitch Login" HorizontalAlignment="Left" Margin="0,26,0,0" VerticalAlignment="Top" Width="125" KeyUp="TwitchLogin_KeyUp"/>
-        <TextBox x:Name="TwitchLoginTextBox" HorizontalAlignment="Left" Height="21" Margin="224,26,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="" VerticalAlignment="Top" Width="120"/>
+        <Label Content="Twitch Login" HorizontalAlignment="Left" Margin="0,26,0,0" VerticalAlignment="Top" Width="125"/>
+        <TextBox x:Name="TwitchLoginTextBox" HorizontalAlignment="Left" Height="21" Margin="224,26,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="" VerticalAlignment="Top" Width="120" KeyUp="TwitchLogin_KeyUp"/>
         <Label Content="Twitch Password" HorizontalAlignment="Left" Margin="0,52,0,0" VerticalAlignment="Top" Width="125"/>
         <ContentControl x:Name="TwitchPasswordContentControl" Content="" HorizontalAlignment="Left" Margin="224,52,0,0" VerticalAlignment="Top" Height="26" Width="auto"/>
+        <Label Content="Max Message Length" HorizontalAlignment="Left" Margin="0,78,0,0" VerticalAlignment="Top" Width="125"/>
+        <TextBox x:Name="MaxMessageLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,78,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="200" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxMessageLengthTextBox_KeyUp"/>
 
     </Grid>
 </UserControl>
