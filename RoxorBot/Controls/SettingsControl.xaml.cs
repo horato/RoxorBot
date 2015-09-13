@@ -65,7 +65,11 @@ namespace RoxorBot
 
         private void TimerRewardTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            Properties.Settings.Default.timerReward = int.Parse(TimerRewardTextBox.Text);
+            int value;
+            if (int.TryParse(TimerRewardTextBox.Text, out value))
+                Properties.Settings.Default.timerReward = value;
+            else
+                Logger.Log("Failed to int parse " + TimerRewardTextBox.Text + " in TimerRewardTextBox_KeyUp.");
         }
 
         void textbox_KeyUp(object sender, KeyEventArgs e)
@@ -89,7 +93,15 @@ namespace RoxorBot
             if (!(sender is TextBox))
                 return;
 
-            Properties.Settings.Default.maxMessageLength = int.Parse(((TextBox)sender).Text);
+            var tb = (TextBox)sender;
+            int value;
+
+            if (!int.TryParse(tb.Text, out value))
+            {
+                Logger.Log("Failed to int parse " + tb.Text + " in MaxMessageLengthTextBox_KeyUp");
+                return;
+            }
+            Properties.Settings.Default.maxMessageLength = value;
         }
     }
 }

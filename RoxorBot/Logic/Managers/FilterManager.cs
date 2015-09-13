@@ -36,15 +36,20 @@ namespace RoxorBot
             SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM filters;");
 
             while (reader.Read())
+            {
+                int value;
+                if (!int.TryParse((string)reader["duration"], out value))
+                    value = 600;
+
                 result.Add(new FilterItem
                 {
                     word = (string)reader["word"],
-                    duration = (string)reader["duration"],
+                    duration = value,
                     addedBy = (string)reader["addedBy"],
                     isRegex = (bool)reader["isRegex"],
                     isWhitelist = (bool)reader["isWhitelist"]
                 });
-
+            }
             Logger.Log("Loaded " + result.Count + " filters from database.");
 
             return result;
@@ -83,13 +88,13 @@ namespace RoxorBot
                     var filter = getFilter(word);
                     filter.word = word;
                     filter.addedBy = addedBy;
-                    filter.duration = banDuration.ToString();
+                    filter.duration = banDuration;
                     filter.isRegex = isRegex;
                     filter.isWhitelist = isWhitelist;
                 }
                 else
                 {
-                    Filters.Add(new FilterItem { word = word, duration = banDuration.ToString(), addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
+                    Filters.Add(new FilterItem { word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
                 }
                 DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
             }
@@ -251,12 +256,12 @@ namespace RoxorBot
                 if (item == null)
                     return;
 
-                if (item.duration == "-1")
+                if (item.duration == -1)
                     mainWindow.sendChatMessage(".ban " + e.Message.Source.Name, true);
                 else
                     mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
-                mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                mainWindow.addToConsole(e.Message.Source.Name + " awarded " + (int.Parse(item.duration) == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
+                mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
+                mainWindow.addToConsole(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
             }
         }
 

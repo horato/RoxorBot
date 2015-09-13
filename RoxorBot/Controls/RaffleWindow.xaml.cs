@@ -84,8 +84,16 @@ namespace RoxorBot
 
         private void PointsRequiredTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if (!isRunning)
-                RaffleManager.getInstance().setPointsRequired(int.Parse(PointsRequiredTextBox.Text));
+            if (isRunning)
+                return;
+            int value;
+
+            if (!int.TryParse(PointsRequiredTextBox.Text, out value))
+            {
+                Logger.Log("Failed to int parse " + PointsRequiredTextBox.Text + " in PointsRequiredTextBox_KeyUp");
+                return;
+            }
+            RaffleManager.getInstance().setPointsRequired(value);
         }
 
         private void RaffleNameTextBox_KeyUp(object sender, KeyEventArgs e)

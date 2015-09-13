@@ -53,7 +53,13 @@ namespace RoxorBot
                 SettingsGrid.Opacity = 1;
 
                 var isWhitelist = (bool)dialog.IsWhitelistCheckBox.IsChecked.Value;
-                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, int.Parse(dialog.DurationBox.Text), "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist);
+                int value;
+                if (!int.TryParse(dialog.DurationBox.Text, out value))
+                {
+                    Logger.Log("Failed to int parse " + dialog.DurationBox.Text + " in  dialog.AddButton.Click");
+                    return;
+                }
+                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, value, "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist);
                 drawWhitelist();
                 drawFilters();
                 SettingsGrid.IsEnabled = true;
@@ -72,7 +78,7 @@ namespace RoxorBot
                 {
                     dialog.FilterWordBox.Text = selectedItem.word;
                     dialog.FilterWordBox.IsEnabled = false;
-                    dialog.DurationBox.Text = selectedItem.duration;
+                    dialog.DurationBox.Text = selectedItem.duration.ToString();
                     dialog.IsRegexCheckBox.IsChecked = selectedItem.isRegex;
                     dialog.IsWhitelistCheckBox.IsChecked = selectedItem.isWhitelist;
                 }
@@ -94,7 +100,13 @@ namespace RoxorBot
                 mainWindow.OverlayContainer.Visibility = Visibility.Hidden;
                 SettingsGrid.Opacity = 1;
 
-                MessagesManager.getInstance().addAutomatedMessage(dialog.MessageBox.Text, int.Parse(dialog.IntervalBox.Text), (mainWindow.c != null && mainWindow.c.IsConnected));
+                int value;
+                if (!int.TryParse(dialog.IntervalBox.Text, out value))
+                {
+                    Logger.Log("Failed to int parse " + dialog.IntervalBox.Text + " in MessagesManager.getInstance().addAutomatedMessage");
+                    return;
+                }
+                MessagesManager.getInstance().addAutomatedMessage(dialog.MessageBox.Text, value, (mainWindow.c != null && mainWindow.c.IsConnected));
 
                 drawMessages();
                 SettingsGrid.IsEnabled = true;
