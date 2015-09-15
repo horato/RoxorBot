@@ -25,10 +25,13 @@ namespace RoxorBot
 
             var mainWindow = ((MainWindow)sender);
 
-            if (e.Message.Parameters[1] == "!points")
+            if (e.Message.Parameters[1].StartsWith("!points"))
             {
-                string user = e.Message.Source.Name;
-                mainWindow.sendChatMessage(user + ": You have " + getPointsForUser(user) + " points.");
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                if(commands.Length < 2)
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": You have " + getPointsForUser(e.Message.Source.Name) + " points.");
+                else
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + getPointsForUser(commands[1]) + " points.");
             }
             else if (e.Message.Parameters[1].StartsWith("!addpoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
