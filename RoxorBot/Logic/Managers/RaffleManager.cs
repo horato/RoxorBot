@@ -80,7 +80,11 @@ namespace RoxorBot
         {
             isRunning = true;
             winnerSelected = false;
-            mainWindow.sendChatMessage("Raffle " + raffleName + " started with a " + entryPointsRequired + " points " + (isFollowersOnly ? "and followers only" : "") + " entry requirement. There is/are " + acceptedWords.Count + " accepted word(s).");
+            var sb = new StringBuilder();
+            lock (acceptedWords)
+                foreach (var v in acceptedWords)
+                    sb.Append(v + " ");
+            mainWindow.sendChatMessage("Raffle " + raffleName + " started with a " + entryPointsRequired + " points " + (isFollowersOnly ? "and followers only" : "") + " entry requirement. Accepted word(s) is/are: " + sb.ToString());
         }
 
         internal void StopRaffle()

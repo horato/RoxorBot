@@ -54,7 +54,6 @@ namespace RoxorBot
         private System.Timers.Timer disconnectCheckTimer;
 
         private int floodTicksElapsed = 0;
-        private int timerReward; //per 30m
 
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
@@ -68,13 +67,12 @@ namespace RoxorBot
 
             AppDomain.CurrentDomain.FirstChanceException += Logger.CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += Logger.CurrentDomain_UnhandledException;
-            //var x = Regex.Match("http://www.twitch.tv/", @"^(https?://)?([\da-z.-]+).([a-z.]{2,6})([/\w .-]*)*/?$");
+           // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
             addToConsole("Initializing...");
-
+            
             InitializeComponent();
             queue = new List<DateTime>();
             OnListChanged += MainWindow_OnListChanged;
-            timerReward = Properties.Settings.Default.timerReward;
 
             new Thread(new ThreadStart(load)).Start();
         }
@@ -266,8 +264,8 @@ namespace RoxorBot
                         else
                         {
                             user.RewardTimer = 0;
-                            PointsManager.getInstance().addPoints(user.InternalName, timerReward);
-                            Whispers.sendPrivateMessage(user.InternalName, "You were awarded " + timerReward + " points for staying with us another 30 minutes.");
+                            PointsManager.getInstance().addPoints(user.InternalName, Properties.Settings.Default.timerReward);
+                            Whispers.sendPrivateMessage(user.InternalName, "You were awarded " + Properties.Settings.Default.timerReward + " points for staying with us another 30 minutes.");
                         }
                     }
                 }
