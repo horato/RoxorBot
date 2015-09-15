@@ -91,6 +91,24 @@
                     </DataGrid>
                 </Grid>
             </TabItem>
+            <TabItem Header="Commands">
+                <Grid>
+                    <DataGrid x:Name="CustomCommandsDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="CustomCommandsDataGrid_OnMouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Command" Binding="{Binding Path=command}" Width="153" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Reply" Binding="{Binding Path=reply}" Width="400" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add" Click="AddCommandMenuItem_Click"/>
+                                <MenuItem Header="Edit" Click="EditCommandMenuItem_Click"/>
+                                <MenuItem Header="Remove" Click="RemoveCommandMenuItem_Click"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                    <Button Content="Add" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" Click="AddCommandButton_Click"/>
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Height="32" Margin="466,417,0,0" VerticalAlignment="Top" Width="166" />
     </Grid>

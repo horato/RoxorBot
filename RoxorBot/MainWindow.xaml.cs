@@ -90,6 +90,8 @@ namespace RoxorBot
             MessagesManager.getInstance().setReference(this);
             addToConsole("Loaded " + MessagesManager.getInstance().getMessagesCount() + " messages from database.");
             RaffleManager.getInstance().setReference(this);
+            UserCommandsManager.getInstance();
+            addToConsole("Loaded " + UserCommandsManager.getInstance().getCommandsCount() + " user commands from database.");
             addToConsole("Init finished.");
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
@@ -441,9 +443,9 @@ namespace RoxorBot
                 string name = commands[1].ToLower();
                 var u = UsersManager.getInstance().getUser(name);
                 if (u == null || !u.IsFollower)
-                    sendChatMessage("いいえ, " + name + "さんはともでわありません。");
+                    sendChatMessage(name + " is follower.");
                 else
-                    sendChatMessage("はい, " + name + "さんはともです。");
+                    sendChatMessage(name + "is not follower.");
             }
             else if (e.Message.Parameters[1].StartsWith("!gettimer ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {

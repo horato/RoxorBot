@@ -109,6 +109,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\AddCommandDialog.xaml.cs">
+      <DependentUpon>AddCommandDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\AddPointsDialog.xaml.cs">
       <DependentUpon>AddPointsDialog.xaml</DependentUpon>
     </Compile>
@@ -127,6 +130,7 @@
     <Compile Include="Logic\Managers\FollowerManager.cs" />
     <Compile Include="Logic\Managers\MessagesManager.cs" />
     <Compile Include="Logic\Managers\RaffleManager.cs" />
+    <Compile Include="Logic\Managers\UserCommandsManager.cs" />
     <Compile Include="Model\AutomatedMessage.cs" />
     <Compile Include="Model\FilterItem.cs" />
     <Compile Include="Model\JSON\ChannelInfo.cs" />
@@ -142,6 +146,7 @@
     <Compile Include="Model\Role.cs" />
     <Compile Include="Logic\Managers\PointsManager.cs" />
     <Compile Include="Logic\Prompt.cs" />
+    <Compile Include="Model\UserCommand.cs" />
     <Compile Include="Properties\Settings.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Logic\TimeParser.cs" />
@@ -154,6 +159,10 @@
     <Compile Include="Controls\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\AddCommandDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\AddPointsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
