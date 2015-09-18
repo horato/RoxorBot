@@ -15,6 +15,7 @@
             <Button x:Name="RaffleButton" Content="Open Raffle Menu" HorizontalAlignment="Left" Margin="10,239,0,0" VerticalAlignment="Top" Width="120" Click="RaffleButton_Click"  IsEnabled="False" Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="CommandsButton" Content="Show Commands" HorizontalAlignment="Left" Margin="135,239,0,0" VerticalAlignment="Top" Width="120" Click="CommandsButton_Click"  Foreground="#FFF9F9F9" Background="Black"/>
             <Button x:Name="SettingsButton" Content="Settings" IsEnabled="False" HorizontalAlignment="Left" Margin="528,573,0,0" VerticalAlignment="Top" Width="120" Click="SettingsButton_OnClick"  Foreground="#FFF9F9F9" Background="Black"/>
+            <Button x:Name="PlugDJButton" Content="Open Plug DJ" HorizontalAlignment="Left" Margin="10,573,0,0" VerticalAlignment="Top" Width="120" Click="PlugDJButton_Click"  Foreground="#FFF9F9F9" Background="Black"/>
             <TextBox x:Name="tbConsole" IsReadOnly="True" HorizontalAlignment="Left" Height="121" Margin="10,53,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="638" BorderThickness="3" VerticalScrollBarVisibility="Visible"/>
             <ListView x:Name="UsersListView" HorizontalAlignment="Left" Height="369" Margin="467,179,0,0" VerticalAlignment="Top" Width="181" />
             <Button Content="Button" Visibility="Hidden" HorizontalAlignment="Left" Margin="448,573,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>

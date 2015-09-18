@@ -82,5 +82,29 @@ namespace RoxorBot.Properties {
                 this["notifyChatRestriction"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string plugdjLogin {
+            get {
+                return ((string)(this["plugdjLogin"]));
+            }
+            set {
+                this["plugdjLogin"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string plugdjPassword {
+            get {
+                return ((string)(this["plugdjPassword"]));
+            }
+            set {
+                this["plugdjPassword"] = value;
+            }
+        }
     }
 }

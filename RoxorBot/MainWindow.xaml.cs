@@ -58,6 +58,7 @@ namespace RoxorBot
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
         public static event EventHandler<IrcRawMessageEventArgs> ChatMessageReceived;
+        private PlugDJWindow plugDjWindow;
 
         public MainWindow()
         {
@@ -107,6 +108,10 @@ namespace RoxorBot
                 Properties.Settings.Default.twitch_login = Prompt.ShowDialog("Specify twitch login name", "Login");
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
                 Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Oauth");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjLogin))
+                Properties.Settings.Default.twitch_login = Prompt.ShowDialog("Specify plug dj login name", "Login");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjPassword))
+                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify plug dj password", "Password");
             Properties.Settings.Default.Save();
 
             tbStatus.Text = "Connecting...";
@@ -562,6 +567,8 @@ namespace RoxorBot
             Properties.Settings.Default.Save();
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
+            plugDjWindow.close = true;
+            plugDjWindow.Close();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -633,6 +640,14 @@ namespace RoxorBot
             MainGrid.IsEnabled = false;
             OverlayContainer.Content = control;
             OverlayContainer.Visibility = Visibility.Visible;
+        }
+
+        private void PlugDJButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (plugDjWindow == null)
+                plugDjWindow = new PlugDJWindow();
+            
+            plugDjWindow.Show();
         }
     }
 }
