@@ -67,9 +67,9 @@ namespace RoxorBot
 
             AppDomain.CurrentDomain.FirstChanceException += Logger.CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += Logger.CurrentDomain_UnhandledException;
-           // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
+            // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
             addToConsole("Initializing...");
-            
+
             InitializeComponent();
             queue = new List<DateTime>();
             OnListChanged += MainWindow_OnListChanged;
@@ -457,16 +457,6 @@ namespace RoxorBot
                 else
                     sendChatMessage(e.Message.Source.Name + ": " + u.Name + " has " + u.RewardTimer + " reward timer out of 30.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
-            {
-                string[] commands = e.Message.Parameters[1].Split(' ');
-                string name = commands[1].ToLower();
-                var u = UsersManager.getInstance().getUser(name);
-                if (u == null)
-                    sendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
-                else
-                    sendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
-            }
         }
 
         public void sendChatMessage(string message, bool overrideFloodQueue = false)
@@ -626,6 +616,22 @@ namespace RoxorBot
             MainGrid.Opacity = 1;
             MainGrid.IsEnabled = true;
             SettingsGrid.Visibility = Visibility.Hidden;
+        }
+
+        private void CommandsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var control = new CommandsListControl();
+            control.CloseButton.Click += (a, b) =>
+            {
+                OverlayContainer.Visibility = Visibility.Hidden;
+                OverlayContainer.Content = null;
+                MainGrid.Opacity = 1;
+                MainGrid.IsEnabled = true;
+            };
+            MainGrid.Opacity = 0.5;
+            MainGrid.IsEnabled = false;
+            OverlayContainer.Content = control;
+            OverlayContainer.Visibility = Visibility.Visible;
         }
     }
 }

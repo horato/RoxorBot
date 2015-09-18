@@ -242,6 +242,16 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
                 }
             }
+            else if (e.Message.Parameters[1].StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                string[] commands = e.Message.Parameters[1].Split(' ');
+                string name = commands[1].ToLower();
+                var u = UsersManager.getInstance().getUser(name);
+                if (u == null)
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
+                else
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
+            }
             else if (checkFilter(e))
             {
                 var item = getFilter(e.Message.Parameters[1]);
