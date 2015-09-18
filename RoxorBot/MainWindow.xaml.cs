@@ -109,9 +109,9 @@ namespace RoxorBot
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
                 Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Oauth");
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjLogin))
-                Properties.Settings.Default.twitch_login = Prompt.ShowDialog("Specify plug dj login name", "Login");
+                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify plug dj login name", "Login");
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjPassword))
-                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify plug dj password", "Password");
+                Properties.Settings.Default.plugdjPassword = Prompt.ShowDialog("Specify plug dj password", "Password");
             Properties.Settings.Default.Save();
 
             tbStatus.Text = "Connecting...";
@@ -644,6 +644,12 @@ namespace RoxorBot
 
         private void PlugDJButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjLogin))
+                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify plug dj login name", "Login");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjPassword))
+                Properties.Settings.Default.plugdjPassword = Prompt.ShowDialog("Specify plug dj password", "Password");
+            Properties.Settings.Default.Save();
+
             if (plugDjWindow == null)
                 plugDjWindow = new PlugDJWindow();
             
