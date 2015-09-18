@@ -302,7 +302,8 @@ namespace RoxorBot
                 if (e.Message.Parameters[1].Length > Properties.Settings.Default.maxMessageLength && !UsersManager.getInstance().isAdmin(e.Message.Source.Name))
                 {
                     sendChatMessage(".timeout " + e.Message.Source.Name + " 120", true);
-                    sendChatMessage("Pls no spamerino " + e.Message.Source.Name + " Keepo");
+                    if (Properties.Settings.Default.notifyChatRestriction)
+                        sendChatMessage("Pls no spamerino " + e.Message.Source.Name + " Keepo");
                     return;
                 }
                 if (ChatMessageReceived != null)

@@ -14,6 +14,7 @@
         <ContentControl x:Name="TwitchPasswordContentControl" Content="" HorizontalAlignment="Left" Margin="224,52,0,0" VerticalAlignment="Top" Height="26" Width="auto"/>
         <Label Content="Max Message Length" HorizontalAlignment="Left" Margin="0,78,0,0" VerticalAlignment="Top" Width="125"/>
         <TextBox x:Name="MaxMessageLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,78,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="200" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxMessageLengthTextBox_KeyUp"/>
-
+        <Label Content="Send timeout chat notification" HorizontalAlignment="Left" Margin="0,104,0,0" VerticalAlignment="Top" Width="219"/>
+        <CheckBox IsChecked="True" Content="" HorizontalAlignment="Left" Margin="231,109,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"/>
     </Grid>
 </UserControl>

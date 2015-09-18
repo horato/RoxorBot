@@ -103,5 +103,13 @@ namespace RoxorBot
             }
             Properties.Settings.Default.maxMessageLength = value;
         }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is CheckBox))
+                return;
+            var cb = (CheckBox)sender;
+            Properties.Settings.Default.notifyChatRestriction = cb.IsChecked.Value;
+        }
     }
 }

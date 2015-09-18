@@ -70,5 +70,17 @@ namespace RoxorBot.Properties {
                 this["maxMessageLength"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool notifyChatRestriction {
+            get {
+                return ((bool)(this["notifyChatRestriction"]));
+            }
+            set {
+                this["notifyChatRestriction"] = value;
+            }
+        }
     }
 }

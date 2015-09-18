@@ -270,7 +270,9 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(".ban " + e.Message.Source.Name, true);
                 else
                     mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
-                mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
+
+                if (Properties.Settings.Default.notifyChatRestriction)
+                    mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
                 mainWindow.addToConsole(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
             }
         }
