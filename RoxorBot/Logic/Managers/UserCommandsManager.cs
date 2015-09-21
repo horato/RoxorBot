@@ -65,7 +65,6 @@ namespace RoxorBot
             if (id > 0)
             {
                 DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO userCommands(id, command, reply) VALUES (" + id + ", '" + command.ToLower() + "', '" + reply + "');");
-
             }
             else
             {

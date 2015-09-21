@@ -95,7 +95,7 @@
                 <Grid>
                     <DataGrid x:Name="CustomCommandsDataGrid" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553" MouseDoubleClick="CustomCommandsDataGrid_OnMouseDoubleClick">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Command" Binding="{Binding Path=command}" Width="153" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Command" Binding="{Binding Path=command}" Width="152" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Reply" Binding="{Binding Path=reply}" Width="400" IsReadOnly="True"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>

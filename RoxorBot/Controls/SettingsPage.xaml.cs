@@ -97,7 +97,7 @@ namespace RoxorBot
 
             if (Prompt.Ask("Do you wish to delete " + filterItem.word + "?", "Delete"))
             {
-                FilterManager.getInstance().removeFilterWord(filterItem.word);
+                FilterManager.getInstance().removeFilterWord(filterItem.id);
                 drawWhitelist();
                 drawFilters();
             }
@@ -123,7 +123,7 @@ namespace RoxorBot
                     Logger.Log("Failed to int parse " + dialog.DurationBox.Text + " in  dialog.AddButton.Click");
                     return;
                 }
-                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, value, "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist);
+                FilterManager.getInstance().addFilterWord(dialog.FilterWordBox.Text, value, "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist, dialog.id);
                 drawWhitelist();
                 drawFilters();
                 SettingsGrid.IsEnabled = true;
@@ -140,8 +140,8 @@ namespace RoxorBot
                 var selectedItem = grid.SelectedItem as FilterItem;
                 if (selectedItem != null)
                 {
+                    dialog.id = selectedItem.id;
                     dialog.FilterWordBox.Text = selectedItem.word;
-                    dialog.FilterWordBox.IsEnabled = false;
                     dialog.DurationBox.Text = selectedItem.duration.ToString();
                     dialog.IsRegexCheckBox.IsChecked = selectedItem.isRegex;
                     dialog.IsWhitelistCheckBox.IsChecked = selectedItem.isWhitelist;
@@ -215,7 +215,7 @@ namespace RoxorBot
                     Logger.Log("Failed to int parse " + dialog.IntervalBox.Text + " in MessagesManager.getInstance().addAutomatedMessage");
                     return;
                 }
-                MessagesManager.getInstance().addAutomatedMessage(dialog.MessageBox.Text, value, (mainWindow.c != null && mainWindow.c.IsConnected));
+                MessagesManager.getInstance().addAutomatedMessage(dialog.MessageBox.Text, value, (mainWindow.c != null && mainWindow.c.IsConnected), dialog.active, dialog.id);
 
                 drawMessages();
                 SettingsGrid.IsEnabled = true;
@@ -232,9 +232,10 @@ namespace RoxorBot
                 var msg = grid.SelectedItem as AutomatedMessage;
                 if (msg != null)
                 {
+                    dialog.id = msg.id;
                     dialog.MessageBox.Text = msg.message;
-                    dialog.MessageBox.IsEnabled = false;
                     dialog.IntervalBox.Text = msg.interval.ToString();
+                    dialog.active = msg.active;
                 }
             }
             mainWindow.OverlayContainer.Content = dialog;

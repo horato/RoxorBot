@@ -9,6 +9,7 @@ namespace RoxorBot.Model
     class AutomatedMessage
     {
         private bool _active = true;
+        public int id { get; set; }
         public string message { get; set; }
         public int interval { get; set; }
 

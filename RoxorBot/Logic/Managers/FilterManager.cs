@@ -43,6 +43,7 @@ namespace RoxorBot
 
                 result.Add(new FilterItem
                 {
+                    id = Convert.ToInt32(reader["id"]),
                     word = (string)reader["word"],
                     duration = value,
                     addedBy = (string)reader["addedBy"],
@@ -74,18 +75,35 @@ namespace RoxorBot
             Logger.Log("Loaded " + reader.StepCount + " allowed users from database.");
         }
 
+        public bool filterExists(int id)
+        {
+            return Filters.Any(x => x.id == id);
+        }
+
         public bool filterExists(string word)
         {
             return Filters.Any(x => x.word == word);
         }
 
-        public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
+        public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist, int id = 0)
         {
+            if (id > 0)
+            {
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (id, word, duration, addedBy, isRegex, isWhitelist) VALUES (" + id + ", \"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+            }
+            else
+            {
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+                var reader = DatabaseManager.getInstance().executeReader("SELECT last_insert_rowid()");
+                if (!reader.Read())
+                    return;
+                id = reader.GetInt32(0);
+            }
             lock (Filters)
             {
-                if (filterExists(word))
+                if (filterExists(id))
                 {
-                    var filter = getFilter(word);
+                    var filter = getFilter(id);
                     filter.word = word;
                     filter.addedBy = addedBy;
                     filter.duration = banDuration;
@@ -94,19 +112,27 @@ namespace RoxorBot
                 }
                 else
                 {
-                    Filters.Add(new FilterItem { word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
+                    Filters.Add(new FilterItem { id = id, word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
                 }
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+            }
+        }
+
+        public void removeFilterWord(int id)
+        {
+            lock (Filters)
+            {
+                Filters.RemoveAll(x => x.id == id);
+                DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE id=" + id + ";");
             }
         }
 
         public void removeFilterWord(string word)
         {
-            lock (Filters)
-            {
-                Filters.RemoveAll(x => x.word == word);
-                DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE word==\"" + word + "\";");
-            }
+            var filter = getFilter(word);
+            if (filter == null)
+                return;
+
+            removeFilterWord(filter.id);
         }
 
         private bool checkFilter(IrcRawMessageEventArgs e)
@@ -141,9 +167,14 @@ namespace RoxorBot
             return UsersManager.getInstance().isAdmin(user) || UsersManager.getInstance().isAllowed(user);
         }
 
-        public FilterItem getFilter(string text)
+        public FilterItem getFilter(int id)
         {
-            return Filters.Find(x => text.Contains(x.word));
+            return Filters.Find(x => x.id == id);
+        }
+
+        public FilterItem getFilter(string word)
+        {
+            return Filters.Find(x => x.word == word);
         }
 
         public List<FilterItem> getAllFilters(FilterMode mode)

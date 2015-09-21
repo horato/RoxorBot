@@ -8,6 +8,7 @@ namespace RoxorBot.Model
 {
     public class FilterItem
     {
+        public int id { get; set; }
         public string word { get; set; }
         public int duration { get; set; }
         public string addedBy { get; set; }

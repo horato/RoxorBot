@@ -20,6 +20,9 @@ namespace RoxorBot
     /// </summary>
     public partial class AddMessageDialog : UserControl
     {
+        public int id = 0;
+        public bool active = true;
+
         public AddMessageDialog()
         {
             InitializeComponent();

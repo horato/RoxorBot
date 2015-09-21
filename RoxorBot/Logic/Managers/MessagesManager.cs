@@ -11,7 +11,7 @@ namespace RoxorBot
     class MessagesManager
     {
         private static MessagesManager _instance;
-        private Dictionary<string, AutomatedMessage> messages;
+        private Dictionary<int, AutomatedMessage> messages;
         private MainWindow mainWindow;
         private bool isRunning;
 
@@ -29,56 +29,77 @@ namespace RoxorBot
             return _instance;
         }
 
-        public void addAutomatedMessage(string msg, int interval, bool start)
+        public void addAutomatedMessage(string msg, int interval, bool start, bool enabled, int id = 0)
         {
-            var message = getMessage(msg);
+            if (id > 0)
+            {
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (id, message, interval, enabled) VALUES (" + id + ", '" + msg + "', " + interval + ", " + (enabled ? "1" : "0") + ");");
+            }
+            else
+            {
+                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (message, interval, enabled) VALUES ('" + msg + "', " + interval + ", 1);");
+                var reader = DatabaseManager.getInstance().executeReader("SELECT last_insert_rowid()");
+                if (!reader.Read())
+                    return;
+                id = reader.GetInt32(0);
+            }
+            var message = getMessage(id);
             if (message == null)
             {
                 message = new AutomatedMessage();
-                message.timer = new System.Timers.Timer(interval * 60 * 1000);
+                message.id = id;
                 message.active = true;
-                if (start)
-                    message.timer.Start();
-                fillTimer(message.timer, msg);
-                messages.Add(msg, message);
+                messages.Add(id, message);
             }
             message.message = msg;
             message.interval = interval;
-            DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO messages (message, interval, enabled) VALUES ('" + msg + "', " + interval + ", 1);");
-        }
 
-        private void fillTimer(System.Timers.Timer timer, string message)
-        {
-            timer.AutoReset = true;
-            timer.Elapsed += (a, b) =>
+            if (message.timer != null && message.timer.Enabled)
+                message.timer.Stop();
+            message.timer = new System.Timers.Timer(message.interval * 60 * 1000);
+            message.timer.AutoReset = true;
+            message.timer.Elapsed += (a, b) =>
             {
-                if (isRunning && messages[message].active)
-                    mainWindow.sendChatMessage(message);
+                if (isRunning && message.active)
+                    mainWindow.sendChatMessage(message.message);
             };
+            if (start)
+                message.timer.Start();
         }
 
         public void removeMessage(AutomatedMessage msg)
         {
-            if (msg.timer != null)
-                msg.timer.Stop();
-            messages.Remove(msg.message);
-            DatabaseManager.getInstance().executeNonQuery("DELETE FROM messages WHERE message='" + msg.message + "';");
+            lock (messages)
+            {
+                if (msg.timer != null)
+                    msg.timer.Stop();
+                messages.Remove(msg.id);
+                DatabaseManager.getInstance().executeNonQuery("DELETE FROM messages WHERE id=" + msg.id + ";");
+            }
         }
 
-        private Dictionary<string, AutomatedMessage> loadMessages()
+        private Dictionary<int, AutomatedMessage> loadMessages()
         {
-            Dictionary<string, AutomatedMessage> result = new Dictionary<string, AutomatedMessage>();
+            Dictionary<int, AutomatedMessage> result = new Dictionary<int, AutomatedMessage>();
             SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM messages;");
 
             while (reader.Read())
             {
+                var id = Convert.ToInt32(reader["id"]);
                 var msg = (string)reader["message"];
                 var interval = (int)reader["interval"];
-                var timer = new System.Timers.Timer(interval * 60 * 1000);
                 var enabled = (bool)reader["enabled"];
-                fillTimer(timer, msg);
-                result.Add(msg, new AutomatedMessage
+                var timer = new System.Timers.Timer(interval * 60 * 1000);
+                timer.AutoReset = true;
+                timer.Elapsed += (a, b) =>
                 {
+                    var message = getMessage(id);
+                    if (isRunning && message.active)
+                        mainWindow.sendChatMessage(message.message);
+                };
+                result.Add(id, new AutomatedMessage
+                {
+                    id = id,
                     message = msg,
                     interval = interval,
                     timer = timer,
@@ -119,12 +140,12 @@ namespace RoxorBot
                 return messages.Values.ToList();
         }
 
-        public AutomatedMessage getMessage(string msg)
+        public AutomatedMessage getMessage(int id)
         {
             lock (messages)
             {
-                if (messages.ContainsKey(msg))
-                    return messages[msg];
+                if (messages.ContainsKey(id))
+                    return messages[id];
                 else
                     return null;
             }

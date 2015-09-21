@@ -20,6 +20,8 @@ namespace RoxorBot
     /// </summary>
     public partial class AddFilterDialog : UserControl
     {
+        public int id = 0;
+
         public AddFilterDialog()
         {
             InitializeComponent();

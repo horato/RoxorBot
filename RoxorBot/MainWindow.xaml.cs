@@ -567,8 +567,11 @@ namespace RoxorBot
             Properties.Settings.Default.Save();
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
-            plugDjWindow.close = true;
-            plugDjWindow.Close();
+            if (plugDjWindow != null)
+            {
+                plugDjWindow.close = true;
+                plugDjWindow.Close();
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
