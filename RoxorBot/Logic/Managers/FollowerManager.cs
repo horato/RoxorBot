@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FollowerManager;
 using System.Net;
 using System.Web.Script.Serialization;
+using RoxorBot.Model;
 
 namespace RoxorBot
 {
@@ -17,36 +18,59 @@ namespace RoxorBot
         {
             Logger.Log("Initializing FollowerManager...");
 
-            init();
+            loadFollowers();
+            var timer = new System.Timers.Timer(2 * 60 * 1000);
+            timer.AutoReset = true;
+            timer.Elapsed += timer_Elapsed;
+            timer.Start();
         }
 
-        private void init()
+        void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            var followers = UsersManager.getInstance().getAllUsers().FindAll(x => x.IsFollower);
+            var list = loadFollowers();
+
+            if (list.Count < 1)
+                return;
+            
+            foreach (var user in list)
+                followers.RemoveAll(x => x.InternalName == user.InternalName);
+            
+            foreach (var user in followers)
+                user.IsFollower = false;
+        }
+
+        private List<User> loadFollowers()
         {
             var continueLoading = true;
             var offset = 0;
+            var result = new List<User>();
 
             while (continueLoading)
             {
                 Followers_FollowerManager followers;
                 using (WebClient client = new WebClient())
                 {
-                    string json = client.DownloadString("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset);
+                    string json = client.DownloadString("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset + "&rand=" + Environment.TickCount);
                     followers = new JavaScriptSerializer().Deserialize<Followers_FollowerManager>(json);
                 }
 
                 if (followers == null)
-                    return;
+                    return new List<User>();
 
                 foreach (var follower in followers.follows)
                 {
                     var u = UsersManager.getInstance().addUser(follower.user.display_name, Model.Role.Viewers);
                     u.IsFollower = true;
+                    result.Add(u);
                 }
 
                 offset += 50;
                 if (followers.follows.Length == 0)
                     continueLoading = false;
             }
+
+            return result;
         }
 
         public static FollowerManager getInstance()
