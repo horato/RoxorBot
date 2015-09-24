@@ -1,0 +1,11 @@
+﻿<Window x:Class="RoxorBot.YoutubeWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
+             xmlns:awesomium="http://schemas.awesomium.com/winfx"
+             Height="300" Width="350" Closing="Window_Closing" Title="Super Mega Nejlepsi Webovy Prohlizec">
+    <Grid>
+        <awesomium:WebControl x:Name="browser"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="272,246,-5,-1" VerticalAlignment="Top" Width="75" Panel.ZIndex="9999" Click="Button_Click"/>
+    </Grid>
+</Window>
