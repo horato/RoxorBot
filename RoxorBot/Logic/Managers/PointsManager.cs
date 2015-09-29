@@ -16,6 +16,7 @@ namespace RoxorBot
             Logger.Log("Initializing PointsManager...");
             MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
             loadViewers();
+            Logger.Log("Loaded " + getUsersCount() + " viewers from database.");
         }
 
         void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
@@ -28,7 +29,7 @@ namespace RoxorBot
             if (e.Message.Parameters[1].StartsWith("!points"))
             {
                 string[] commands = e.Message.Parameters[1].Split(' ');
-                if(commands.Length < 2)
+                if (commands.Length < 2)
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": You have " + getPointsForUser(e.Message.Source.Name) + " points.");
                 else
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + getPointsForUser(commands[1]) + " points.");

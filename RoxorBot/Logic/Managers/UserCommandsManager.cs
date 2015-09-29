@@ -16,6 +16,7 @@ namespace RoxorBot
             Logger.Log("Initializing UserCommandsManager...");
             commands = loadCommands();
             MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
+            Logger.Log("Loaded " + getCommandsCount() + " user commands from database.");
         }
 
         void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)

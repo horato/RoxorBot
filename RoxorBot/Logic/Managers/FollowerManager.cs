@@ -18,7 +18,6 @@ namespace RoxorBot
         {
             Logger.Log("Initializing FollowerManager...");
 
-            loadFollowers();
             var timer = new System.Timers.Timer(2 * 60 * 1000);
             timer.AutoReset = true;
             timer.Elapsed += timer_Elapsed;
@@ -32,12 +31,18 @@ namespace RoxorBot
 
             if (list.Count < 1)
                 return;
-            
+            if (followers == null)
+            {
+                Logger.Log("Loaded " + getFollowersCount() + " followers.");
+                return;
+            }
+
             foreach (var user in list)
                 followers.RemoveAll(x => x.InternalName == user.InternalName);
-            
             foreach (var user in followers)
                 user.IsFollower = false;
+
+            Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + "  unfollows.");
         }
 
         private List<User> loadFollowers()

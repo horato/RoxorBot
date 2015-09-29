@@ -23,6 +23,7 @@ namespace RoxorBot
 
             Filters = loadFilters();
             loadAllowedUsers();
+            Logger.Log("Loaded " + getFiltersCount() + " filtered words from database.");
         }
 
         public int getFiltersCount()
