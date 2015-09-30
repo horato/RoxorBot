@@ -4,15 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
              xmlns:awesomium="http://schemas.awesomium.com/winfx"
              Height="402" Width="370" Closing="Window_Closing" Title="Super Mega Nejlepsi Webovy Prohlizec" BorderThickness="0">
-    <Grid>
-        <awesomium:WebControl x:Name="browser" Width="350" Height="300" Margin="0,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+    <Grid Background="Black">
+        <awesomium:WebControl x:Name="browser" Width="350" Height="300" Margin="0,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsHitTestVisible="False"/>
         <Button x:Name="Button" Content="Button" HorizontalAlignment="Left" Margin="257,234,0,0" VerticalAlignment="Top" Width="75" Panel.ZIndex="9999" Click="Button_Click" Visibility="Hidden"/>
         <Button x:Name="StartButton" IsEnabled="False" Content="Start DJ" HorizontalAlignment="Left" Margin="0,305,0,0" VerticalAlignment="Top" Width="75" Background="Black" Foreground="White" Click="StartDJButton_Click"/>
         <Button x:Name="StopButton" IsEnabled="False" Content="Stop DJ" HorizontalAlignment="Left" Margin="80,305,0,0" VerticalAlignment="Top" Width="75" Background="Black" Foreground="White" Click="StopDJButton_Click"/>
         <Button x:Name="SkipButton" IsEnabled="False" Content="Skip song" HorizontalAlignment="Left" Margin="0,335,0,0" VerticalAlignment="Top" Width="75" Background="Black" Foreground="White" Click="SkipSongButton_Click"/>
-        <Label Content="Songs in primary queue:" HorizontalAlignment="Left" Margin="160,305,0,0" VerticalAlignment="Top" Height="25" Width="155"/>
-        <Label x:Name="PrimaryQueueCount" Content="0" HorizontalAlignment="Left" Margin="315,305,0,0" VerticalAlignment="Top" Height="25"/>
-        <Label Content="Songs in secondary queue:" HorizontalAlignment="Left" Margin="160,334,0,0" VerticalAlignment="Top" Height="25" Width="155"/>
-        <Label x:Name="SecondaryQueueCount" Content="0" HorizontalAlignment="Left" Margin="315,334,0,0" VerticalAlignment="Top" Height="25"/>
+        <Label Content="Songs in primary queue:" Foreground="White" HorizontalAlignment="Left" Margin="160,305,0,0" VerticalAlignment="Top" Height="25" Width="155"/>
+        <Label x:Name="PrimaryQueueCount" Content="0" Foreground="White" HorizontalAlignment="Left" Margin="315,305,0,0" VerticalAlignment="Top" Height="25"/>
+        <Label Content="Songs in secondary queue:" Foreground="White" HorizontalAlignment="Left" Margin="160,334,0,0" VerticalAlignment="Top" Height="25" Width="155"/>
+        <Label x:Name="SecondaryQueueCount" Content="0" Foreground="White" HorizontalAlignment="Left" Margin="315,334,0,0" VerticalAlignment="Top" Height="25"/>
+        <Button x:Name="PauseButton" Foreground="White" IsEnabled="False" Content="Pause" HorizontalAlignment="Left" Margin="80,335,0,0" VerticalAlignment="Top" Width="75" Background="Black" Click="PauseButton_Click"/>
     </Grid>
 </Window>

@@ -80,7 +80,7 @@ namespace RoxorBot
             OnListChanged += MainWindow_OnListChanged;
 
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
-                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify youtube api key", "Api key");
+                Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
 
             new Thread(new ThreadStart(load)).Start();

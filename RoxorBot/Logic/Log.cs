@@ -29,6 +29,8 @@ namespace RoxorBot
         {
             if (e.Exception is VideoParseException)
                 return;
+            if (e.Exception.Message.Contains("does not contain a definition"))
+                return;
 
             WriteToLog.Log("A first chance exception was thrown", "EXCEPTION");
             WriteToLog.Log(e.Exception.Message, "EXCEPTION");

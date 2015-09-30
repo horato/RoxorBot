@@ -44,7 +44,7 @@ namespace RoxorBot
                 foreach (var user in followers)
                     user.IsFollower = false;
 
-                Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + "  unfollows.");
+                Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + " unfollows.");
             }
             catch
             {

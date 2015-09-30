@@ -143,14 +143,13 @@ namespace RoxorBot
 
             browser.ExecuteJavascript("var player = document.getElementsByTagName(\"video\")[0];");
             browser.ExecuteJavascript("player.volume=0.2;");
-            browser.ExecuteJavascript("player.stop();");
+            browser.ExecuteJavascript("player.controls=false;");
+            browser.ExecuteJavascript("player.pause();");
             videoPlayer = (JSObject)browser.ExecuteJavascriptWithResult("player");
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 StartButton.IsEnabled = true;
-                StopButton.IsEnabled = true;
-                SkipButton.IsEnabled = true;
             }));
         }
 
@@ -164,8 +163,17 @@ namespace RoxorBot
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            e.Cancel = !close;
-            Hide();
+            if (close)
+            {
+                videoPlayer.pause();
+                playTimer.Stop();
+                updateTimer.Stop();
+            }
+            else
+            {
+                e.Cancel = true;
+                Hide();
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -177,17 +185,42 @@ namespace RoxorBot
         private void StartDJButton_Click(object sender, RoutedEventArgs e)
         {
             getNextAndPlay();
+            StartButton.IsEnabled = false;
+            StopButton.IsEnabled = true;
+            SkipButton.IsEnabled = true;
+            PauseButton.IsEnabled = true;
+            PauseButton.Content = "Pause";
         }
 
         private void StopDJButton_Click(object sender, RoutedEventArgs e)
         {
             playTimer.Stop();
+            StartButton.IsEnabled = true;
+            StopButton.IsEnabled = false;
+            SkipButton.IsEnabled = false;
+            PauseButton.IsEnabled = false;
         }
 
         private void SkipSongButton_Click(object sender, RoutedEventArgs e)
         {
-            videoPlayer.stop();
+            videoPlayer.pause();
             getNextAndPlay();
+        }
+
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PauseButton.Content.ToString() == "Pause")
+            {
+                playTimer.Stop();
+                videoPlayer.pause();
+                PauseButton.Content = "Play";
+            }
+            else
+            {
+                playTimer.Start();
+                videoPlayer.play();
+                PauseButton.Content = "Pause";
+            }
         }
     }
 }
