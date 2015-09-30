@@ -23,20 +23,26 @@ namespace RoxorBot
         {
             if (!(sender is MainWindow))
                 return;
+            if (e.Message.Parameters.Count < 2)
+                return;
 
             var mainWindow = ((MainWindow)sender);
+            var msg = e.Message.Parameters[1];
 
-            if (e.Message.Parameters[1].StartsWith("!points"))
+            if (msg.StartsWith("!points"))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": You have " + getPointsForUser(e.Message.Source.Name) + " points.");
                 else
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + getPointsForUser(commands[1]) + " points.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!addpoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!addpoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 3)
+                    return;
+
                 string name = commands[1].ToLower();
                 int value;
 
@@ -46,9 +52,12 @@ namespace RoxorBot
                 addPoints(name, value);
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
             }
-            else if (e.Message.Parameters[1].StartsWith("!removepoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!removepoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 3)
+                    return;
+
                 string name = commands[1].ToLower();
                 int value;
 
@@ -122,8 +131,6 @@ namespace RoxorBot
 
             while (reader.Read())
                 setPoints((string)reader["name"], (int)reader["score"], false);
-
-            Logger.Log("Loaded " + getUsersCount() + " viewers from database.");
         }
 
         public static PointsManager getInstance()

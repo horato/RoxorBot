@@ -106,5 +106,17 @@ namespace RoxorBot.Properties {
                 this["plugdjPassword"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string youtubeKey {
+            get {
+                return ((string)(this["youtubeKey"]));
+            }
+            set {
+                this["youtubeKey"] = value;
+            }
+        }
     }
 }

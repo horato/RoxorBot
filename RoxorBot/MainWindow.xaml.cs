@@ -41,6 +41,8 @@ using System.Reflection;
 using System.Net.Sockets;
 using System.Windows.Media;
 using System.Collections;
+using RoxorBot.Model.Youtube;
+using System.Web;
 
 namespace RoxorBot
 {
@@ -58,10 +60,11 @@ namespace RoxorBot
         private delegate void ListChanged();
         private event ListChanged OnListChanged;
         public static event EventHandler<IrcRawMessageEventArgs> ChatMessageReceived;
-        private PlugDJWindow plugDjWindow;
+        private YoutubeWindow plugDjWindow;
 
         public MainWindow()
         {
+            Logger.mainWindow = this;
             WriteToLog.ExecutingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             WriteToLog.LogfileName = "RoxorBot.Log";
             WriteToLog.CreateLogFile();
@@ -69,11 +72,16 @@ namespace RoxorBot
             AppDomain.CurrentDomain.FirstChanceException += Logger.CurrentDomain_FirstChanceException;
             AppDomain.CurrentDomain.UnhandledException += Logger.CurrentDomain_UnhandledException;
             // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
-            addToConsole("Initializing...");
+
+            Logger.Log("Program init...");
 
             InitializeComponent();
             queue = new List<DateTime>();
             OnListChanged += MainWindow_OnListChanged;
+
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
+                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify youtube api key", "Api key");
+            Properties.Settings.Default.Save();
 
             new Thread(new ThreadStart(load)).Start();
         }
@@ -83,23 +91,21 @@ namespace RoxorBot
             DatabaseManager.getInstance();
             UsersManager.getInstance();
             PointsManager.getInstance();
-            addToConsole("Loaded " + PointsManager.getInstance().getUsersCount() + " viewers from database.");
             FilterManager.getInstance();
-            addToConsole("Loaded " + FilterManager.getInstance().getFiltersCount() + " filtered words from database.");
             FollowerManager.getInstance();
-            addToConsole("Loaded " + FollowerManager.getInstance().getFollowersCount() + " followers.");
             MessagesManager.getInstance().setReference(this);
-            addToConsole("Loaded " + MessagesManager.getInstance().getMessagesCount() + " messages from database.");
             RaffleManager.getInstance().setReference(this);
             UserCommandsManager.getInstance();
-            addToConsole("Loaded " + UserCommandsManager.getInstance().getCommandsCount() + " user commands from database.");
-            addToConsole("Init finished.");
+            YoutubeManager.getInstance();
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 Connect_Button.IsEnabled = true;
                 SettingsButton.IsEnabled = true;
+                PlugDJButton.IsEnabled = true;
             }));
+
+            Logger.Log("Program init finished. Keep in mind that followers and backup playlist are still loading!");
         }
 
         private void Connect_Click(object sender, RoutedEventArgs e)
@@ -302,9 +308,13 @@ namespace RoxorBot
                     System.Diagnostics.Debug.Write(s + ",");
             System.Diagnostics.Debug.WriteLine("");
 
+            if (e.Message.Parameters.Count < 2)
+                return;
+            var msg = e.Message.Parameters[1];
+
             if (e.Message.Command == "PRIVMSG" && e.Message.Parameters[0] == "#roxork0")
             {
-                if (e.Message.Parameters[1].Length > Properties.Settings.Default.maxMessageLength && !UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+                if (msg.Length > Properties.Settings.Default.maxMessageLength && !UsersManager.getInstance().isAdmin(e.Message.Source.Name))
                 {
                     sendChatMessage(".timeout " + e.Message.Source.Name + " 120", true);
                     if (Properties.Settings.Default.notifyChatRestriction)
@@ -338,7 +348,7 @@ namespace RoxorBot
             //    c.SendRawMessage("JOIN #roxork0");
             else if (e.Message.Command == "NOTICE") //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
             {
-                if (e.Message.Parameters[1].ToLower().Contains("error logging in"))
+                if (msg.ToLower().Contains("error logging in"))
                 {
                     addToConsole("Error logging in. Wrong password/oauth?");
                     Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
@@ -348,12 +358,11 @@ namespace RoxorBot
                 }
                 else
                 {
-                    string msg = "";
+                    string notice = "";
                     foreach (string s in e.Message.Parameters)
                         if (!string.IsNullOrEmpty(s))
-                            msg += s + ",";
-                    addToConsole("NOTICE RECEIVED: " + msg);
-                    Logger.Log("NOTICE RECEIVED: " + msg);
+                            notice += s + ",";
+                    Logger.Log("NOTICE RECEIVED: " + notice);
                 }
             }
             else if (e.Message.Command == "PING")
@@ -383,7 +392,11 @@ namespace RoxorBot
 
         private void handleRawMessage(IrcRawMessageEventArgs e)
         {
-            if (e.Message.Parameters[1] == "!since")
+            if (e.Message.Parameters.Count < 2)
+                return;
+            var msg = e.Message.Parameters[1];
+
+            if (msg == "!since")
             {
                 try
                 {
@@ -415,7 +428,7 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
-            else if (e.Message.Parameters[1] == "!uptime")
+            else if (msg == "!uptime")
             {
                 try
                 {
@@ -443,9 +456,9 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(ee.ToString());
                 }
             }
-            else if (e.Message.Parameters[1].StartsWith("!isfollower ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!isfollower ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
                 string name = commands[1].ToLower();
                 var u = UsersManager.getInstance().getUser(name);
                 if (u == null || !u.IsFollower)
@@ -453,9 +466,9 @@ namespace RoxorBot
                 else
                     sendChatMessage(name + "is not follower.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!gettimer ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!gettimer ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
                 string name = commands[1].ToLower();
                 var u = UsersManager.getInstance().getUser(name);
                 if (u == null)
@@ -469,7 +482,6 @@ namespace RoxorBot
         {
             if (queue.Count > 90 && !overrideFloodQueue)
             {
-                addToConsole("Queue limit reached. Ignoring: " + message);
                 Logger.Log("Queue limit reached. Ignoring: " + message);
                 return;
             }
@@ -647,15 +659,13 @@ namespace RoxorBot
 
         private void PlugDJButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjLogin))
-                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify plug dj login name", "Login");
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.plugdjPassword))
-                Properties.Settings.Default.plugdjPassword = Prompt.ShowDialog("Specify plug dj password", "Password");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
+                Properties.Settings.Default.plugdjLogin = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
 
             if (plugDjWindow == null)
-                plugDjWindow = new PlugDJWindow();
-            
+                plugDjWindow = new YoutubeWindow();
+
             plugDjWindow.Show();
         }
     }

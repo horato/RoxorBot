@@ -26,23 +26,30 @@ namespace RoxorBot
 
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            var followers = UsersManager.getInstance().getAllUsers().FindAll(x => x.IsFollower);
-            var list = loadFollowers();
-
-            if (list.Count < 1)
-                return;
-            if (followers == null)
+            try
             {
-                Logger.Log("Loaded " + getFollowersCount() + " followers.");
-                return;
+                var followers = UsersManager.getInstance().getAllUsers().FindAll(x => x.IsFollower);
+                var list = loadFollowers();
+
+                if (list.Count < 1)
+                    return;
+                if (followers == null)
+                {
+                    Logger.Log("Loaded " + getFollowersCount() + " followers.");
+                    return;
+                }
+
+                foreach (var user in list)
+                    followers.RemoveAll(x => x.InternalName == user.InternalName);
+                foreach (var user in followers)
+                    user.IsFollower = false;
+
+                Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + "  unfollows.");
             }
-
-            foreach (var user in list)
-                followers.RemoveAll(x => x.InternalName == user.InternalName);
-            foreach (var user in followers)
-                user.IsFollower = false;
-
-            Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + "  unfollows.");
+            catch
+            {
+                Logger.Log("Failed to update followers.");
+            }
         }
 
         private List<User> loadFollowers()

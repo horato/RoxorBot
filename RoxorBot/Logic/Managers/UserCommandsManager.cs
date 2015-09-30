@@ -23,22 +23,26 @@ namespace RoxorBot
         {
             if (!(sender is MainWindow))
                 return;
+            if (e.Message.Parameters.Count < 2)
+                return;
 
             var mainWindow = ((MainWindow)sender);
-            if (commandsContains(e.Message.Parameters[1]))
+            var msg = e.Message.Parameters[1];
+
+            if (commandsContains(msg))
             {
                 List<UserCommand> commandList;
                 lock (commands)
-                    commandList = commands.FindAll(x => x.command.ToLower() == e.Message.Parameters[1].ToLower());
+                    commandList = commands.FindAll(x => x.command.ToLower() == msg.ToLower());
 
                 var num = new Random().Next(0, commandList.Count - 1);
                 var command = commandList[num];
                 mainWindow.sendChatMessage(command.reply);
             }
-            else if (e.Message.Parameters[1].StartsWith("!addcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!addcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 var sb = new StringBuilder();
-                var split = e.Message.Parameters[1].Split(' ');
+                var split = msg.Split(' ');
 
                 if (split.Length < 3)
                     return;
@@ -51,9 +55,9 @@ namespace RoxorBot
                 addCommand(command, reply);
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": Command " + command + " added.");
             }
-            /* else if (e.Message.Parameters[1].StartsWith("!delcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            /* else if (msg.StartsWith("!delcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
              {
-                 var split = e.Message.Parameters[1].Split(' ');
+                 var split = msg.Split(' ');
                  var command = split[1];
 
                  if (removeCommand(command))
@@ -82,7 +86,7 @@ namespace RoxorBot
                 if (cmd == null)
                 {
                     commands.Add(new UserCommand { id = id, command = command.ToLower(), reply = reply });
-                    }
+                }
                 else
                 {
                     cmd.command = command;
@@ -111,10 +115,7 @@ namespace RoxorBot
 
         private bool commandsContains(string msg)
         {
-            lock (commands)
-            {
-                return commands.Exists(x => x.command.ToLower() == msg.ToLower());
-            }
+            return commands.Exists(x => x.command.ToLower() == msg.ToLower());
         }
 
         private List<UserCommand> loadCommands()
@@ -143,8 +144,7 @@ namespace RoxorBot
 
         internal int getCommandsCount()
         {
-            lock (commands)
-                return commands.Count;
+            return commands.Count;
         }
 
         public List<UserCommand> getAllCommands()

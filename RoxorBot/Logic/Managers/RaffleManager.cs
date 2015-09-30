@@ -39,8 +39,11 @@ namespace RoxorBot
         {
             if (!isRunning || (e.Message.Source.Name.ToLower() == Properties.Settings.Default.twitch_login.ToLower()))
                 return;
+            if (e.Message.Parameters.Count < 2)
+                return;
+            var msg = e.Message.Parameters[1];
 
-            if (acceptedWords.Contains(e.Message.Parameters[1]))
+            if (acceptedWords.Contains(msg))
             {
                 var user = UsersManager.getInstance().getUser(e.Message.Source.Name);
 

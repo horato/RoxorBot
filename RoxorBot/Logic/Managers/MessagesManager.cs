@@ -20,7 +20,6 @@ namespace RoxorBot
             Logger.Log("Initializing MessagesManager...");
             messages = loadMessages();
             isRunning = false;
-            Logger.Log("Loaded " + getMessagesCount() + " messages from database.");
         }
 
         public static MessagesManager getInstance()

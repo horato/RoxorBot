@@ -140,8 +140,11 @@ namespace RoxorBot
         {
             if (isAdminOrAllowed(e.Message.Source.Name.ToLower()))
                 return false;
+            if (e.Message.Parameters.Count < 2)
+                return false;
+            var msg = e.Message.Parameters[1];
 
-            var items = Filters.FindAll(x => e.Message.Parameters[1].ToLower().Contains(x.word.ToLower()));
+            var items = Filters.FindAll(x => msg.ToLower().Contains(x.word.ToLower()));
             var exists = (items != null && items.Count > 0);
             if (exists && items.Any(x => x.isWhitelist))
                 return false;
@@ -152,7 +155,7 @@ namespace RoxorBot
                 var toCheck = new List<FilterItem>();
 
                 foreach (var filter in temp)
-                    if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
+                    if (Regex.IsMatch(msg, filter.word))
                         toCheck.Add(filter);
 
                 if (toCheck.Count > 0 && toCheck.Any(x => x.isWhitelist))
@@ -207,12 +210,18 @@ namespace RoxorBot
         {
             if (!(sender is MainWindow))
                 return;
+            if (e.Message.Parameters.Count < 2)
+                return;
 
             var mainWindow = ((MainWindow)sender);
+            var msg = e.Message.Parameters[1];
 
-            if (e.Message.Parameters[1].StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            if (msg.StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 3)
+                    return;
+
                 string word = commands[1].ToLower();
                 int value;
 
@@ -226,9 +235,12 @@ namespace RoxorBot
 
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
             }
-            if (e.Message.Parameters[1].StartsWith("!whitelist ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            if (msg.StartsWith("!whitelist ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
                 string word = commands[1].ToLower();
 
                 if (filterExists(word))
@@ -238,9 +250,12 @@ namespace RoxorBot
 
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " is now whitelisted.");
             }
-            else if ((e.Message.Parameters[1].StartsWith("!removefilter ") || e.Message.Parameters[1].StartsWith("!removewhitelist ")) && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if ((msg.StartsWith("!removefilter ") || msg.StartsWith("!removewhitelist ")) && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
                 string word = commands[1].ToLower();
 
                 if (!filterExists(word))
@@ -250,9 +265,12 @@ namespace RoxorBot
 
                 mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
             }
-            else if (e.Message.Parameters[1].StartsWith("!allow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!allow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
                 string name = commands[1].ToLower();
 
                 var user = UsersManager.getInstance().getUser(name);
@@ -262,9 +280,12 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": " + user.Name + " is now allowed.");
                 }
             }
-            else if (e.Message.Parameters[1].StartsWith("!unallow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!unallow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
                 string name = commands[1].ToLower();
 
                 var user = UsersManager.getInstance().getUser(name);
@@ -274,9 +295,12 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
                 }
             }
-            else if (e.Message.Parameters[1].StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
-                string[] commands = e.Message.Parameters[1].Split(' ');
+                string[] commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
                 string name = commands[1].ToLower();
                 var u = UsersManager.getInstance().getUser(name);
                 if (u == null)
@@ -286,12 +310,12 @@ namespace RoxorBot
             }
             else if (checkFilter(e))
             {
-                var item = getFilter(e.Message.Parameters[1]);
+                var item = getFilter(msg);
                 if (item == null)
                 {
                     var temp = getAllFilters(FilterMode.Regex);
                     foreach (var filter in temp)
-                        if (Regex.IsMatch(e.Message.Parameters[1], filter.word))
+                        if (Regex.IsMatch(msg, filter.word))
                             item = filter;
                 }
 
@@ -305,7 +329,7 @@ namespace RoxorBot
 
                 if (Properties.Settings.Default.notifyChatRestriction)
                     mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                mainWindow.addToConsole(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
+                Logger.Log(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
             }
         }
 

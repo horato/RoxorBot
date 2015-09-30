@@ -58,7 +58,7 @@ namespace RoxorBot
                 }
 
             }
-            return new TimeSpan();
+            return new TimeSpan(23,0,0);
         }
     }
 }
