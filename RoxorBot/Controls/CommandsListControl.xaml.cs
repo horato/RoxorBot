@@ -38,7 +38,10 @@ namespace RoxorBot
             "!gettimer nick - interni timer pro body za 30m",
             "!isallowed nick",
             "!addcomm command reply",
-            "!delcomm command (zatim vypnuto)"
+            "!delcomm command (zatim vypnuto)",
+            "!songrequest link",
+            "!skipsong",
+            "!volume 1-100"
         };
 
         public CommandsListControl()

@@ -148,6 +148,9 @@ namespace RoxorBot
 
                 if (int.TryParse(commands[1], out volume))
                 {
+                    if (volume < 1 || volume > 100)
+                        return;
+
                     setVolume(volume / 100.0);
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
                 }
