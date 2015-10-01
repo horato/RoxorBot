@@ -30,6 +30,7 @@ namespace RoxorBot
                 plugDjLoginTextBox.Text = Properties.Settings.Default.plugdjLogin;
             MaxMessageLengthTextBox.Text = Properties.Settings.Default.maxMessageLength.ToString();
             sendTimeoutNotificationCheckBox.IsChecked = Properties.Settings.Default.notifyChatRestriction;
+            MaxSongLengthTextBox.Text = Properties.Settings.Default.maxSongLength.ToString();
 
             renderButtons(TwitchPasswordContentControl, true);
             renderButtons(plugDjPasswordContentControl, false);
@@ -153,6 +154,22 @@ namespace RoxorBot
                 return;
             var cb = (CheckBox)sender;
             Properties.Settings.Default.notifyChatRestriction = cb.IsChecked.Value;
+        }
+
+        private void MaxSongLengthTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!(sender is TextBox))
+                return;
+
+            var tb = (TextBox)sender;
+            int value;
+
+            if (!int.TryParse(tb.Text, out value))
+            {
+                Logger.Log("Failed to int parse " + tb.Text + " in MaxSongLengthTextBox_KeyUp");
+                return;
+            }
+            Properties.Settings.Default.maxSongLength = value;
         }
     }
 }

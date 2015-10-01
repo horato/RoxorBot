@@ -112,10 +112,23 @@ namespace RoxorBot
                 var match = Regex.Match(link, "youtu(?:\\.be|be\\.com)\\/(?:.*v(?:\\/|=)|(?:.*\\/)?)([a-zA-Z0-9-_]+)");
                 if (match.Success)
                 {
-                    var id = match.Groups[1].Value;
-                    var video = YoutubeManager.getInstance().addSong(id);
-                    if (video != null)
-                        mainWindow.sendChatMessage(e.Message.Source.Name + ": " + video.info.snippet.title + " added to queue.");
+                    try
+                    {
+                        var id = match.Groups[1].Value;
+                        var video = YoutubeManager.getInstance().addSong(id);
+                        if (video != null)
+                        {
+                            if (video.duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
+                                throw new VideoParseException("Video " + id + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");
+                            mainWindow.sendChatMessage(e.Message.Source.Name + ": " + video.info.snippet.title + " added to queue.");
+                        }
+                    }
+                    catch (VideoParseException ee)
+                    {
+                        Logger.Log(ee.Message);
+                        mainWindow.sendChatMessage(e.Message.Source.Name + ": " + ee.Message);
+                    }
+                    catch (Exception) { }
                 }
             }
             else if (msg.Equals("!skipsong") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
@@ -134,7 +147,10 @@ namespace RoxorBot
                 int volume;
 
                 if (int.TryParse(commands[1], out volume))
+                {
                     setVolume(volume / 100.0);
+                    mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
+                }
             }
         }
 
@@ -154,6 +170,7 @@ namespace RoxorBot
             videoPlayer.src = currentVideo.embedLink;
             videoPlayer.load();
             playTimer.Start();
+            CurrentlyPlayingLabel.Text = currentVideo.name;
         }
 
         void browser_Loaded(object sender, RoutedEventArgs e)

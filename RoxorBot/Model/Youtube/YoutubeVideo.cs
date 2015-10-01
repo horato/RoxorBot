@@ -37,17 +37,19 @@ namespace RoxorBot.Model.Youtube
                     throw new VideoParseException("Video " + videoID + " info not found");
                 if (info.items[0].status == null)
                     throw new VideoParseException("Video " + videoID + " status not found");
+                /* if (!info.items[0].status.embeddable)
+                    throw new VideoParseException("Video is not embedable");*/
+                if (info.items[0].status.privacyStatus == "private")
+                    throw new VideoParseException("Video " + videoID + " is private");
 
                 this.info = info.items[0];
                 var status = info.items[0].status;
-                /* if (!status.embeddable)
-                     throw new VideoParseException("Video is not embedable");*/
-                if (status.privacyStatus == "private")
-                    throw new VideoParseException("Video " + videoID + " is private");
                 var contentDetails = info.items[0].contentDetails;
                 var snippet = info.items[0].snippet;
 
                 duration = DurationParser.GetDuration(contentDetails.duration);
+                /*if (duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
+                    throw new VideoParseException("Video " + videoID + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");*/
                 name = snippet.title;
                 id = videoID;
                 address = "http://www.youtube.com/watch?v=" + videoID;

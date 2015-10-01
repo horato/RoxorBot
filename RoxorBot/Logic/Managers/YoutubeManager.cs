@@ -111,21 +111,18 @@ namespace RoxorBot
             return result;
         }
 
+        /// <summary>
+        /// may throw VideoParseException
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public YoutubeVideo addSong(string id)
         {
             if (!existsInPrimaryQueue(id))
             {
-                try
-                {
-                    var video = new YoutubeVideo(id);
-                    lock (Videos) { Videos.Add(video); }
-                    return video;
-                }
-                catch (VideoParseException ee)
-                {
-                    Logger.Log(ee.Message);
-                }
-                catch (Exception) { }
+                var video = new YoutubeVideo(id);
+                lock (Videos) { Videos.Add(video); }
+                return video;
             }
             return null;
         }
@@ -162,6 +159,15 @@ namespace RoxorBot
                 }
             }
         }
+
+        public static YoutubeManager getInstance()
+        {
+            if (_instance == null)
+                _instance = new YoutubeManager();
+
+            return _instance;
+        }
+        
         public static string getVideoDirectLink(string id = "oHg5SJYRHA0")
         {
             var map = getFmtMap(id);
@@ -186,6 +192,12 @@ namespace RoxorBot
             return "";
         }
 
+        /// <summary>
+        /// Thanks to VLC media player for their youtube lua script
+        /// </summary>
+        /// <param name="sig"></param>
+        /// <param name="js_url"></param>
+        /// <returns></returns>
         private static string js_descramble(string sig, string js_url)
         {
             using (var client = new WebClient())
@@ -294,6 +306,12 @@ namespace RoxorBot
             }
         }
 
+        /// <summary>
+        /// Thanks to VLC media player for their youtube lua script
+        /// </summary>
+        /// <param name="sig"></param>
+        /// <param name="js_url"></param>
+        /// <returns></returns>
         private static Dictionary<string, string> getFmtMap(string id)
         {
             var result = new Dictionary<string, string>();
@@ -339,13 +357,6 @@ namespace RoxorBot
                 }
             }
             return result;
-        }
-        public static YoutubeManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new YoutubeManager();
-
-            return _instance;
         }
     }
 }

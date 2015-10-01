@@ -118,5 +118,17 @@ namespace RoxorBot.Properties {
                 this["youtubeKey"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("180")]
+        public int maxSongLength {
+            get {
+                return ((int)(this["maxSongLength"]));
+            }
+            set {
+                this["maxSongLength"] = value;
+            }
+        }
     }
 }
