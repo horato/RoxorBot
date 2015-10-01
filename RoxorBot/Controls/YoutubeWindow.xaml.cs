@@ -64,7 +64,7 @@ namespace RoxorBot
             playTimer = new System.Timers.Timer(5000);
             playTimer.AutoReset = true;
             playTimer.Elapsed += playTimer_Elapsed;
-            updateTimer = new System.Timers.Timer(1000);
+            updateTimer = new System.Timers.Timer(500);
             updateTimer.AutoReset = true;
             updateTimer.Elapsed += (a, b) =>
             {
@@ -72,6 +72,11 @@ namespace RoxorBot
                 {
                     PrimaryQueueCount.Content = YoutubeManager.getInstance().getPlaylistCount();
                     SecondaryQueueCount.Content = YoutubeManager.getInstance().getBackupPlaylistCount();
+                    if (videoPlayer != null && videoPlayer.duration != double.NaN && videoPlayer.currentTime != double.NaN)
+                    {
+                        PlayProgressSlider.Maximum = (double)videoPlayer.duration;
+                        PlayProgressSlider.Value = (double)videoPlayer.currentTime;
+                    }
                 }));
             };
             updateTimer.Start();
@@ -120,6 +125,26 @@ namespace RoxorBot
                     getNextAndPlay();
                 }));
             }
+            else if (msg.StartsWith("!volume ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            {
+                var commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
+                int volume;
+
+                if (int.TryParse(commands[1], out volume))
+                    setVolume(volume / 100.0);
+            }
+        }
+
+        private void setVolume(double volume)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                videoPlayer.volume = volume;
+                VolumeSlider.Value = volume;
+            }));
         }
 
         private void getNextAndPlay()
@@ -149,7 +174,9 @@ namespace RoxorBot
 
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
+                PauseButton.IsEnabled = true;
                 StartButton.IsEnabled = true;
+                VolumeSlider.Value = 0.2;
             }));
         }
 
@@ -166,6 +193,7 @@ namespace RoxorBot
             if (close)
             {
                 videoPlayer.pause();
+                videoPlayer.currentTime = 0;
                 playTimer.Stop();
                 updateTimer.Stop();
             }
@@ -217,10 +245,30 @@ namespace RoxorBot
             }
             else
             {
-                playTimer.Start();
+                if (StopButton.IsEnabled)
+                    playTimer.Start();
                 videoPlayer.play();
                 PauseButton.Content = "Pause";
             }
+        }
+
+
+        private void PlayProgressSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            if (!(sender is Slider))
+                return;
+            var slider = (Slider)sender;
+
+            videoPlayer.currentTime = slider.Value;
+        }
+
+        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!(sender is Slider))
+                return;
+            var slider = (Slider)sender;
+
+            setVolume(slider.Value);
         }
     }
 }

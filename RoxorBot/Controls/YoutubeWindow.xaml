@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
              xmlns:awesomium="http://schemas.awesomium.com/winfx"
-             Height="402" Width="370" Closing="Window_Closing" Title="Super Mega Nejlepsi Webovy Prohlizec" BorderThickness="0">
+             Height="458" Width="370" Closing="Window_Closing" Title="Super Mega Nejlepsi Webovy Prohlizec" BorderThickness="0" ResizeMode="NoResize">
     <Grid Background="Black">
         <awesomium:WebControl x:Name="browser" Width="350" Height="300" Margin="0,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsHitTestVisible="False"/>
         <Button x:Name="Button" Content="Button" HorizontalAlignment="Left" Margin="257,234,0,0" VerticalAlignment="Top" Width="75" Panel.ZIndex="9999" Click="Button_Click" Visibility="Hidden"/>
@@ -14,6 +14,9 @@
         <Label x:Name="PrimaryQueueCount" Content="0" Foreground="White" HorizontalAlignment="Left" Margin="315,305,0,0" VerticalAlignment="Top" Height="25"/>
         <Label Content="Songs in secondary queue:" Foreground="White" HorizontalAlignment="Left" Margin="160,334,0,0" VerticalAlignment="Top" Height="25" Width="155"/>
         <Label x:Name="SecondaryQueueCount" Content="0" Foreground="White" HorizontalAlignment="Left" Margin="315,334,0,0" VerticalAlignment="Top" Height="25"/>
-        <Button x:Name="PauseButton" Foreground="White" IsEnabled="False" Content="Pause" HorizontalAlignment="Left" Margin="80,335,0,0" VerticalAlignment="Top" Width="75" Background="Black" Click="PauseButton_Click"/>
+        <Button x:Name="PauseButton" Foreground="White" IsEnabled="False" Content="Play" HorizontalAlignment="Left" Margin="80,335,0,0" VerticalAlignment="Top" Width="75" Background="Black" Click="PauseButton_Click"/>
+        <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" HorizontalAlignment="Left" Margin="80,370,0,0" VerticalAlignment="Top" Width="75" Height="18" RenderTransformOrigin="0.52,0.304" LargeChange="0.1" ValueChanged="VolumeSlider_ValueChanged"/>
+        <Label Content="Volume" HorizontalAlignment="Left" Margin="0,365,0,0" Foreground="White" HorizontalContentAlignment="Center" VerticalAlignment="Top" Width="75" Height="23"/>
+        <Slider x:Name="PlayProgressSlider" HorizontalAlignment="Left" Margin="0,393,0,0" VerticalAlignment="Top" Width="350" Focusable="False" LargeChange="0" Thumb.DragCompleted="PlayProgressSlider_DragCompleted"/>
     </Grid>
 </Window>
