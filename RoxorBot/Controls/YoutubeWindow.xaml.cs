@@ -119,7 +119,11 @@ namespace RoxorBot
                         if (video != null)
                         {
                             if (video.duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
+                            {
+                                YoutubeManager.getInstance().removeSong(video.id);
                                 throw new VideoParseException("Video " + id + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");
+                            }
+                            video.requester = e.Message.Source.Name;
                             mainWindow.sendChatMessage(e.Message.Source.Name + ": " + video.info.snippet.title + " added to queue.");
                         }
                     }
@@ -173,7 +177,7 @@ namespace RoxorBot
             videoPlayer.src = currentVideo.embedLink;
             videoPlayer.load();
             playTimer.Start();
-            CurrentlyPlayingLabel.Text = currentVideo.name;
+            CurrentlyPlayingLabel.Text = currentVideo.name + (string.IsNullOrWhiteSpace(currentVideo.requester) ? "" : " --- Requested by: " + currentVideo.requester);
         }
 
         void browser_Loaded(object sender, RoutedEventArgs e)
@@ -226,7 +230,7 @@ namespace RoxorBot
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            videoPlayer.src = currentVideo.embedLink;
+            videoPlayer.src = null;
             videoPlayer.load();
         }
 

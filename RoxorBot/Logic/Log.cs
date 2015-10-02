@@ -1,4 +1,5 @@
-﻿using RoxorBot.Model.Youtube;
+﻿using RoxorBot.Logic;
+using RoxorBot.Model.Youtube;
 using System;
 using System.IO;
 using System.Runtime.ExceptionServices;
@@ -45,6 +46,13 @@ namespace RoxorBot
             var ex = (Exception)x.ExceptionObject;
             WriteToLog.Log(ex.Message, "UNHANDLEDEXCEPTION");
             WriteToLog.Log(ex.ToString(), "UNHANDLEDEXCEPTION");
+
+            if (!WriteToLog.isLocked)
+            {
+                WriteToLog.isLocked = true;
+                Mail.sendMail();
+                WriteToLog.isLocked = false;
+            }
         }
 
         public static void Log(string line, string type = "LOG")

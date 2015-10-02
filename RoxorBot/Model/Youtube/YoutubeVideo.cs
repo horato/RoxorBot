@@ -16,6 +16,7 @@ namespace RoxorBot.Model.Youtube
         public string id { get; set; }
         public TimeSpan duration { get; set; }
         public VideoInfo info { get; set; }
+        public string requester { get; set; }
 
         private YoutubeVideo()
         {

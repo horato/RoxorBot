@@ -413,7 +413,7 @@ namespace RoxorBot
                             return;
 
                         var stream = info.streams[0];
-                        var start = TimeParser.GetDuration(stream.created_at, false);
+                        var start = TimeParser.GetDuration(stream.created_at);
                         if (start.Month != 999)
                         {
                             var time = DateTime.Now - start;
