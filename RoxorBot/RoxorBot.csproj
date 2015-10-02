@@ -134,9 +134,6 @@
     <Compile Include="Controls\YoutubeWindow.xaml.cs">
       <DependentUpon>YoutubeWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\PlugDJWindow.xaml.cs">
-      <DependentUpon>PlugDJWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>
     </Compile>
@@ -210,10 +207,6 @@
     <Page Include="Controls\YoutubeWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Controls\PlugDJWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\SettingsControl.xaml">
       <SubType>Designer</SubType>
