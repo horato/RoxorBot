@@ -43,6 +43,7 @@ using System.Windows.Media;
 using System.Collections;
 using RoxorBot.Model.Youtube;
 using System.Web;
+using RoxorBot.Logic;
 
 namespace RoxorBot
 {
@@ -394,35 +395,11 @@ namespace RoxorBot
 
             if (msg == "!since")
             {
-                try
-                {
-                    using (WebClient client = new WebClient())
-                    {
-                        string json = client.DownloadString("https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
-                        Followers followers = new JavaScriptSerializer().Deserialize<Followers>(json);
-                        if (followers.status != 0)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Error !since: error: " + followers.error + " Message: " + followers.message + ":::   " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
-                            Logger.Log("Error !since: error: " + followers.error + " Message: " + followers.message + ":::   " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
-                        }
-                        else
-                        {
-                            DateTime time = TimeParser.GetDuration(followers.created_at);
-                            if (time.Year == 999)
-                            {
-                                System.Diagnostics.Debug.WriteLine("Error !since: parsing time: " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
-                                Logger.Log("Error !since: parsing time: " + "https://api.twitch.tv/kraken/users/" + e.Message.Source.Name + "/follows/channels/roxork0");
-                            }
-                            else
-                                sendChatMessage(e.Message.Source.Name + string.Format(" is following since {0}.{1:D2}.{2} {3}:{4:D2}:{5:D2}", time.Day, time.Month, time.Year, time.Hour, time.Minute, time.Second));
-                        }
-
-                    }
-                }
-                catch (Exception ee)
-                {
-                    System.Diagnostics.Debug.WriteLine(ee.ToString());
-                }
+                var user = UsersManager.getInstance().getUser(e.Message.Source.Name);
+                if (user == null || !user.IsFollower || user.IsFollowerSince.Year == 999)
+                    return;
+                var time = user.IsFollowerSince;
+                sendChatMessage(e.Message.Source.Name + string.Format(" is following since {0}.{1:D2}.{2} {3}:{4:D2}:{5:D2}", time.Day, time.Month, time.Year, time.Hour, time.Minute, time.Second));
             }
             else if (msg == "!uptime")
             {
@@ -462,7 +439,7 @@ namespace RoxorBot
                 else
                     sendChatMessage(name + "is not follower.");
             }
-            else if (msg.StartsWith("!gettimer ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!gettimer ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 string name = commands[1].ToLower();
@@ -575,6 +552,9 @@ namespace RoxorBot
             Properties.Settings.Default.Save();
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
+            WriteToLog.isLocked = true;
+            Mail.sendMail();
+            WriteToLog.isLocked = false;
             if (plugDjWindow != null)
             {
                 plugDjWindow.close = true;

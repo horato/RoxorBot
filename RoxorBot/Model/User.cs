@@ -19,6 +19,7 @@ namespace RoxorBot.Model
         public int Points { get; set; }
 
         public bool IsFollower { get; set; }
+        public DateTime IsFollowerSince { get; set; }
 
         [System.ComponentModel.DefaultValue(0)]
         public int RewardTimer { get; set; }

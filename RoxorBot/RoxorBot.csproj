@@ -137,6 +137,7 @@
     <Compile Include="Controls\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logic\Mail.cs" />
     <Compile Include="Logic\Managers\DatabaseManager.cs" />
     <Compile Include="Logic\Managers\FilterManager.cs" />
     <Compile Include="Logic\Log.cs" />

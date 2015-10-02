@@ -26,17 +26,14 @@ namespace RoxorBot
             TimerRewardTextBox.Text = Properties.Settings.Default.timerReward.ToString();
             if (Properties.Settings.Default.twitch_login != null)
                 TwitchLoginTextBox.Text = Properties.Settings.Default.twitch_login;
-            if (Properties.Settings.Default.plugdjLogin != null)
-                plugDjLoginTextBox.Text = Properties.Settings.Default.plugdjLogin;
             MaxMessageLengthTextBox.Text = Properties.Settings.Default.maxMessageLength.ToString();
             sendTimeoutNotificationCheckBox.IsChecked = Properties.Settings.Default.notifyChatRestriction;
             MaxSongLengthTextBox.Text = Properties.Settings.Default.maxSongLength.ToString();
 
-            renderButtons(TwitchPasswordContentControl, true);
-            renderButtons(plugDjPasswordContentControl, false);
+            renderButtons(TwitchPasswordContentControl);
         }
 
-        private void renderButtons(ContentControl control, bool twitch)
+        private void renderButtons(ContentControl control)
         {
             var button = new Button();
             button.Content = "Show Password";
@@ -48,35 +45,10 @@ namespace RoxorBot
                         renderOauth();
                     else
                         TwitchPasswordContentControl.Content = "";
-
-                    if (Properties.Settings.Default.plugdjPassword != null)
-                        renderPlugPassowrd();
-                    else
-                        plugDjPasswordContentControl.Content = "";
                 }
             };
-            if (twitch)
-                TwitchPasswordContentControl.Content = button;
-            else
-                plugDjPasswordContentControl.Content = button;
-        }
 
-        private void renderPlugPassowrd()
-        {
-            var textbox = new TextBox();
-            textbox.BorderThickness = new Thickness(0);
-            textbox.Background = System.Windows.Media.Brushes.Transparent;
-            textbox.Text = Properties.Settings.Default.plugdjPassword;
-            textbox.KeyUp += plugdjPassword_KeyUp;
-            plugDjPasswordContentControl.Content = textbox;
-        }
-
-        private void plugdjPassword_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (!(sender is TextBox))
-                return;
-
-            Properties.Settings.Default.plugdjPassword = ((TextBox)sender).Text;
+            TwitchPasswordContentControl.Content = button;
         }
 
         private void renderOauth()
@@ -122,14 +94,6 @@ namespace RoxorBot
                 return;
 
             Properties.Settings.Default.twitch_login = ((TextBox)sender).Text;
-        }
-
-        private void plugDjLogin_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (!(sender is TextBox))
-                return;
-
-            Properties.Settings.Default.plugdjLogin = ((TextBox)sender).Text;
         }
 
         private void MaxMessageLengthTextBox_KeyUp(object sender, KeyEventArgs e)

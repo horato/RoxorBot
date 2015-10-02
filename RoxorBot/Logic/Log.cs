@@ -11,6 +11,7 @@ namespace RoxorBot
     public static class Logger
     {
         private static MainWindow _mainWindow;
+
         public static MainWindow mainWindow
         {
             get
@@ -57,9 +58,13 @@ namespace RoxorBot
     {
         public static string ExecutingDirectory;
         public static string LogfileName;
+        public static bool isLocked = false;
 
         public static void Log(string lines, string type = "LOG")
         {
+            if (isLocked)
+                return;
+
             using (FileStream stream = File.Open(Path.Combine(ExecutingDirectory, "Logs", LogfileName), FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
             using (var file = new StreamWriter(stream))
                 file.WriteLine("({0} {1}) [{2}]: {3}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), type.ToUpper(), lines);

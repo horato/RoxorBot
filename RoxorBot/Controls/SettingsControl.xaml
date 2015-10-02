@@ -15,11 +15,7 @@
         <TextBox x:Name="MaxMessageLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,78,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="200" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxMessageLengthTextBox_KeyUp"/>
         <Label Content="Send timeout chat notification" HorizontalAlignment="Left" Margin="0,104,0,0" VerticalAlignment="Top" Width="219"/>
         <CheckBox x:Name="sendTimeoutNotificationCheckBox" IsChecked="True" Content="" HorizontalAlignment="Left" Margin="231,109,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"/>
-        <Label Content="Plug DJ Login" HorizontalAlignment="Left" Margin="0,130,0,0" VerticalAlignment="Top" Width="125"/>
-        <TextBox x:Name="plugDjLoginTextBox" HorizontalAlignment="Left" Height="21" Margin="224,130,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="" VerticalAlignment="Top" Width="120" KeyUp="plugDjLogin_KeyUp"/>
-        <Label Content="Plug DJ Password" HorizontalAlignment="Left" Margin="0,156,0,0" VerticalAlignment="Top" Width="125"/>
-        <ContentControl x:Name="plugDjPasswordContentControl" Content="" HorizontalAlignment="Left" Margin="224,156,0,0" VerticalAlignment="Top" Height="26" Width="auto"/>
-        <Label Content="Max song length (sec)" HorizontalAlignment="Left" Margin="0,182,0,0" VerticalAlignment="Top" Width="125"/>
-        <TextBox x:Name="MaxSongLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,182,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="180" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxSongLengthTextBox_KeyUp"/>
+        <Label Content="Max song length (sec)" HorizontalAlignment="Left" Margin="0,127,0,0" VerticalAlignment="Top" Width="125"/>
+        <TextBox x:Name="MaxSongLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,127,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="180" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxSongLengthTextBox_KeyUp"/>
     </Grid>
 </UserControl>
