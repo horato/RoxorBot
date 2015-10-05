@@ -17,5 +17,7 @@
         <CheckBox x:Name="sendTimeoutNotificationCheckBox" IsChecked="True" Content="" HorizontalAlignment="Left" Margin="231,109,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"/>
         <Label Content="Max song length (sec)" HorizontalAlignment="Left" Margin="0,127,0,0" VerticalAlignment="Top" Width="125"/>
         <TextBox x:Name="MaxSongLengthTextBox" HorizontalAlignment="Left" Height="21" Margin="224,127,0,0" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Text="180" VerticalAlignment="Top" Width="120" PreviewTextInput="TimerRewardTextBox_PreviewTextInput" PreviewKeyDown="TimerRewardTextBox_PreviewKeyDown" KeyUp="MaxSongLengthTextBox_KeyUp"/>
+        <Label Content="Send next song name" HorizontalAlignment="Left" Margin="0,148,0,0" VerticalAlignment="Top" Width="219"/>
+        <CheckBox x:Name="notifyNextSongCheckBox" IsChecked="False" Content="" HorizontalAlignment="Left" Margin="231,153,0,0" VerticalAlignment="Top" Checked="NotifyNextSongCheckBox_Checked" Unchecked="NotifyNextSongCheckBox_Checked"/>
     </Grid>
 </UserControl>

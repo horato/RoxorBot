@@ -29,6 +29,7 @@ namespace RoxorBot
             MaxMessageLengthTextBox.Text = Properties.Settings.Default.maxMessageLength.ToString();
             sendTimeoutNotificationCheckBox.IsChecked = Properties.Settings.Default.notifyChatRestriction;
             MaxSongLengthTextBox.Text = Properties.Settings.Default.maxSongLength.ToString();
+            notifyNextSongCheckBox.IsChecked = Properties.Settings.Default.notifyCurrentPlayingSong;
 
             renderButtons(TwitchPasswordContentControl);
         }
@@ -118,6 +119,14 @@ namespace RoxorBot
                 return;
             var cb = (CheckBox)sender;
             Properties.Settings.Default.notifyChatRestriction = cb.IsChecked.Value;
+        }
+
+        private void NotifyNextSongCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is CheckBox))
+                return;
+            var cb = (CheckBox)sender;
+            Properties.Settings.Default.notifyCurrentPlayingSong = cb.IsChecked.Value;
         }
 
         private void MaxSongLengthTextBox_KeyUp(object sender, KeyEventArgs e)

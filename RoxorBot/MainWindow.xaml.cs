@@ -641,7 +641,7 @@ namespace RoxorBot
             Properties.Settings.Default.Save();
 
             if (plugDjWindow == null)
-                plugDjWindow = new YoutubeWindow();
+                plugDjWindow = new YoutubeWindow(this);
 
             plugDjWindow.Show();
         }

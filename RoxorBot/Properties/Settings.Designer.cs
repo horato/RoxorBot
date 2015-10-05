@@ -106,5 +106,17 @@ namespace RoxorBot.Properties {
                 this["maxSongLength"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool notifyCurrentPlayingSong {
+            get {
+                return ((bool)(this["notifyCurrentPlayingSong"]));
+            }
+            set {
+                this["notifyCurrentPlayingSong"] = value;
+            }
+        }
     }
 }

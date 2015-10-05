@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
              xmlns:awesomium="http://schemas.awesomium.com/winfx"
              Height="515" Width="370" Closing="Window_Closing" Title="Super Mega Nejlepsi Webovy Prohlizec" BorderThickness="0" ResizeMode="NoResize">
-    <Grid Background="Black">
+    <Grid Background="Black" x:Name="MainGrid">
         <awesomium:WebControl x:Name="browser" Width="350" Height="300" Margin="0,60,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsHitTestVisible="False"/>
         <Button x:Name="Button" Content="Button" HorizontalAlignment="Left" Margin="257,234,0,0" VerticalAlignment="Top" Width="75" Panel.ZIndex="9999" Click="Button_Click" Visibility="Hidden"/>
         <Button x:Name="StartButton" IsEnabled="False" Content="Start DJ" HorizontalAlignment="Left" Margin="0,365,0,0" VerticalAlignment="Top" Width="75" Background="Black" Foreground="White" Click="StartDJButton_Click"/>
@@ -18,7 +18,9 @@
         <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" HorizontalAlignment="Left" Margin="80,430,0,0" VerticalAlignment="Top" Width="75" Height="18" RenderTransformOrigin="0.52,0.304" LargeChange="0.1" ValueChanged="VolumeSlider_ValueChanged"/>
         <Label Content="Volume" HorizontalAlignment="Left" Margin="0,425,0,0" Foreground="White" HorizontalContentAlignment="Center" VerticalAlignment="Top" Width="75" Height="23"/>
         <Slider x:Name="PlayProgressSlider" HorizontalAlignment="Left" Margin="0,453,0,0" VerticalAlignment="Top" Width="350" Focusable="False" LargeChange="0" Thumb.DragCompleted="PlayProgressSlider_DragCompleted"/>
-        <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="White" TextWrapping="Wrap" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" Text="" HorizontalAlignment="Left" VerticalAlignment="Top" Width="340" Height="36" Margin="10,10,0,0"/>
+        <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" Width="340" Height="36" Name="canMain" Margin="10,10,0,0">
+            <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="White" Text="AAAAAAAAAABBBBBBBBBBAAAAAAAAAABBBBBBBBBB" Height="36" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden"/>
+        </Canvas>
         <Separator HorizontalAlignment="Left" Height="14" Margin="0,46,0,0" VerticalAlignment="Top" Width="364"/>
     </Grid>
 </Window>

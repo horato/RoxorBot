@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -45,10 +46,17 @@ namespace RoxorBot
         private System.Timers.Timer playTimer;
         private System.Timers.Timer updateTimer;
         private YoutubeVideo currentVideo;
+        private MainWindow mainWindow;
 
-        public YoutubeWindow()
+        private YoutubeWindow()
+        {
+
+        }
+
+        public YoutubeWindow(MainWindow mainWindow)
         {
             InitializeComponent();
+
 #if DEBUG
             if (!WebCore.IsInitialized)
                 WebCore.Initialize(new WebConfig()
@@ -61,9 +69,13 @@ namespace RoxorBot
 #endif
             MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
             browser.Loaded += browser_Loaded;
+
+            this.mainWindow = mainWindow;
+
             playTimer = new System.Timers.Timer(5000);
             playTimer.AutoReset = true;
             playTimer.Elapsed += playTimer_Elapsed;
+
             updateTimer = new System.Timers.Timer(500);
             updateTimer.AutoReset = true;
             updateTimer.Elapsed += (a, b) =>
@@ -159,6 +171,19 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
                 }
             }
+            else if (msg.ToLower().StartsWith("!notifynextsong "))
+            {
+                var commands = msg.Split(' ');
+                if (commands.Length < 2)
+                    return;
+
+                var command = commands[1].ToLower();
+                if (command == "on")
+                    Properties.Settings.Default.notifyCurrentPlayingSong = true;
+                else if (command == "off")
+                    Properties.Settings.Default.notifyCurrentPlayingSong = false;
+                Properties.Settings.Default.Save();
+            }
         }
 
         private void setVolume(double volume)
@@ -176,8 +201,38 @@ namespace RoxorBot
             currentVideo = YoutubeManager.getInstance().getNextAndRemove();
             videoPlayer.src = currentVideo.embedLink;
             videoPlayer.load();
-            playTimer.Start();
+
             CurrentlyPlayingLabel.Text = currentVideo.name + (string.IsNullOrWhiteSpace(currentVideo.requester) ? "" : " --- Requested by: " + currentVideo.requester);
+            var t = new System.Timers.Timer(500);
+            t.AutoReset = false;
+            t.Elapsed += (a, b) =>
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    if (CurrentlyPlayingLabel.ActualWidth > canMain.Width)
+                        RightToLeftMarquee();
+                    else
+                        CurrentlyPlayingLabel.BeginAnimation(Canvas.RightProperty, null);
+                }));
+            };
+
+            if (Properties.Settings.Default.notifyCurrentPlayingSong && mainWindow != null)
+                mainWindow.sendChatMessage("Next song: " + currentVideo.name);
+
+            t.Start();
+            playTimer.Start();
+        }
+
+        private void RightToLeftMarquee()
+        {
+            double height = canMain.ActualHeight - CurrentlyPlayingLabel.ActualHeight;
+            CurrentlyPlayingLabel.Margin = new Thickness(0, height / 2, 0, 0);
+            DoubleAnimation doubleAnimation = new DoubleAnimation();
+            doubleAnimation.From = -CurrentlyPlayingLabel.ActualWidth;
+            doubleAnimation.To = canMain.ActualWidth;
+            doubleAnimation.RepeatBehavior = RepeatBehavior.Forever;
+            doubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(20));
+            CurrentlyPlayingLabel.BeginAnimation(Canvas.RightProperty, doubleAnimation);
         }
 
         void browser_Loaded(object sender, RoutedEventArgs e)

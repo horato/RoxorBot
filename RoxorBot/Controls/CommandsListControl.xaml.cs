@@ -41,7 +41,8 @@ namespace RoxorBot
             "!delcomm command (zatim vypnuto)",
             "!songrequest link",
             "!skipsong",
-            "!volume 1-100"
+            "!volume 1-100",
+            "!notifyNextSong on/off - zapne/vypne hlasky o nasledujicim songu"
         };
 
         public CommandsListControl()
