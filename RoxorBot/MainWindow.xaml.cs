@@ -122,7 +122,7 @@ namespace RoxorBot
 
             try
             {
-                using (WebClient client = new WebClient())
+                using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                 {
                     string json = client.DownloadString("http://tmi.twitch.tv/group/user/roxork0/chatters?rand=" + Environment.TickCount);
                     Chatters chatters = new JavaScriptSerializer().Deserialize<Chatters>(json);
@@ -405,7 +405,7 @@ namespace RoxorBot
             {
                 try
                 {
-                    using (WebClient client = new WebClient())
+                    using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                     {
                         string json = client.DownloadString("https://api.twitch.tv/kraken/streams?channel=roxork0");
                         var info = new JavaScriptSerializer().Deserialize<ChannelInfo>(json);

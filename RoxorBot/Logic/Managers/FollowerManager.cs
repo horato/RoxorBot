@@ -64,7 +64,7 @@ namespace RoxorBot
             while (continueLoading)
             {
                 Followers_FollowerManager followers;
-                using (WebClient client = new WebClient())
+                using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                 {
                     string json = client.DownloadString("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset + "&rand=" + Environment.TickCount);
                     followers = new JavaScriptSerializer().Deserialize<Followers_FollowerManager>(json);

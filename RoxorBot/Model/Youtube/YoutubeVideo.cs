@@ -25,11 +25,15 @@ namespace RoxorBot.Model.Youtube
 
         public YoutubeVideo(string videoID)
         {
-            using (var client = new WebClient())
+            using (var client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
             {
                 string json = client.DownloadString("https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=" + videoID + "&key=" + Properties.Settings.Default.youtubeKey);
-                var info = new JavaScriptSerializer().Deserialize<VideoInfoHeader>(json);
-
+                VideoInfoHeader info = null;
+                try
+                {
+                    info = new JavaScriptSerializer().Deserialize<VideoInfoHeader>(json);
+                }
+                catch { throw new VideoParseException("Unknown error video: " + videoID); }
                 if (info == null || info.items == null || info.items.Length < 1)
                     throw new VideoParseException("Video " + videoID + " not found");
                 if (info.items[0].contentDetails == null)

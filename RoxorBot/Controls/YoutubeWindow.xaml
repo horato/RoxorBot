@@ -18,9 +18,11 @@
         <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" HorizontalAlignment="Left" Margin="80,430,0,0" VerticalAlignment="Top" Width="75" Height="18" RenderTransformOrigin="0.52,0.304" LargeChange="0.1" ValueChanged="VolumeSlider_ValueChanged"/>
         <Label Content="Volume" HorizontalAlignment="Left" Margin="0,425,0,0" Foreground="White" HorizontalContentAlignment="Center" VerticalAlignment="Top" Width="75" Height="23"/>
         <Slider x:Name="PlayProgressSlider" HorizontalAlignment="Left" Margin="0,453,0,0" VerticalAlignment="Top" Width="350" Focusable="False" LargeChange="0" Thumb.DragCompleted="PlayProgressSlider_DragCompleted"/>
-        <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" Width="340" Height="36" Name="canMain" Margin="10,10,0,0">
-            <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="White" Text="AAAAAAAAAABBBBBBBBBBAAAAAAAAAABBBBBBBBBB" Height="36" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden"/>
-        </Canvas>
+        <Border Background="White" Margin="0,0,0,432">
+            <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" Width="340" Height="36" Name="canMain" Margin="10,10,0,0">
+                <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="Red" FontWeight="Black" Text="AAAAAAAAAABBBBBBBBBBAAAAAAAAAABBBBBBBBBB" Height="36" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" />
+            </Canvas>
+        </Border>
         <Separator HorizontalAlignment="Left" Height="14" Margin="0,46,0,0" VerticalAlignment="Top" Width="364"/>
     </Grid>
 </Window>

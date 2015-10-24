@@ -171,18 +171,27 @@ namespace RoxorBot
                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
                 }
             }
-            else if (msg.ToLower().StartsWith("!notifynextsong "))
+            else if (msg.ToLower().StartsWith("!notifynextsong ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
             {
                 var commands = msg.Split(' ');
                 if (commands.Length < 2)
                     return;
 
                 var command = commands[1].ToLower();
+                if (!(command == "on" || command == "off"))
+                    return;
+
                 if (command == "on")
                     Properties.Settings.Default.notifyCurrentPlayingSong = true;
-                else if (command == "off")
+                else
                     Properties.Settings.Default.notifyCurrentPlayingSong = false;
                 Properties.Settings.Default.Save();
+
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": next song notification is now " + command);
+            }
+            else if (msg.ToLower().Equals("!song"))
+            {
+                mainWindow.sendChatMessage(e.Message.Source.Name + ": " + currentVideo.name);
             }
         }
 

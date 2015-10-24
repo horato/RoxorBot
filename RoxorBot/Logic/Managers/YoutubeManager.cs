@@ -63,7 +63,7 @@ namespace RoxorBot
             {
                 try
                 {
-                    using (WebClient client = new WebClient())
+                    using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                     {
                         var url = "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" + playlistID + "&key=" + Properties.Settings.Default.youtubeKey + "&maxResults=50" + (pageToken != "" ? "&pageToken=" + pageToken : "");
                         var json = client.DownloadString(url);
@@ -315,7 +315,7 @@ namespace RoxorBot
         private static Dictionary<string, string> getFmtMap(string id)
         {
             var result = new Dictionary<string, string>();
-            using (WebClient client = new WebClient())
+            using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
             {
                 var info = client.DownloadString("http://www.youtube.com/watch?v=" + id);
                 var qualityIndex = 0;
