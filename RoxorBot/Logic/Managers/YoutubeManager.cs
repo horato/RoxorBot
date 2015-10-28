@@ -17,6 +17,7 @@ namespace RoxorBot
         private static YoutubeManager _instance;
         private List<YoutubeVideo> Videos;
         private List<YoutubeVideo> BackupPlaylist;
+        private bool isPlaylistLoading = false;
 
         private YoutubeManager()
         {
@@ -30,6 +31,7 @@ namespace RoxorBot
 
         private void initBackupPlaylist()
         {
+            isPlaylistLoading = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             loadBackupPlaylist("PL45A01CD33DA7756B"); //Slecna
@@ -38,6 +40,7 @@ namespace RoxorBot
             watch.Stop();
             var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
             Logger.Log("Loaded " + BackupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
+            isPlaylistLoading = false;
         }
 
         public int getPlaylistCount()
@@ -55,7 +58,7 @@ namespace RoxorBot
             return Videos.Any(x => x.id == id);
         }
 
-        private List<YoutubeVideo> loadBackupPlaylist(string playlistID)
+        private void loadBackupPlaylist(string playlistID)
         {
             List<VideoInfo> items = new List<VideoInfo>();
             string pageToken = "";
@@ -86,14 +89,11 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(e.ToString());
                 }
             }
-
-            return getVideosFromVideoInfo(items);
+            getVideosFromVideoInfo(items);
         }
 
-        private List<YoutubeVideo> getVideosFromVideoInfo(List<VideoInfo> items)
+        private void getVideosFromVideoInfo(List<VideoInfo> items)
         {
-            var result = new List<YoutubeVideo>();
-
             foreach (var item in items)
             {
                 if (item.contentDetails == null || item.contentDetails.videoId == null)
@@ -108,7 +108,6 @@ namespace RoxorBot
                     Logger.Log("Backup Playlist video load error: " + e.Message);
                 }
             }
-            return result;
         }
 
         /// <summary>
@@ -135,8 +134,8 @@ namespace RoxorBot
 
         public YoutubeVideo getNextAndRemove()
         {
-            if (Videos.Count < 1 && BackupPlaylist.Count < 1)
-                return null;
+            if (BackupPlaylist.Count < 5 && !isPlaylistLoading)
+                new Thread(new ThreadStart(initBackupPlaylist)).Start();
 
             if (Videos.Count > 0)
             {
@@ -167,7 +166,7 @@ namespace RoxorBot
 
             return _instance;
         }
-        
+
         public static string getVideoDirectLink(string id = "oHg5SJYRHA0")
         {
             var map = getFmtMap(id);

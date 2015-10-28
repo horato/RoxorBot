@@ -62,6 +62,7 @@ namespace RoxorBot
         private event ListChanged OnListChanged;
         public static event EventHandler<IrcRawMessageEventArgs> ChatMessageReceived;
         private YoutubeWindow plugDjWindow;
+        private bool onSettingsPage = false;
 
         public MainWindow()
         {
@@ -549,6 +550,13 @@ namespace RoxorBot
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
+            if (onSettingsPage)
+            {
+                CloseSettingsButton_OnClick(null, null);
+                e.Cancel = true;
+                return;
+            }
+
             Properties.Settings.Default.Save();
             PointsManager.getInstance().save();
             DatabaseManager.getInstance().close();
@@ -608,6 +616,7 @@ namespace RoxorBot
             MainGrid.Opacity = 0.1;
             MainGrid.IsEnabled = false;
             SettingsGrid.Visibility = Visibility.Visible;
+            onSettingsPage = true;
         }
 
         public void CloseSettingsButton_OnClick(object sender, RoutedEventArgs e)
@@ -616,6 +625,7 @@ namespace RoxorBot
             MainGrid.Opacity = 1;
             MainGrid.IsEnabled = true;
             SettingsGrid.Visibility = Visibility.Hidden;
+            onSettingsPage = false;
         }
 
         private void CommandsButton_Click(object sender, RoutedEventArgs e)

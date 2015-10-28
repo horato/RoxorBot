@@ -158,7 +158,13 @@ namespace RoxorBot
             {
                 var commands = msg.Split(' ');
                 if (commands.Length < 2)
+                {
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume: " + videoPlayer.volume);
+                    }));
                     return;
+                }
 
                 int volume;
 
