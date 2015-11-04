@@ -2,6 +2,7 @@
 using RoxorBot.Model.Youtube;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -231,6 +232,12 @@ namespace RoxorBot
                 }));
             };
 
+            try
+            {
+                File.WriteAllText("playing.txt", currentVideo.name);
+            }
+            catch { }
+
             if (Properties.Settings.Default.notifyCurrentPlayingSong && mainWindow != null)
                 mainWindow.sendChatMessage("Next song: " + currentVideo.name);
 
@@ -363,6 +370,24 @@ namespace RoxorBot
             var slider = (Slider)sender;
 
             setVolume(slider.Value);
+        }
+
+        private void ShowPlayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is Button))
+                return;
+
+            var button = sender as Button;
+            if (browser.Visibility == Visibility.Visible)
+            {
+                button.Content = "show player";
+                browser.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                button.Content = "hide player";
+                browser.Visibility = Visibility.Visible;
+            }
         }
     }
 }
