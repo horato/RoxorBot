@@ -7,34 +7,43 @@ using RoxorBot.Model;
 using System.Data.SQLite;
 using IrcDotNet;
 using System.Text.RegularExpressions;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class FilterManager
+    public class FilterManager : IFilterManager
     {
-        private static FilterManager _instance;
-        private List<FilterItem> Filters;
+        private readonly ILogger _logger;
+        private readonly IEventAggregator _aggregator;
+        private readonly IChatManager _chatManager;
+        private readonly IDatabaseManager _databaseManager;
+        private readonly IUsersManager _usersManager;
+        private readonly List<FilterItem> _filters;
 
-        private FilterManager()
+        public int FiltersCount => _filters.Count;
+
+        public FilterManager(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
         {
-            Logger.Log("Loading FilterManager...");
+            _logger = logger;
+            _aggregator = aggregator;
+            _chatManager = chatManager;
+            _databaseManager = databaseManager;
+            _usersManager = usersManager;
 
-            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loading FilterManager...");
+            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(IrcMessageReceived);
 
-            Filters = loadFilters();
-            loadAllowedUsers();
-            Logger.Log("Loaded " + getFiltersCount() + " filtered words from database.");
+            _filters = LoadFilters();
+            LoadAllowedUsers();
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _filters.Count + " filtered words from database.");
         }
 
-        public int getFiltersCount()
+        private List<FilterItem> LoadFilters()
         {
-            return Filters.Count;
-        }
-
-        private List<FilterItem> loadFilters()
-        {
-            List<FilterItem> result = new List<FilterItem>();
-            SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM filters;");
+            var result = new List<FilterItem>();
+            var reader = _databaseManager.ExecuteReader("SELECT * FROM filters;");
 
             while (reader.Read())
             {
@@ -52,59 +61,59 @@ namespace RoxorBot
                     isWhitelist = (bool)reader["isWhitelist"]
                 });
             }
-            Logger.Log("Loaded " + result.Count + " filters from database.");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + result.Count + " filters from database.");
 
             return result;
         }
 
-        private void loadAllowedUsers()
+        private void LoadAllowedUsers()
         {
-            SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM allowedUsers;");
+            var reader = _databaseManager.ExecuteReader("SELECT * FROM allowedUsers;");
 
             while (reader.Read())
             {
                 var name = (string)reader["name"];
                 var isAllowed = (bool)reader["allowed"];
 
-                var user = UsersManager.getInstance().getUser(name);
+                var user = _usersManager.GetUser(name);
                 if (user == null)
-                    user = UsersManager.getInstance().addUser(name, Role.Viewers);
+                    user = _usersManager.AddUser(name, Role.Viewers);
 
                 user.isAllowed = isAllowed;
             }
 
-            Logger.Log("Loaded " + reader.StepCount + " allowed users from database.");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + reader.StepCount + " allowed users from database.");
         }
 
-        public bool filterExists(int id)
+        public bool FilterExists(int id)
         {
-            return Filters.Any(x => x.id == id);
+            return _filters.Any(x => x.id == id);
         }
 
-        public bool filterExists(string word)
+        public bool FilterExists(string word)
         {
-            return Filters.Any(x => x.word == word);
+            return _filters.Any(x => x.word == word);
         }
 
-        public void addFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist, int id = 0)
+        public void AddFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist, int id = 0)
         {
             if (id > 0)
             {
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (id, word, duration, addedBy, isRegex, isWhitelist) VALUES (" + id + ", \"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO filters (id, word, duration, addedBy, isRegex, isWhitelist) VALUES (" + id + ", \"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
             }
             else
             {
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
-                var reader = DatabaseManager.getInstance().executeReader("SELECT last_insert_rowid()");
+                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
+                var reader = _databaseManager.ExecuteReader("SELECT last_insert_rowid()");
                 if (!reader.Read())
                     return;
                 id = reader.GetInt32(0);
             }
-            lock (Filters)
+            lock (_filters)
             {
-                if (filterExists(id))
+                if (FilterExists(id))
                 {
-                    var filter = getFilter(id);
+                    var filter = GetFilter(id);
                     filter.word = word;
                     filter.addedBy = addedBy;
                     filter.duration = banDuration;
@@ -113,45 +122,45 @@ namespace RoxorBot
                 }
                 else
                 {
-                    Filters.Add(new FilterItem { id = id, word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
+                    _filters.Add(new FilterItem { id = id, word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
                 }
             }
         }
 
-        public void removeFilterWord(int id)
+        public void RemoveFilterWord(int id)
         {
-            lock (Filters)
+            lock (_filters)
             {
-                Filters.RemoveAll(x => x.id == id);
-                DatabaseManager.getInstance().executeNonQuery("DELETE FROM filters WHERE id=" + id + ";");
+                _filters.RemoveAll(x => x.id == id);
+                _databaseManager.ExecuteNonQuery("DELETE FROM filters WHERE id=" + id + ";");
             }
         }
 
-        public void removeFilterWord(string word)
+        public void RemoveFilterWord(string word)
         {
-            var filter = getFilter(word);
+            var filter = GetFilter(word);
             if (filter == null)
                 return;
 
-            removeFilterWord(filter.id);
+            RemoveFilterWord(filter.id);
         }
 
-        private bool checkFilter(IrcRawMessageEventArgs e)
+        private bool CheckFilter(IrcRawMessageEventArgs e)
         {
-            if (isAdminOrAllowed(e.Message.Source.Name.ToLower()))
+            if (IsAdminOrAllowed(e.Message.Source.Name.ToLower()))
                 return false;
             if (e.Message.Parameters.Count < 2)
                 return false;
             var msg = e.Message.Parameters[1];
 
-            var items = Filters.FindAll(x => msg.ToLower().Contains(x.word.ToLower()));
+            var items = _filters.FindAll(x => msg.ToLower().Contains(x.word.ToLower()));
             var exists = (items != null && items.Count > 0);
             if (exists && items.Any(x => x.isWhitelist))
                 return false;
 
             if (!exists)
             {
-                var temp = Filters.FindAll(x => x.isRegex);
+                var temp = _filters.FindAll(x => x.isRegex);
                 var toCheck = new List<FilterItem>();
 
                 foreach (var filter in temp)
@@ -166,39 +175,39 @@ namespace RoxorBot
             return exists;
         }
 
-        private bool isAdminOrAllowed(string user)
+        private bool IsAdminOrAllowed(string user)
         {
-            return UsersManager.getInstance().isAdmin(user) || UsersManager.getInstance().isAllowed(user);
+            return _usersManager.IsAdmin(user) || _usersManager.IsAllowed(user);
         }
 
-        public FilterItem getFilter(int id)
+        public FilterItem GetFilter(int id)
         {
-            return Filters.Find(x => x.id == id);
+            return _filters.Find(x => x.id == id);
         }
 
-        public FilterItem getFilter(string word)
+        public FilterItem GetFilter(string word)
         {
-            return Filters.Find(x => x.word == word);
+            return _filters.Find(x => x.word == word);
         }
 
-        public List<FilterItem> getAllFilters(FilterMode mode)
+        public List<FilterItem> GetAllFilters(FilterMode mode)
         {
-            List<FilterItem> result = new List<FilterItem>();
-            lock (Filters)
+            var result = new List<FilterItem>();
+            lock (_filters)
             {
                 switch (mode)
                 {
                     case FilterMode.All:
-                        result.AddRange(Filters.FindAll(x => !x.isWhitelist));
+                        result.AddRange(_filters.FindAll(x => !x.isWhitelist));
                         break;
                     case FilterMode.Plain:
-                        result.AddRange(Filters.FindAll(x => !x.isRegex && !x.isWhitelist));
+                        result.AddRange(_filters.FindAll(x => !x.isRegex && !x.isWhitelist));
                         break;
                     case FilterMode.Regex:
-                        result.AddRange(Filters.FindAll(x => x.isRegex && !x.isWhitelist));
+                        result.AddRange(_filters.FindAll(x => x.isRegex && !x.isWhitelist));
                         break;
                     case FilterMode.Whitelist:
-                        result.AddRange(Filters.FindAll(x => x.isWhitelist));
+                        result.AddRange(_filters.FindAll(x => x.isWhitelist));
                         break;
                 }
             }
@@ -206,17 +215,13 @@ namespace RoxorBot
         }
 
 
-        void MainWindow_ChatMessageReceived(object sender, IrcRawMessageEventArgs e)
+        private void IrcMessageReceived(IrcRawMessageEventArgs e)
         {
-            if (!(sender is MainWindow))
-                return;
             if (e.Message.Parameters.Count < 2)
                 return;
 
-            var mainWindow = ((MainWindow)sender);
             var msg = e.Message.Parameters[1];
-
-            if (msg.StartsWith("!addfilter ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            if (msg.StartsWith("!addfilter ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 3)
@@ -228,14 +233,14 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                if (filterExists(word))
+                if (FilterExists(word))
                     return;
 
-                addFilterWord(word, value, e.Message.Source.Name, false, false);
+                AddFilterWord(word, value, e.Message.Source.Name, false, false);
 
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
             }
-            if (msg.StartsWith("!whitelist ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            if (msg.StartsWith("!whitelist ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
@@ -243,14 +248,14 @@ namespace RoxorBot
 
                 string word = commands[1].ToLower();
 
-                if (filterExists(word))
+                if (FilterExists(word))
                     return;
 
-                addFilterWord(word, 1, e.Message.Source.Name, false, true);
+                AddFilterWord(word, 1, e.Message.Source.Name, false, true);
 
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " is now whitelisted.");
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " is now whitelisted.");
             }
-            else if ((msg.StartsWith("!removefilter ") || msg.StartsWith("!removewhitelist ")) && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if ((msg.StartsWith("!removefilter ") || msg.StartsWith("!removewhitelist ")) && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
@@ -258,14 +263,14 @@ namespace RoxorBot
 
                 string word = commands[1].ToLower();
 
-                if (!filterExists(word))
+                if (!FilterExists(word))
                     return;
 
-                removeFilterWord(word);
+                RemoveFilterWord(word);
 
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
             }
-            else if (msg.StartsWith("!allow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!allow ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
@@ -273,14 +278,14 @@ namespace RoxorBot
 
                 string name = commands[1].ToLower();
 
-                var user = UsersManager.getInstance().getUser(name);
+                var user = _usersManager.GetUser(name);
                 if (user != null)
                 {
-                    UsersManager.getInstance().allowUser(name);
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + user.Name + " is now allowed.");
+                    _usersManager.AllowUser(name);
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + user.Name + " is now allowed.");
                 }
             }
-            else if (msg.StartsWith("!unallow ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!unallow ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
@@ -288,32 +293,32 @@ namespace RoxorBot
 
                 string name = commands[1].ToLower();
 
-                var user = UsersManager.getInstance().getUser(name);
+                var user = _usersManager.GetUser(name);
                 if (user != null)
                 {
-                    UsersManager.getInstance().revokeAllowUser(name);
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
+                    _usersManager.RevokeAllowUser(name);
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
                 }
             }
-            else if (msg.StartsWith("!isallowed ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!isallowed ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
                     return;
 
                 string name = commands[1].ToLower();
-                var u = UsersManager.getInstance().getUser(name);
+                var u = _usersManager.GetUser(name);
                 if (u == null)
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
                 else
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
             }
-            else if (checkFilter(e))
+            else if (CheckFilter(e))
             {
-                var item = getFilter(msg);
+                var item = GetFilter(msg);
                 if (item == null)
                 {
-                    var temp = getAllFilters(FilterMode.Regex);
+                    var temp = GetAllFilters(FilterMode.Regex);
                     foreach (var filter in temp)
                         if (Regex.IsMatch(msg, filter.word))
                             item = filter;
@@ -323,21 +328,14 @@ namespace RoxorBot
                     return;
 
                 if (item.duration == -1)
-                    mainWindow.sendChatMessage(".ban " + e.Message.Source.Name, true);
+                    _chatManager.SendChatMessage(".ban " + e.Message.Source.Name, true);
                 else
-                    mainWindow.sendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
+                    _chatManager.SendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
 
                 if (Properties.Settings.Default.notifyChatRestriction)
-                    mainWindow.sendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                Logger.Log(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
+                _aggregator.GetEvent<AddLogEvent>().Publish(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
             }
-        }
-
-        public static FilterManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new FilterManager();
-            return _instance;
         }
     }
 

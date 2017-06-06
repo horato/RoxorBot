@@ -20,6 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
@@ -47,14 +48,13 @@ namespace RoxorBot
         private System.Timers.Timer playTimer;
         private System.Timers.Timer updateTimer;
         private YoutubeVideo currentVideo;
-        private MainWindow mainWindow;
+        private readonly IChatManager _chatManager;
+        private readonly ILogger _logger;
+        private readonly IYoutubeManager _youtubeManager;
+        private readonly IUsersManager _usersManager;
 
-        private YoutubeWindow()
-        {
-
-        }
-
-        public YoutubeWindow(MainWindow mainWindow)
+        //TODO: viewmodel
+        public YoutubeWindow()
         {
             InitializeComponent();
 
@@ -68,10 +68,8 @@ namespace RoxorBot
                 });
             Button.Visibility = Visibility.Visible;
 #endif
-            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
+            // MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
             browser.Loaded += browser_Loaded;
-
-            this.mainWindow = mainWindow;
 
             playTimer = new System.Timers.Timer(5000);
             playTimer.AutoReset = true;
@@ -83,8 +81,8 @@ namespace RoxorBot
             {
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
-                    PrimaryQueueCount.Content = YoutubeManager.getInstance().getPlaylistCount();
-                    SecondaryQueueCount.Content = YoutubeManager.getInstance().getBackupPlaylistCount();
+                    PrimaryQueueCount.Content = _youtubeManager.PlaylistCount;
+                    SecondaryQueueCount.Content = _youtubeManager.BackupPlaylistCount;
                     if (videoPlayer != null && videoPlayer.duration != double.NaN && videoPlayer.currentTime != double.NaN)
                     {
                         PlayProgressSlider.Maximum = (double)videoPlayer.duration;
@@ -108,12 +106,9 @@ namespace RoxorBot
 
         void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
         {
-            if (!(sender is MainWindow))
-                return;
             if (e.Message.Parameters.Count < 2)
                 return;
 
-            var mainWindow = (MainWindow)sender;
             var msg = e.Message.Parameters[1];
 
             if (msg.StartsWith("!songrequest "))
@@ -128,41 +123,41 @@ namespace RoxorBot
                     try
                     {
                         var id = match.Groups[1].Value;
-                        var video = YoutubeManager.getInstance().addSong(id);
+                        var video = _youtubeManager.AddSong(id);
                         if (video != null)
                         {
                             if (video.duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
                             {
-                                YoutubeManager.getInstance().removeSong(video.id);
+                                _youtubeManager.RemoveSong(video.id);
                                 throw new VideoParseException("Video " + id + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");
                             }
                             video.requester = e.Message.Source.Name;
-                            mainWindow.sendChatMessage(e.Message.Source.Name + ": " + video.info.snippet.title + " added to queue.");
+                            _chatManager.SendChatMessage(e.Message.Source.Name + ": " + video.info.snippet.title + " added to queue.");
                         }
                     }
                     catch (VideoParseException ee)
                     {
-                        Logger.Log(ee.Message);
-                        mainWindow.sendChatMessage(e.Message.Source.Name + ": " + ee.Message);
+                        _logger.Log(ee.Message);
+                        _chatManager.SendChatMessage(e.Message.Source.Name + ": " + ee.Message);
                     }
                     catch (Exception) { }
                 }
             }
-            else if (msg.Equals("!skipsong") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.Equals("!skipsong") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     getNextAndPlay();
                 }));
             }
-            else if (msg.StartsWith("!volume ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!volume ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 var commands = msg.Split(' ');
                 if (commands.Length < 2)
                 {
                     Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                     {
-                        mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume: " + videoPlayer.volume);
+                        _chatManager.SendChatMessage(e.Message.Source.Name + ": Volume: " + videoPlayer.volume);
                     }));
                     return;
                 }
@@ -175,10 +170,10 @@ namespace RoxorBot
                         return;
 
                     setVolume(volume / 100.0);
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": Volume set to " + volume);
                 }
             }
-            else if (msg.ToLower().StartsWith("!notifynextsong ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.ToLower().StartsWith("!notifynextsong ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 var commands = msg.Split(' ');
                 if (commands.Length < 2)
@@ -194,11 +189,11 @@ namespace RoxorBot
                     Properties.Settings.Default.notifyCurrentPlayingSong = false;
                 Properties.Settings.Default.Save();
 
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": next song notification is now " + command);
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": next song notification is now " + command);
             }
             else if (msg.ToLower().Equals("!song"))
             {
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": " + currentVideo.name);
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": " + currentVideo.name);
             }
         }
 
@@ -214,7 +209,7 @@ namespace RoxorBot
         private void getNextAndPlay()
         {
             playTimer.Stop();
-            currentVideo = YoutubeManager.getInstance().getNextAndRemove();
+            currentVideo = _youtubeManager.GetNextAndRemove();
             videoPlayer.src = currentVideo.embedLink;
             videoPlayer.load();
 
@@ -238,8 +233,8 @@ namespace RoxorBot
             }
             catch { }
 
-            if (Properties.Settings.Default.notifyCurrentPlayingSong && mainWindow != null)
-                mainWindow.sendChatMessage("Next song: " + currentVideo.name);
+            if (Properties.Settings.Default.notifyCurrentPlayingSong)
+                _chatManager.SendChatMessage("Next song: " + currentVideo.name);
 
             t.Start();
             playTimer.Start();
@@ -260,7 +255,7 @@ namespace RoxorBot
         void browser_Loaded(object sender, RoutedEventArgs e)
         {
             browser.DocumentReady += browser_DocumentReady;
-            browser.Source = new Uri(YoutubeManager.getVideoDirectLink());
+            browser.Source = new Uri(_youtubeManager.GetVideoDirectLink());
         }
 
         void browser_DocumentReady(object sender, DocumentReadyEventArgs e)

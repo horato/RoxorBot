@@ -9,66 +9,65 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class YoutubeManager
+    public class YoutubeManager : IYoutubeManager
     {
-        private static YoutubeManager _instance;
+        private readonly ILogger _logger;
+
         private List<YoutubeVideo> Videos;
         private List<YoutubeVideo> BackupPlaylist;
         private bool isPlaylistLoading = false;
+        public int PlaylistCount => Videos.Count;
+        public int BackupPlaylistCount => BackupPlaylist.Count;
 
-        private YoutubeManager()
+        private YoutubeManager(ILogger logger)
         {
-            Logger.Log("Initializing YoutubeManager...");
+            _logger = logger;
+            _logger.Log("Initializing YoutubeManager...");
 
             Videos = new List<YoutubeVideo>();
             BackupPlaylist = new List<YoutubeVideo>();
 
-            new Thread(new ThreadStart(initBackupPlaylist)).Start();
+            new Thread(InitBackupPlaylist).Start();
         }
 
-        private void initBackupPlaylist()
+        private void InitBackupPlaylist()
         {
             isPlaylistLoading = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            loadBackupPlaylist("PL45A01CD33DA7756B"); //Slecna
-            loadBackupPlaylist("PLHgEy2gzWJm0KYnbsuUX-PVRXsdm6sFWr"); //Slecinka
+            LoadBackupPlaylist("PL45A01CD33DA7756B"); //Slecna
+            LoadBackupPlaylist("PLHgEy2gzWJm0KYnbsuUX-PVRXsdm6sFWr"); //Slecinka
 
             watch.Stop();
             var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
-            Logger.Log("Loaded " + BackupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
+            _logger.Log("Loaded " + BackupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " +
+                        elapsed.Seconds + "s.");
             isPlaylistLoading = false;
         }
 
-        public int getPlaylistCount()
-        {
-            return Videos.Count;
-        }
-
-        public int getBackupPlaylistCount()
-        {
-            return BackupPlaylist.Count;
-        }
-
-        private bool existsInPrimaryQueue(string id)
+        private bool ExistsInPrimaryQueue(string id)
         {
             return Videos.Any(x => x.id == id);
         }
 
-        private void loadBackupPlaylist(string playlistID)
+        private void LoadBackupPlaylist(string playlistID)
         {
-            List<VideoInfo> items = new List<VideoInfo>();
-            string pageToken = "";
+            var items = new List<VideoInfo>();
+            var pageToken = "";
             while (pageToken != null)
             {
                 try
                 {
                     using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                     {
-                        var url = "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" + playlistID + "&key=" + Properties.Settings.Default.youtubeKey + "&maxResults=50" + (pageToken != "" ? "&pageToken=" + pageToken : "");
+                        var url =
+                            "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" +
+                            playlistID + "&key=" + Properties.Settings.Default.youtubeKey + "&maxResults=50" +
+                            (pageToken != "" ? "&pageToken=" + pageToken : "");
                         var json = client.DownloadString(url);
                         var x = new JavaScriptSerializer().Deserialize<VideoInfoHeader>(json);
 
@@ -89,10 +88,10 @@ namespace RoxorBot
                     System.Diagnostics.Debug.WriteLine(e.ToString());
                 }
             }
-            getVideosFromVideoInfo(items);
+            GetVideosFromVideoInfo(items);
         }
 
-        private void getVideosFromVideoInfo(List<VideoInfo> items)
+        private void GetVideosFromVideoInfo(List<VideoInfo> items)
         {
             foreach (var item in items)
             {
@@ -101,11 +100,12 @@ namespace RoxorBot
                 try
                 {
                     lock (BackupPlaylist)
-                        BackupPlaylist.Insert(new Random().Next(0, BackupPlaylist.Count), new YoutubeVideo(item.contentDetails.videoId));
+                        BackupPlaylist.Insert(new Random().Next(0, BackupPlaylist.Count),
+                            new YoutubeVideo(item.contentDetails.videoId));
                 }
                 catch (VideoParseException e)
                 {
-                    Logger.Log("Backup Playlist video load error: " + e.Message);
+                    _logger.Log("Backup Playlist video load error: " + e.Message);
                 }
             }
         }
@@ -115,27 +115,30 @@ namespace RoxorBot
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public YoutubeVideo addSong(string id)
+        public YoutubeVideo AddSong(string id)
         {
-            if (!existsInPrimaryQueue(id))
+            if (!ExistsInPrimaryQueue(id))
             {
                 var video = new YoutubeVideo(id);
-                lock (Videos) { Videos.Add(video); }
+                lock (Videos)
+                {
+                    Videos.Add(video);
+                }
                 return video;
             }
             return null;
         }
 
-        public void removeSong(string id)
+        public void RemoveSong(string id)
         {
             lock (Videos)
                 Videos.RemoveAll(x => x.id == id);
         }
 
-        public YoutubeVideo getNextAndRemove()
+        public YoutubeVideo GetNextAndRemove()
         {
             if (BackupPlaylist.Count < 5 && !isPlaylistLoading)
-                new Thread(new ThreadStart(initBackupPlaylist)).Start();
+                new Thread(new ThreadStart(InitBackupPlaylist)).Start();
 
             if (Videos.Count > 0)
             {
@@ -159,18 +162,10 @@ namespace RoxorBot
             }
         }
 
-        public static YoutubeManager getInstance()
+        public static string GetVideoLinkDirect(string id = "oHg5SJYRHA0")
         {
-            if (_instance == null)
-                _instance = new YoutubeManager();
-
-            return _instance;
-        }
-
-        public static string getVideoDirectLink(string id = "oHg5SJYRHA0")
-        {
-            var map = getFmtMap(id);
-            string signature = "";
+            var map = GetFmtMap(id);
+            var signature = "";
 
             if (map.ContainsKey("sig"))
             {
@@ -189,6 +184,11 @@ namespace RoxorBot
             }
 
             return "";
+        }
+
+        public string GetVideoDirectLink(string id = "oHg5SJYRHA0")
+        {
+            return GetVideoLinkDirect(id);
         }
 
         /// <summary>
@@ -311,7 +311,7 @@ namespace RoxorBot
         /// <param name="sig"></param>
         /// <param name="js_url"></param>
         /// <returns></returns>
-        private static Dictionary<string, string> getFmtMap(string id)
+        private static Dictionary<string, string> GetFmtMap(string id)
         {
             var result = new Dictionary<string, string>();
             using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })

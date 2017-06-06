@@ -6,63 +6,59 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class DatabaseManager
+    public class DatabaseManager : IDatabaseManager
     {
-        private static DatabaseManager _instance;
-        private SQLiteConnection dbConnection;
+        private readonly IEventAggregator _aggregator;
+        private SQLiteConnection _dbConnection;
 
-        private DatabaseManager()
+        public DatabaseManager(IEventAggregator aggregator)
         {
-            Logger.Log("Initializing DatabaseManager...");
-            initDatabaseConnection();
+            _aggregator = aggregator;
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing DatabaseManager...");
+            InitDatabaseConnection();
         }
 
-        private void initDatabaseConnection()
+        private void InitDatabaseConnection()
         {
             if (!File.Exists("botDatabase.sqlite"))
             {
                 SQLiteConnection.CreateFile("botDatabase.sqlite");
-                dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                dbConnection.Open();
-                new SQLiteCommand("CREATE TABLE points (name VARCHAR(64) PRIMARY KEY, score INT);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE filters (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, interval INT, 'enabled' BOOL DEFAULT 1);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE allowedUsers (name VARCHAR(64) PRIMARY KEY, allowed BOOL);", dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE userCommands (id INTEGER PRIMARY KEY AUTOINCREMENT, command TEXT, reply TEXT);", dbConnection).ExecuteNonQuery();
+                _dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
+                _dbConnection.Open();
+                new SQLiteCommand("CREATE TABLE points (name VARCHAR(64) PRIMARY KEY, score INT);", _dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE filters (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", _dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, interval INT, 'enabled' BOOL DEFAULT 1);", _dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE allowedUsers (name VARCHAR(64) PRIMARY KEY, allowed BOOL);", _dbConnection).ExecuteNonQuery();
+                new SQLiteCommand("CREATE TABLE userCommands (id INTEGER PRIMARY KEY AUTOINCREMENT, command TEXT, reply TEXT);", _dbConnection).ExecuteNonQuery();
             }
             else
             {
-                dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                dbConnection.Open();
+                _dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
+                _dbConnection.Open();
             }
         }
 
-        public SQLiteDataReader executeReader(string query)
+        public SQLiteDataReader ExecuteReader(string query)
         {
-            return new SQLiteCommand(query, dbConnection).ExecuteReader();
+            return new SQLiteCommand(query, _dbConnection).ExecuteReader();
         }
 
-        public int executeNonQuery(string query)
+        public int ExecuteNonQuery(string query)
         {
-            return new SQLiteCommand(query, dbConnection).ExecuteNonQuery();
+            return new SQLiteCommand(query, _dbConnection).ExecuteNonQuery();
         }
 
-        public void close()
+        public void Close()
         {
-            dbConnection.Close();
-            dbConnection = null;
-            _instance = null;
-        }
-
-        public static DatabaseManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new DatabaseManager();
-
-            return _instance;
+            _dbConnection.Close();
+            _dbConnection.Dispose();
+            _dbConnection = null;
         }
     }
 }

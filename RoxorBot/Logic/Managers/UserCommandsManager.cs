@@ -3,43 +3,53 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IrcDotNet;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class UserCommandsManager
+    public class UserCommandsManager : IUserCommandsManager
     {
-        private static UserCommandsManager _instance;
-        private List<UserCommand> commands;
+        private readonly IEventAggregator _aggregator;
+        private readonly IChatManager _chatManager;
+        private readonly IDatabaseManager _databaseManager;
+        private readonly IUsersManager _usersManager;
 
-        private UserCommandsManager()
+        private readonly List<UserCommand> _commands;
+        public int CommandsCount => _commands.Count;
+
+        private UserCommandsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
         {
-            Logger.Log("Initializing UserCommandsManager...");
-            commands = loadCommands();
-            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
-            Logger.Log("Loaded " + getCommandsCount() + " user commands from database.");
+            _aggregator = aggregator;
+            _chatManager = chatManager;
+            _databaseManager = databaseManager;
+            _usersManager = usersManager;
+
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing UserCommandsManager...");
+            _commands = LoadCommands();
+            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(ChatMessageReceived);
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + CommandsCount + " user commands from database.");
         }
 
-        void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
+        private void ChatMessageReceived(IrcRawMessageEventArgs e)
         {
-            if (!(sender is MainWindow))
-                return;
             if (e.Message.Parameters.Count < 2)
                 return;
 
-            var mainWindow = ((MainWindow)sender);
             var msg = e.Message.Parameters[1];
-
-            if (commandsContains(msg))
+            if (CommandsContains(msg))
             {
                 List<UserCommand> commandList;
-                lock (commands)
-                    commandList = commands.FindAll(x => x.command.ToLower() == msg.ToLower());
+                lock (_commands)
+                    commandList = _commands.FindAll(x => x.command.ToLower() == msg.ToLower());
 
                 var num = new Random().Next(0, commandList.Count - 1);
                 var command = commandList[num];
-                mainWindow.sendChatMessage(command.reply);
+                _chatManager.SendChatMessage(command.reply);
             }
-            else if (msg.StartsWith("!addcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!addcomm ") && _usersManager.IsAdmin(e.Message.Source.Name))
             {
                 var sb = new StringBuilder();
                 var split = msg.Split(' ');
@@ -52,8 +62,8 @@ namespace RoxorBot
                     sb.Append(split[i]);
                 var reply = sb.ToString();
 
-                addCommand(command, reply);
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": Command " + command + " added.");
+                AddCommand(command, reply);
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": Command " + command + " added.");
             }
             /* else if (msg.StartsWith("!delcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
              {
@@ -65,62 +75,59 @@ namespace RoxorBot
              }*/
         }
 
-        public void addCommand(string command, string reply, int id = 0)
+        public void AddCommand(string command, string reply, int id = 0)
         {
             if (id > 0)
             {
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO userCommands(id, command, reply) VALUES (" + id + ", '" + command.ToLower() + "', '" + reply + "');");
+                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO userCommands(id, command, reply) VALUES (" + id + ", '" + command.ToLower() + "', '" + reply + "');");
             }
             else
             {
-                DatabaseManager.getInstance().executeNonQuery("INSERT INTO userCommands(command, reply) VALUES ('" + command.ToLower() + "', '" + reply + "');");
-                var reader = DatabaseManager.getInstance().executeReader("SELECT last_insert_rowid()");
+                _databaseManager.ExecuteNonQuery("INSERT INTO userCommands(command, reply) VALUES ('" + command.ToLower() + "', '" + reply + "');");
+                var reader = _databaseManager.ExecuteReader("SELECT last_insert_rowid()");
                 if (!reader.Read())
                     return;
                 id = reader.GetInt32(0);
             }
 
-            lock (commands)
+            var cmd = _commands.Find(x => x.id == id);
+            if (cmd == null)
             {
-                var cmd = commands.Find(x => x.id == id);
-                if (cmd == null)
-                {
-                    commands.Add(new UserCommand { id = id, command = command.ToLower(), reply = reply });
-                }
-                else
-                {
-                    cmd.command = command;
-                    cmd.reply = reply;
-                }
+                _commands.Add(new UserCommand { id = id, command = command.ToLower(), reply = reply });
+            }
+            else
+            {
+                cmd.command = command;
+                cmd.reply = reply;
             }
         }
 
-        public bool removeCommand(string command)
+        public bool RemoveCommand(string command)
         {
-            var reader = DatabaseManager.getInstance().executeReader("select max(id) from userCommands where command='" + command + "';");
+            var reader = _databaseManager.ExecuteReader("select max(id) from userCommands where command='" + command + "';");
             if (!reader.Read())
                 return false;
             var id = reader.GetInt32(0);
 
-            removeCommand(id);
+            RemoveCommand(id);
 
             return true;
         }
 
-        public void removeCommand(int id)
+        public void RemoveCommand(int id)
         {
-            DatabaseManager.getInstance().executeNonQuery("DELETE FROM userCommands WHERE id=" + id + ";");
-            commands.RemoveAll(x => x.id == id);
+            _databaseManager.ExecuteNonQuery("DELETE FROM userCommands WHERE id=" + id + ";");
+            _commands.RemoveAll(x => x.id == id);
         }
 
-        private bool commandsContains(string msg)
+        private bool CommandsContains(string msg)
         {
-            return commands.Exists(x => x.command.ToLower() == msg.ToLower());
+            return _commands.Exists(x => x.command.ToLower() == msg.ToLower());
         }
 
-        private List<UserCommand> loadCommands()
+        private List<UserCommand> LoadCommands()
         {
-            var reader = DatabaseManager.getInstance().executeReader("SELECT * FROM userCommands;");
+            var reader = _databaseManager.ExecuteReader("SELECT * FROM userCommands;");
             var temp = new List<UserCommand>();
 
             while (reader.Read())
@@ -135,21 +142,9 @@ namespace RoxorBot
             return temp;
         }
 
-        public static UserCommandsManager getInstance()
+        public List<UserCommand> GetAllCommands()
         {
-            if (_instance == null)
-                _instance = new UserCommandsManager();
-            return _instance;
-        }
-
-        internal int getCommandsCount()
-        {
-            return commands.Count;
-        }
-
-        public List<UserCommand> getAllCommands()
-        {
-            return commands;
+            return _commands;
         }
     }
 }

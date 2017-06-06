@@ -4,40 +4,49 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IrcDotNet;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Implementations;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class PointsManager
+    public class PointsManager : IPointsManager
     {
-        private static PointsManager _instance;
+        private readonly IEventAggregator _aggregator;
+        private readonly IChatManager _chatManager;
+        private readonly IDatabaseManager _databaseManager;
+        private readonly IUsersManager _usersManager;
 
-        private PointsManager()
+        public PointsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
         {
-            Logger.Log("Initializing PointsManager...");
-            MainWindow.ChatMessageReceived += MainWindow_ChatMessageReceived;
-            loadViewers();
-            Logger.Log("Loaded " + getUsersCount() + " viewers from database.");
+            _aggregator = aggregator;
+            _chatManager = chatManager;
+            _databaseManager = databaseManager;
+            _usersManager = usersManager;
+
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing PointsManager...");
+            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(ChatMessageReceived);
+            LoadViewers();
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + GetUsersCount() + " viewers from database.");
         }
 
-        void MainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
+        private void ChatMessageReceived(IrcRawMessageEventArgs e)
         {
-            if (!(sender is MainWindow))
-                return;
             if (e.Message.Parameters.Count < 2)
                 return;
 
-            var mainWindow = ((MainWindow)sender);
             var msg = e.Message.Parameters[1];
-
             if (msg.StartsWith("!points"))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 2)
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": You have " + getPointsForUser(e.Message.Source.Name) + " points.");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": You have " + GetPointsForUser(e.Message.Source.Name) + " points.");
                 else
-                    mainWindow.sendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + getPointsForUser(commands[1]) + " points.");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + GetPointsForUser(commands[1]) + " points.");
             }
-            else if (msg.StartsWith("!addpoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!addpoints ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 3)
@@ -49,10 +58,10 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                addPoints(name, value);
-                mainWindow.sendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
+                AddPoints(name, value);
+                _chatManager.SendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
             }
-            else if (msg.StartsWith("!removepoints ") && UsersManager.getInstance().isSuperAdmin(e.Message.Source.Name))
+            else if (msg.StartsWith("!removepoints ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
             {
                 string[] commands = msg.Split(' ');
                 if (commands.Length < 3)
@@ -64,80 +73,73 @@ namespace RoxorBot
                 if (!int.TryParse(commands[2], out value))
                     return;
 
-                if (userExists(name))
+                if (UserExists(name))
                 {
-                    removePoints(name, value);
+                    RemovePoints(name, value);
 
-                    mainWindow.sendChatMessage(e.Message.Source.Name + " Subtracted " + value + " points from " + name + ". " + name + " now has " + getPointsForUser(name) + " points.");
+                    _chatManager.SendChatMessage(e.Message.Source.Name + " Subtracted " + value + " points from " + name + ". " + name + " now has " + GetPointsForUser(name) + " points.");
                 }
             }
         }
 
-        public void addPoints(string user, int points)
+        public void AddPoints(string user, int points)
         {
-            setPoints(user, getPointsForUser(user) + points);
+            SetPoints(user, GetPointsForUser(user) + points);
         }
 
-        public void removePoints(string user, int points)
+        public void RemovePoints(string user, int points)
         {
-            if (getPointsForUser(user) < points)
-                setPoints(user, 0);
+            if (GetPointsForUser(user) < points)
+                SetPoints(user, 0);
             else
-                setPoints(user, getPointsForUser(user) - points);
+                SetPoints(user, GetPointsForUser(user) - points);
         }
 
-        public void setPoints(string user, int points, bool dbUpdate = true)
+        public void SetPoints(string user, int points, bool dbUpdate = true)
         {
-            var u = UsersManager.getInstance().getUser(user);
+            var u = _usersManager.GetUser(user);
             if (u == null)
-                u = UsersManager.getInstance().addUser(user, Model.Role.Viewers);
+                u = _usersManager.AddUser(user, Model.Role.Viewers);
 
             u.Points = points;
 
             if (dbUpdate)
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.ToLower() + "\"," + getPointsForUser(user) + ");");
+                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.ToLower() + "\"," + GetPointsForUser(user) + ");");
         }
 
-        public bool userExists(string name)
+        public bool UserExists(string name)
         {
-            return (UsersManager.getInstance().getUser(name) != null);
+            return (_usersManager.GetUser(name) != null);
         }
 
-        public int getPointsForUser(string name)
+        public int GetPointsForUser(string name)
         {
-            var user = UsersManager.getInstance().getUser(name);
+            var user = _usersManager.GetUser(name);
             if (user == null)
                 return 0;
             else
                 return user.Points;
         }
 
-        public int getUsersCount()
+        public int GetUsersCount()
         {
-            return UsersManager.getInstance().getUsersCount();
+            return _usersManager.UsersCount;
         }
 
-        public void save()
+        public void Save()
         {
-            var users = UsersManager.getInstance().getAllUsers();
+            var users = _usersManager.GetAllUsers();
             foreach (var user in users)
                 if (user.Points > 0)
-                    DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.InternalName + "\"," + user.Points + ");");
+                    _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.InternalName + "\"," + user.Points + ");");
         }
 
-        private void loadViewers()
+        private void LoadViewers()
         {
-            SQLiteDataReader reader = DatabaseManager.getInstance().executeReader("SELECT * FROM points;");
+            var reader = _databaseManager.ExecuteReader("SELECT * FROM points;");
 
             while (reader.Read())
-                setPoints((string)reader["name"], (int)reader["score"], false);
-        }
-
-        public static PointsManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new PointsManager();
-            return _instance;
+                SetPoints((string)reader["name"], (int)reader["score"], false);
         }
     }
 }

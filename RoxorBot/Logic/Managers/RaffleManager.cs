@@ -4,61 +4,97 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IrcDotNet;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class RaffleManager
+    public class RaffleManager : IRaffleManager
     {
-        private static RaffleManager _instance;
-        private MainWindow mainWindow;
-        private bool isFollowersOnly;
-        private int entryPointsRequired;
-        private bool isRunning;
-        private List<string> acceptedWords;
-        private List<User> users;
-        private bool winnerSelected;
-        private string raffleName;
+        private readonly ILogger _logger;
+        private readonly IEventAggregator _aggregator;
+        private readonly IChatManager _chatManager;
+        private readonly IPointsManager _pointsManager;
+        private readonly IUsersManager _usersManager;
+
+        public int PointsRequired
+        {
+            get { return _entryPointsRequired; }
+            set
+            {
+                if (IsRunning)
+                    return;
+
+                _entryPointsRequired = value;
+            }
+        }
+
+        public bool IsFollowersOnly
+        {
+            get { return _isFollowersOnly; }
+            set
+            {
+                if (IsRunning)
+                    return;
+
+                _isFollowersOnly = value;
+            }
+        }
+        public string RaffleName { get; set; }
+        public string AcceptedWords => string.Join(";", _acceptedWords);
+        public bool IsRunning { get; private set; }
         public event EventHandler<User> OnUserAdd;
         public event EventHandler OnWinnerPicked;
 
-        private RaffleManager()
-        {
-            Logger.Log("Initializing RaffleManager...");
-            entryPointsRequired = 100;
-            isFollowersOnly = false;
-            isRunning = false;
-            winnerSelected = false;
-            raffleName = "";
-            acceptedWords = new List<string>() { "!raffle", "!join" };
-            users = new List<User>();
 
-            MainWindow.ChatMessageReceived += mainWindow_ChatMessageReceived;
+
+        private bool _isFollowersOnly;
+        private int _entryPointsRequired = 100;
+        private readonly List<string> _acceptedWords = new List<string> { "!raffle", "!join" };
+        private readonly List<User> _users = new List<User>();
+        private bool _winnerSelected;
+
+        public RaffleManager(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IPointsManager pointsManager, IUsersManager usersManager)
+        {
+            _logger = logger;
+            _aggregator = aggregator;
+            _chatManager = chatManager;
+            _pointsManager = pointsManager;
+            _usersManager = usersManager;
+
+            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(OnIrcMessageReceived);
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing RaffleManager...");
         }
 
-        private void mainWindow_ChatMessageReceived(object sender, IrcDotNet.IrcRawMessageEventArgs e)
+        private void OnIrcMessageReceived(IrcRawMessageEventArgs obj)
         {
-            if (!isRunning || (e.Message.Source.Name.ToLower() == Properties.Settings.Default.twitch_login.ToLower()))
+            var e = obj;
+            if (e == null)
+                return;
+            if (!IsRunning || (e.Message.Source.Name.ToLower() == Properties.Settings.Default.twitch_login.ToLower()))
                 return;
             if (e.Message.Parameters.Count < 2)
                 return;
             var msg = e.Message.Parameters[1];
 
-            if (acceptedWords.Contains(msg))
+            if (_acceptedWords.Contains(msg))
             {
-                var user = UsersManager.getInstance().getUser(e.Message.Source.Name);
+                var user = _usersManager.GetUser(e.Message.Source.Name);
 
                 if (user == null)
                     return;
-                if (users.Contains(user))
+                if (_users.Contains(user))
                     return;
-                if (isFollowersOnly && !user.IsFollower)
+                if (_isFollowersOnly && !user.IsFollower)
                     return;
-                if (PointsManager.getInstance().getPointsForUser(user.InternalName) < entryPointsRequired)
+                if (_pointsManager.GetPointsForUser(user.InternalName) < _entryPointsRequired)
                     return;
 
-                PointsManager.getInstance().removePoints(user.InternalName, entryPointsRequired);
-                lock (users)
-                    users.Add(user);
+                _pointsManager.RemovePoints(user.InternalName, _entryPointsRequired);
+                lock (_users)
+                    _users.Add(user);
 
                 if (OnUserAdd != null)
                     OnUserAdd(this, user);
@@ -67,103 +103,78 @@ namespace RoxorBot
             }
         }
 
-        public void setReference(MainWindow mainWindow)
+        public void StartRaffle()
         {
-            this.mainWindow = mainWindow;
-        }
-
-        public static RaffleManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new RaffleManager();
-            return _instance;
-        }
-
-        internal void StartRaffle()
-        {
-            isRunning = true;
-            winnerSelected = false;
+            IsRunning = true;
+            _winnerSelected = false;
             var sb = new StringBuilder();
-            lock (acceptedWords)
-                foreach (var v in acceptedWords)
-                    sb.Append(v + " ");
-            mainWindow.sendChatMessage("Raffle " + raffleName + " started with a " + entryPointsRequired + " points " + (isFollowersOnly ? "and followers only" : "") + " entry requirement. Accepted word(s) is/are: " + sb.ToString());
+            foreach (var v in _acceptedWords)
+                sb.Append(v + " ");
+            _chatManager.SendChatMessage("Raffle " + RaffleName + " started with a " + _entryPointsRequired + " points " + (_isFollowersOnly ? "and followers only" : "") + " entry requirement. Accepted word(s) is/are: " + sb.ToString());
         }
 
-        internal void StopRaffle()
+        public void StopRaffle()
         {
-            isRunning = false;
-            mainWindow.sendChatMessage("Raffle ended with " + users.Count + " participating users. Wait for streamer to announce results.");
+            IsRunning = false;
+            _chatManager.SendChatMessage("Raffle ended with " + _users.Count + " participating users. Wait for streamer to announce results.");
         }
 
-        internal void PickWinner()
+        public void PickWinner()
         {
-            if (winnerSelected || users.Count < 1 || isRunning)
+            if (_winnerSelected || _users.Count < 1 || IsRunning)
                 return;
 
-            lock (users)
+            lock (_users)
             {
-                if (isFollowersOnly)
-                    users.RemoveAll(x => !x.IsFollower);
+                if (_isFollowersOnly)
+                    _users.RemoveAll(x => !x.IsFollower);
 
                 Random rnd = new Random();
-                int num = rnd.Next(0, users.Count - 1);
-                var winner = users[num];
-                mainWindow.sendChatMessage("Winner is " + winner.Name + ". Random number selected from interval <0," + (users.Count - 1) + "> was " + num + ". Congratulations.");
-                winnerSelected = true;
-                users.Clear();
+                int num = rnd.Next(0, _users.Count - 1);
+                var winner = _users[num];
+                _chatManager.SendChatMessage("Winner is " + winner.Name + ". Random number selected from interval <0," + (_users.Count - 1) + "> was " + num + ". Congratulations.");
+                _winnerSelected = true;
+                _users.Clear();
                 if (OnWinnerPicked != null)
                     OnWinnerPicked(this, null);
             }
         }
 
-        internal void setPointsRequired(int points)
+        public void OnUIClosing()
         {
-            if (isRunning)
-                return;
-
-            entryPointsRequired = points;
-        }
-
-        internal void setFollowersOnly(bool followersOnly)
-        {
-            if (isRunning)
-                return;
-
-            isFollowersOnly = followersOnly;
-        }
-
-        internal void OnUIClosing()
-        {
-            isRunning = false;
-            if (!winnerSelected && users.Count > 0)
+            IsRunning = false;
+            if (!_winnerSelected && _users.Count > 0)
             {
-                lock (users)
+                lock (_users)
                 {
-                    mainWindow.sendChatMessage("Raffle canceled. Refunding " + entryPointsRequired + " points to " + users.Count + " users.");
-                    foreach (var user in users)
-                        PointsManager.getInstance().addPoints(user.InternalName, entryPointsRequired);
+                    _chatManager.SendChatMessage("Raffle canceled. Refunding " + _entryPointsRequired + " points to " + _users.Count + " users.");
+                    foreach (var user in _users)
+                        _pointsManager.AddPoints(user.InternalName, _entryPointsRequired);
                 }
             }
-            winnerSelected = false;
-            raffleName = "";
-            users.Clear();
+            _winnerSelected = false;
+            RaffleName = "";
+            _users.Clear();
         }
 
-        public void setRaffleName(string name)
-        {
-            raffleName = name;
-        }
 
-        public void setAcceptedWords(string words)
+        public void SetAcceptedWords(string words)
         {
-            acceptedWords.Clear();
+            if (IsRunning)
+                return;
+
+            _acceptedWords.Clear();
             if (string.IsNullOrEmpty(words))
                 return;
 
             var split = words.Split(';');
             foreach (var s in split)
-                acceptedWords.Add(s);
+                _acceptedWords.Add(s);
+        }
+
+        public IEnumerable<User> GetAllParticipants()
+        {
+            return _users.ToList();
         }
     }
 }

@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 using FollowerManager;
 using System.Net;
 using System.Web.Script.Serialization;
+using RoxorBot.Data.Interfaces;
 using RoxorBot.Model;
 
 namespace RoxorBot
 {
-    class FollowerManager
+    public class FollowersManager : IFollowersManager
     {
-        private static FollowerManager _instance;
+        private readonly ILogger _logger;
+        private readonly IUsersManager _usersManager;
 
-        private FollowerManager()
+        private FollowersManager(ILogger logger, IUsersManager usersManager)
         {
-            Logger.Log("Initializing FollowerManager...");
+            _logger = logger;
+            _usersManager = usersManager;
+            _logger.Log("Initializing FollowersManager...");
 
             var timer = new System.Timers.Timer(2 * 60 * 1000);
             timer.AutoReset = true;
@@ -24,20 +28,14 @@ namespace RoxorBot
             timer.Start();
         }
 
-        void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             try
             {
-                var followers = UsersManager.getInstance().getAllUsers().FindAll(x => x.IsFollower);
-                var list = loadFollowers();
-
+                var followers = _usersManager.GetAllUsers().FindAll(x => x.IsFollower);
+                var list = LoadFollowers();
                 if (list.Count < 1)
                     return;
-                if (followers == null)
-                {
-                    Logger.Log("Loaded " + getFollowersCount() + " followers.");
-                    return;
-                }
 
                 foreach (var user in list)
                     followers.RemoveAll(x => x.InternalName == user.InternalName);
@@ -47,15 +45,15 @@ namespace RoxorBot
                     user.IsFollowerSince = new DateTime(999, 12, 30);
                 }
 
-                Logger.Log("Followers updated. Detected total of " + getFollowersCount() + " followers and " + followers.Count + " unfollows.");
+                _logger.Log("Followers updated. Detected total of " + GetFollowersCount() + " followers and " + followers.Count + " unfollows.");
             }
             catch
             {
-                Logger.Log("Failed to update followers.");
+                _logger.Log("Failed to update followers.");
             }
         }
 
-        private List<User> loadFollowers()
+        private List<User> LoadFollowers()
         {
             var continueLoading = true;
             var offset = 0;
@@ -75,11 +73,11 @@ namespace RoxorBot
 
                 foreach (var follower in followers.follows)
                 {
-                    var u = UsersManager.getInstance().addUser(follower.user.display_name, Model.Role.Viewers);
+                    var u = _usersManager.AddUser(follower.user.display_name, Role.Viewers);
                     u.IsFollower = true;
                     u.IsFollowerSince = TimeParser.GetDuration(follower.created_at);
                     if (u.IsFollowerSince.Year == 999)
-                        Logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
+                        _logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }
 
@@ -91,18 +89,9 @@ namespace RoxorBot
             return result;
         }
 
-        public static FollowerManager getInstance()
+        public int GetFollowersCount()
         {
-            if (_instance == null)
-                _instance = new FollowerManager();
-            return _instance;
-        }
-
-        public int getFollowersCount()
-        {
-            var u = UsersManager.getInstance().getAllUsers().FindAll(x => x.IsFollower);
-            if (u == null)
-                return 0;
+            var u = _usersManager.GetAllUsers().FindAll(x => x.IsFollower);
             return u.Count;
         }
     }

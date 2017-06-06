@@ -18,7 +18,7 @@ namespace RoxorBot
     /// <summary>
     /// Interaction logic for CommandsListControl.xaml
     /// </summary>
-    public partial class CommandsListControl : UserControl
+    public partial class CommandsListControl
     {
         //why not?
         private List<string> commands = new List<string>()
@@ -50,6 +50,11 @@ namespace RoxorBot
             InitializeComponent();
 
             commands.ForEach(x => CommandsListView.Items.Add(x));
+        }
+
+        private void CloseButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

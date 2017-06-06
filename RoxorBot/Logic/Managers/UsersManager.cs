@@ -4,21 +4,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RoxorBot.Data.Implementations;
+using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
 {
-    class UsersManager
+    public class UsersManager : IUsersManager
     {
-        private static UsersManager _instance;
-        private List<User> users;
-        private List<string> superAdmins;
+        private readonly ILogger _logger;
+        private readonly IDatabaseManager _databaseManager;
+        private readonly List<User> _users;
+        private readonly List<string> _superAdmins;
 
-        private UsersManager()
+        public int UsersCount => _users.Count;
+
+        public UsersManager(ILogger logger, IDatabaseManager databaseManager)
         {
-            Logger.Log("Loading UsersManager...");
+            _logger = logger;
+            _databaseManager = databaseManager;
+            _logger.Log("Loading UsersManager...");
 
-            users = new List<User>();
-            superAdmins = new List<string>() { "roxork0", "horato2" };
+            _users = new List<User>();
+            _superAdmins = new List<string>() { "roxork0", "horato2" };
         }
 
         /// <summary>
@@ -27,11 +34,11 @@ namespace RoxorBot
         /// </summary>
         /// <param name="list"></param>
         /// <param name="role"></param>
-        public void initUsers(string[] list, Role role)
+        public void InitUsers(string[] list, Role role)
         {
-            foreach (string s in list)
+            foreach (var s in list)
             {
-                var u = addUser(s, role);
+                var u = AddUser(s, role);
                 u.isOnline = true;
             }
         }
@@ -41,38 +48,38 @@ namespace RoxorBot
         /// </summary>
         /// <param name="user"></param>
         /// <param name="role"></param>
-        public User addUser(string user, Role role)
+        public User AddUser(string user, Role role)
         {
-            var u = getUser(user);
+            var u = GetUser(user);
 
             if (u == null)
             {
                 u = new User { Name = user, InternalName = user.ToLower(), Role = role, isOnline = false, Points = 0, IsFollower = false };
-                lock (users)
-                    users.Add(u);
+                lock (_users)
+                    _users.Add(u);
             }
 
             return u;
         }
 
-        public void allowUser(string nick)
+        public void AllowUser(string nick)
         {
-            var user = getUser(nick);
-            if (user != null)
-            {
-                user.isAllowed = true;
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 1);");
-            }
+            var user = GetUser(nick);
+            if (user == null)
+                return;
+
+            user.isAllowed = true;
+            _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 1);");
         }
 
-        public void revokeAllowUser(string nick)
+        public void RevokeAllowUser(string nick)
         {
-            var user = getUser(nick);
-            if (user != null)
-            {
-                user.isAllowed = false;
-                DatabaseManager.getInstance().executeNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 0);");
-            }
+            var user = GetUser(nick);
+            if (user == null)
+                return;
+
+            user.isAllowed = false;
+            _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 0);");
         }
 
         /// <summary>
@@ -80,9 +87,9 @@ namespace RoxorBot
         /// This resets reward timer!
         /// </summary>
         /// <param name="user"></param>
-        public void changeOnlineStatus(string user, bool isOnline)
+        public void ChangeOnlineStatus(string user, bool isOnline)
         {
-            var u = users.Find(x => x.InternalName == user.ToLower());
+            var u = _users.Find(x => x.InternalName == user.ToLower());
             if (u == null)
                 return;
 
@@ -90,31 +97,31 @@ namespace RoxorBot
             //u.RewardTimer = 0;
         }
 
-        public List<User> getAllUsers()
+        public List<User> GetAllUsers()
         {
-            return users;
+            return _users;
         }
 
-        public User getUser(string nick)
+        public User GetUser(string nick)
         {
-            return users.Find(x => x.InternalName == nick.ToLower());
+            return _users.Find(x => x.InternalName == nick.ToLower());
         }
 
-        public bool isAdmin(string name)
+        public bool IsAdmin(string name)
         {
-            if (isSuperAdmin(name))
+            if (IsSuperAdmin(name))
                 return true;
 
-            var user = users.Find(x => x.InternalName == name.ToLower());
-            return isAdmin(user);
+            var user = _users.Find(x => x.InternalName == name.ToLower());
+            return IsAdmin(user);
         }
 
-        public bool isAdmin(User user)
+        public bool IsAdmin(User user)
         {
             if (user == null)
                 return false;
 
-            if (isSuperAdmin(user.InternalName))
+            if (IsSuperAdmin(user.InternalName))
                 return true;
 
             return user.Role != Role.Viewers;
@@ -125,18 +132,18 @@ namespace RoxorBot
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        public bool isSuperAdmin(string user)
+        public bool IsSuperAdmin(string user)
         {
-            return superAdmins.Contains(user.ToLower());
+            return _superAdmins.Contains(user.ToLower());
         }
 
-        public bool isAllowed(string name)
+        public bool IsAllowed(string name)
         {
-            var user = users.Find(x => x.InternalName == name.ToLower());
-            return isAllowed(user);
+            var user = _users.Find(x => x.InternalName == name.ToLower());
+            return IsAllowed(user);
         }
 
-        public bool isAllowed(User user)
+        public bool IsAllowed(User user)
         {
             if (user == null)
                 return false;
@@ -146,14 +153,7 @@ namespace RoxorBot
 
         public int getUsersCount()
         {
-            return users.Count;
-        }
-
-        public static UsersManager getInstance()
-        {
-            if (_instance == null)
-                _instance = new UsersManager();
-            return _instance;
+            return _users.Count;
         }
     }
 }

@@ -18,9 +18,9 @@ namespace RoxorBot
     /// <summary>
     /// Interaction logic for AddDialog.xaml
     /// </summary>
-    public partial class AddFilterDialog : UserControl
+    public partial class AddFilterDialog 
     {
-        public int id = 0;
+        public int id { get; internal set; }
 
         public AddFilterDialog()
         {
@@ -38,6 +38,11 @@ namespace RoxorBot
         private void DurationBox_OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = (e.Key == Key.Space);
+        }
+
+        private void CancelButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

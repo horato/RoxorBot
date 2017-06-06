@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using IrcDotNet;
+using Prism.Events;
+
+namespace RoxorBot.Data.Events
+{
+    public class IrcMessageReceived : PubSubEvent<IrcRawMessageEventArgs>
+    {
+
+    }
+}

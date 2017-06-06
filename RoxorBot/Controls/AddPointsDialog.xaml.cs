@@ -18,7 +18,7 @@ namespace RoxorBot
     /// <summary>
     /// Interaction logic for AddDialog.xaml
     /// </summary>
-    public partial class AddPointsDialog : UserControl
+    public partial class AddPointsDialog 
     {
         public AddPointsDialog()
         {
@@ -33,6 +33,11 @@ namespace RoxorBot
         private void PointsTextBox_OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = (e.Key == Key.Space);
+        }
+
+        private void CancelButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

@@ -58,7 +58,7 @@ namespace RoxorBot.Model.Youtube
                 name = snippet.title;
                 id = videoID;
                 address = "http://www.youtube.com/watch?v=" + videoID;
-                embedLink = YoutubeManager.getVideoDirectLink(videoID);
+                embedLink = YoutubeManager.GetVideoLinkDirect(videoID);
             }
         }
     }

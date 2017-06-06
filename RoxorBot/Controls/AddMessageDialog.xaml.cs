@@ -18,7 +18,7 @@ namespace RoxorBot
     /// <summary>
     /// Interaction logic for AddDialog.xaml
     /// </summary>
-    public partial class AddMessageDialog : UserControl
+    public partial class AddMessageDialog
     {
         public int id = 0;
         public bool active = true;
@@ -36,6 +36,11 @@ namespace RoxorBot
         private void IntervalBox_OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = (e.Key == Key.Space);
+        }
+
+        private void CancelButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

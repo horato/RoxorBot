@@ -20,6 +20,7 @@ namespace RoxorBot
     /// </summary>
     public partial class SettingsControl : UserControl
     {
+        //TODO: viewmodel
         public SettingsControl()
         {
             InitializeComponent();
@@ -77,8 +78,8 @@ namespace RoxorBot
             int value;
             if (int.TryParse(TimerRewardTextBox.Text, out value))
                 Properties.Settings.Default.timerReward = value;
-            else
-                Logger.Log("Failed to int parse " + TimerRewardTextBox.Text + " in TimerRewardTextBox_KeyUp.");
+            //else
+            //    Logger.Log("Failed to int parse " + TimerRewardTextBox.Text + " in TimerRewardTextBox_KeyUp.");
         }
 
         void textbox_KeyUp(object sender, KeyEventArgs e)
@@ -107,7 +108,7 @@ namespace RoxorBot
 
             if (!int.TryParse(tb.Text, out value))
             {
-                Logger.Log("Failed to int parse " + tb.Text + " in MaxMessageLengthTextBox_KeyUp");
+                //Logger.Log("Failed to int parse " + tb.Text + " in MaxMessageLengthTextBox_KeyUp");
                 return;
             }
             Properties.Settings.Default.maxMessageLength = value;
@@ -139,7 +140,7 @@ namespace RoxorBot
 
             if (!int.TryParse(tb.Text, out value))
             {
-                Logger.Log("Failed to int parse " + tb.Text + " in MaxSongLengthTextBox_KeyUp");
+                //Logger.Log("Failed to int parse " + tb.Text + " in MaxSongLengthTextBox_KeyUp");
                 return;
             }
             Properties.Settings.Default.maxSongLength = value;

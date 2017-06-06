@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RoxorBot
 {
-    class UserCommand
+    public class UserCommand
     {
         public int id { get; set; }
         public string command { get; set; }

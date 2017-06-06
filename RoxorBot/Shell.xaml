@@ -1,0 +1,28 @@
+﻿<Window x:Class="RoxorBot.Shell"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RoxorBot"
+        xmlns:mvvm="http://prismlibrary.com/"
+        xmlns:constants="clr-namespace:RoxorBot.Data.Constants"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:viewHelpers="clr-namespace:RoxorBot.Data.ViewHelpers"
+        mc:Ignorable="d"
+        mvvm:ViewModelLocator.AutoWireViewModel="True"
+        Title="Shell" Height="300" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ContentControl mvvm:RegionManager.RegionName="{x:Static constants:Regions.Toolbar}" Grid.Row="0" />
+        <ContentControl mvvm:RegionManager.RegionName="{x:Static constants:Regions.MainRegion}" Grid.Row="1" />
+        <ContentControl mvvm:RegionManager.RegionName="{x:Static constants:Regions.Output}" Grid.Row="2" />
+    </Grid>
+    <i:Interaction.Triggers>
+        <viewHelpers:EventToCommand EventName="Closing" Command="{Binding ClosingCommand}" />
+    </i:Interaction.Triggers>
+</Window>

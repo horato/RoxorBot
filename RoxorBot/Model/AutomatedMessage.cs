@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RoxorBot.Model
 {
-    class AutomatedMessage
+    public class AutomatedMessage
     {
         private bool _active = true;
         public int id { get; set; }
@@ -23,7 +23,8 @@ namespace RoxorBot.Model
             set
             {
                 _active = value;
-                DatabaseManager.getInstance().executeNonQuery("UPDATE messages SET enabled=" + (_active ? "1" : "0") + " WHERE message='" + message + "';");
+                //TODO:check
+                //DatabaseManager.getInstance().ExecuteNonQuery("UPDATE messages SET enabled=" + (_active ? "1" : "0") + " WHERE message='" + message + "';");
             }
         }
         public System.Timers.Timer timer { get; set; }
