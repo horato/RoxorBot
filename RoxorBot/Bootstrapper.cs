@@ -75,6 +75,7 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IFollowersManager), typeof(FollowersManager), true);
             RegisterTypeIfMissing(typeof(IUsersManager), typeof(UsersManager), true);
             RegisterTypeIfMissing(typeof(IYoutubeManager), typeof(YoutubeManager), true);
+            RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
         }
     }
 }

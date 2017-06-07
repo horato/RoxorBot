@@ -19,7 +19,7 @@ namespace RoxorBot
         public bool IsPaused { get; private set; }
         public bool IsRunning { get; private set; }
 
-        private AutomatedMessagesManager(ILogger logger, IChatManager chatManager, IDatabaseManager databaseManager)
+        public AutomatedMessagesManager(ILogger logger, IChatManager chatManager, IDatabaseManager databaseManager)
         {
             _logger = logger;
             _chatManager = chatManager;

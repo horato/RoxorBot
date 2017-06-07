@@ -16,7 +16,7 @@ namespace RoxorBot
         private readonly ILogger _logger;
         private readonly IUsersManager _usersManager;
 
-        private FollowersManager(ILogger logger, IUsersManager usersManager)
+        public FollowersManager(ILogger logger, IUsersManager usersManager)
         {
             _logger = logger;
             _usersManager = usersManager;

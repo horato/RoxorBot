@@ -23,7 +23,7 @@ namespace RoxorBot
         public int PlaylistCount => Videos.Count;
         public int BackupPlaylistCount => BackupPlaylist.Count;
 
-        private YoutubeManager(ILogger logger)
+        public YoutubeManager(ILogger logger)
         {
             _logger = logger;
             _logger.Log("Initializing YoutubeManager...");

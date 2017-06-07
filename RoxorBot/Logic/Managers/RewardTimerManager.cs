@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Prism.Events;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
 
@@ -27,6 +28,16 @@ namespace RoxorBot.Logic.Managers
             _rewardTimer = new System.Timers.Timer(5 * 60 * 1000);
             _rewardTimer.AutoReset = true;
             _rewardTimer.Elapsed += _rewardTimer_Elapsed;
+            _aggregator.GetEvent<ChatConnectionChangedEvent>().Subscribe(OnChatConnectionChanged);
+        }
+
+        private void OnChatConnectionChanged(ChatConnectionState obj)
+        {
+            if (obj != ChatConnectionState.Connected)
+                return;
+
+            if (IsPaused)
+                Start();
         }
 
         private void _rewardTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)

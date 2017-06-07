@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Prism.Commands;
 using RoxorBot.Data.Attributes;
@@ -43,6 +41,8 @@ namespace RoxorBot.Data.Implementations
                 throw new ArgumentNullException(nameof(type));
 
             var typeBuilder = CreateNewTypeBuilder(type);
+            CreateConstructors(typeBuilder, type);
+
             var methods = type.GetMethods();
             foreach (var method in methods)
             {
@@ -65,13 +65,42 @@ namespace RoxorBot.Data.Implementations
             return newViewModelType;
         }
 
+        private static void CreateConstructors(TypeBuilder typeBuilder, Type type)
+        {
+            var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(CanAccessFromDescendant).ToList();
+            if (!ctors.Any())
+                throw new InvalidOperationException("No valid constructors found");
+
+            foreach (var baseConstructor in ctors)
+                BuildConstructor(typeBuilder, baseConstructor);
+        }
+
+        private static ConstructorBuilder BuildConstructor(TypeBuilder type, ConstructorInfo baseConstructor)
+        {
+            var parameters = baseConstructor.GetParameters();
+            var constructorBuilder = type.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameters.Select(x => x.ParameterType).ToArray());
+            for (var index = 0; index < parameters.Length; ++index)
+                constructorBuilder.DefineParameter(index + 1, parameters[index].Attributes, parameters[index].Name);
+            var ilGenerator = constructorBuilder.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            for (var index = 0; index < parameters.Length; ++index)
+                ilGenerator.Emit(OpCodes.Ldarg_S, index + 1);
+            ilGenerator.Emit(OpCodes.Call, baseConstructor);
+            ilGenerator.Emit(OpCodes.Ret);
+            return constructorBuilder;
+        }
+
+        public static bool CanAccessFromDescendant(MethodBase method)
+        {
+            if (!method.IsPublic && !method.IsFamily)
+                return method.IsFamilyOrAssembly;
+            return true;
+        }
+
         private static TypeBuilder CreateNewTypeBuilder(Type type)
         {
             var moduleBuilder = GetModuleBuilder(type.Assembly);
-            var types = new List<Type>
-            {
-                // typeof (INotifyPropertyChanged),
-            };
+            var types = new List<Type>();
 
             var name = $"{type.Name}_{Guid.NewGuid():N}";
             return moduleBuilder.DefineType(name, TypeAttributes.Public, type, types.ToArray());
@@ -123,7 +152,7 @@ namespace RoxorBot.Data.Implementations
 
         private static ConstructorInfo CreateActionConstructor()
         {
-            var inputParameters = new Type[]
+            var inputParameters = new[]
             {
                 typeof(object),
                 typeof(IntPtr)
@@ -133,9 +162,9 @@ namespace RoxorBot.Data.Implementations
 
         private static ConstructorInfo CreateDelegateCommandConstructor()
         {
-            var inputParameters = new Type[]
+            var inputParameters = new[]
             {
-                typeof(Action),
+                typeof(Action)
             };
             return typeof(DelegateCommand).GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, inputParameters, null);
         }

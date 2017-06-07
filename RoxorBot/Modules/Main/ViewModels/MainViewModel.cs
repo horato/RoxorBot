@@ -71,7 +71,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         private YoutubeWindow plugDjWindow;
         private bool onSettingsPage = false;
 
-        public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager)
+        public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
             _logger = logger;
             _aggregator = aggregator;
@@ -80,6 +80,8 @@ namespace RoxorBot.Modules.Main.ViewModels
             _automatedMessagesManager = automatedMessagesManager;
             _pointsManager = pointsManager;
             _usersManager = usersManager;
+
+            chatMessageHandler.Init();
 
             _aggregator.GetEvent<UpdateStatusLabelsEvent>().Subscribe(UpdateStatusLabels);
             _aggregator.GetEvent<UpdateOnlineUsersList>().Subscribe(UpdateOnlineUsersList);

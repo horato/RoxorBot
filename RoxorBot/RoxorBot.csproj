@@ -180,10 +180,12 @@
     <Compile Include="Data\Events\IrcMessageReceived.cs" />
     <Compile Include="Data\Events\UpdateOnlineUsersList.cs" />
     <Compile Include="Data\Events\UpdateStatusLabelsEvent.cs" />
+    <Compile Include="Data\Implementations\ChatMessageHandler.cs" />
     <Compile Include="Data\Implementations\Logger.cs" />
     <Compile Include="Data\Implementations\ViewModelProvider.cs" />
     <Compile Include="Data\Interfaces\IAutomatedMessagesManager.cs" />
     <Compile Include="Data\Interfaces\IChatManager.cs" />
+    <Compile Include="Data\Interfaces\IChatMessageHandler.cs" />
     <Compile Include="Data\Interfaces\IDatabaseManager.cs" />
     <Compile Include="Data\Interfaces\IFilterManager.cs" />
     <Compile Include="Data\Interfaces\IFollowersManager.cs" />

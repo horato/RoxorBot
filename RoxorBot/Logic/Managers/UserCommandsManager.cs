@@ -20,7 +20,7 @@ namespace RoxorBot
         private readonly List<UserCommand> _commands;
         public int CommandsCount => _commands.Count;
 
-        private UserCommandsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
+        public UserCommandsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
         {
             _aggregator = aggregator;
             _chatManager = chatManager;
