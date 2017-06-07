@@ -55,12 +55,14 @@ namespace RoxorBot.Data.Implementations
                 if (!containsMyCommandAttribute)
                     continue;
 
+                var canMethod = GetCanMethod(method, type);
+
                 var propertyName = $"{method.Name}{CommandSuffix}";
                 var field = typeBuilder.DefineField($"_{propertyName}", typeof(ICommand), FieldAttributes.Private);
 
                 var getMethod = typeBuilder.DefineMethod($"get_{propertyName}", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName, typeof(ICommand), null);
                 var ilGenerator = getMethod.GetILGenerator();
-                CreateGetterBody(ilGenerator, field, method);
+                CreateGetterBody(ilGenerator, field, method, canMethod);
 
                 var commandProperty = typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, typeof(ICommand), null);
                 commandProperty.SetGetMethod(getMethod);
@@ -68,6 +70,11 @@ namespace RoxorBot.Data.Implementations
 
             var newViewModelType = typeBuilder.CreateType();
             return newViewModelType;
+        }
+
+        private static MethodInfo GetCanMethod(MethodInfo method, Type type)
+        {
+            return type.GetMethods().Where(x => x.Name == $"Can{method.Name}").SingleOrDefault(x => !x.GetParameters().Any() && x.ReturnType == typeof(bool));
         }
 
         private static void CreateConstructors(TypeBuilder typeBuilder, Type type)
@@ -111,7 +118,7 @@ namespace RoxorBot.Data.Implementations
             return moduleBuilder.DefineType(name, TypeAttributes.Public, type, types.ToArray());
         }
 
-        private static void CreateGetterBody(ILGenerator ilGenerator, FieldBuilder commandField, MethodInfo methodToExecute)
+        private static void CreateGetterBody(ILGenerator ilGenerator, FieldBuilder commandField, MethodInfo methodToExecute, MethodInfo canMethod)
         {
             ilGenerator.DeclareLocal(typeof(ICommand));
             ilGenerator.DeclareLocal(typeof(bool));
@@ -131,13 +138,20 @@ namespace RoxorBot.Data.Implementations
             ilGenerator.Emit(OpCodes.Ldloc_1);
             ilGenerator.Emit(OpCodes.Brtrue_S, returnLabel);
 
-            //command field = new DelegateCommand(new Action(method))
+            //command field = new DelegateCommand(new Action(method, canmethod))
             var actionConstructor = CreateActionConstructor();
-            var delegateCommandConstructor = CreateDelegateCommandConstructor();
+            var delegateCommandConstructor = CreateDelegateCommandConstructor(canMethod != null);
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Ldftn, methodToExecute);
             ilGenerator.Emit(OpCodes.Newobj, actionConstructor);
+            if (canMethod != null)
+            {
+                var funcBoolConstructor = CreateFuncBoolConstructor();
+                ilGenerator.Emit(OpCodes.Ldarg_0);
+                ilGenerator.Emit(OpCodes.Ldftn, canMethod);
+                ilGenerator.Emit(OpCodes.Newobj, funcBoolConstructor);
+            }
             ilGenerator.Emit(OpCodes.Newobj, delegateCommandConstructor);
             ilGenerator.Emit(OpCodes.Stfld, commandField);
 
@@ -165,13 +179,26 @@ namespace RoxorBot.Data.Implementations
             return typeof(Action).GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, inputParameters, null);
         }
 
-        private static ConstructorInfo CreateDelegateCommandConstructor()
+        private static ConstructorInfo CreateDelegateCommandConstructor(bool includeCanMethod)
         {
-            var inputParameters = new[]
+            var inputParameters = new List<Type>
             {
                 typeof(Action)
             };
-            return typeof(DelegateCommand).GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, inputParameters, null);
+            if (includeCanMethod)
+                inputParameters.Add(typeof(Func<bool>));
+
+            return typeof(DelegateCommand).GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, inputParameters.ToArray(), null);
+        }
+
+        private static ConstructorInfo CreateFuncBoolConstructor()
+        {
+            var inputParameters = new[]
+            {
+                typeof(object),
+                typeof(IntPtr)
+            };
+            return typeof(Func<bool>).GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, inputParameters, null);
         }
     }
 }

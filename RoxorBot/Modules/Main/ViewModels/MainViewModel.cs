@@ -5,14 +5,18 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Web.Script.Serialization;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using IrcDotNet;
+using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
@@ -22,6 +26,7 @@ using RoxorBot.Data.Interfaces;
 using RoxorBot.Logic;
 using RoxorBot.Model;
 using RoxorBot.Model.JSON;
+using Timer = System.Timers.Timer;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {
@@ -93,7 +98,18 @@ namespace RoxorBot.Modules.Main.ViewModels
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
 
+            var buttonEnabledRefresher = new Timer(100);
+            buttonEnabledRefresher.AutoReset = true;
+            buttonEnabledRefresher.Elapsed += ButtonEnabledRefresherElapsed;
+            buttonEnabledRefresher.Start();
+
             new Thread(Load).Start();
+        }
+
+        private void ButtonEnabledRefresherElapsed(object sender, ElapsedEventArgs e)
+        {
+            //TODO: better?
+            RaiseCanExecuteChanged();
         }
 
         private void Load()
@@ -149,6 +165,16 @@ namespace RoxorBot.Modules.Main.ViewModels
                 MessageBox.Show(exc.ToString());
                 System.Diagnostics.Debug.WriteLine(exc.ToString());
                 Disconnect();
+            }
+        }
+
+        private void RaiseCanExecuteChanged()
+        {
+            var commands = GetType().GetProperties().Where(x => x.PropertyType == typeof(ICommand));
+            foreach (var command in commands)
+            {
+                var delegateCommand = command.GetValue(this) as DelegateCommandBase;
+                delegateCommand?.RaiseCanExecuteChanged();
             }
         }
 
