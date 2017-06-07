@@ -71,7 +71,6 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IPointsManager), typeof(PointsManager), true);
             RegisterTypeIfMissing(typeof(IUserCommandsManager), typeof(UserCommandsManager), true);
             RegisterTypeIfMissing(typeof(IDatabaseManager), typeof(DatabaseManager), true);
-            RegisterTypeIfMissing(typeof(IRewardTimerManager), typeof(RewardTimerManager), true);
             RegisterTypeIfMissing(typeof(IFollowersManager), typeof(FollowersManager), true);
             RegisterTypeIfMissing(typeof(IUsersManager), typeof(UsersManager), true);
             RegisterTypeIfMissing(typeof(IYoutubeManager), typeof(YoutubeManager), true);

@@ -36,6 +36,9 @@ namespace RoxorBot
 
         private void InitBackupPlaylist()
         {
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
+                return;
+
             isPlaylistLoading = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -201,6 +204,9 @@ namespace RoxorBot
         {
             using (var client = new WebClient())
             {
+                if (js_url.StartsWith("/"))
+                    js_url = "https://www.youtube.com" + js_url;
+
                 var js = client.DownloadString(js_url);
                 if (string.IsNullOrEmpty(js))
                     return sig;

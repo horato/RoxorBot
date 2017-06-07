@@ -28,6 +28,11 @@ namespace RoxorBot.Data.Implementations
             return Builders[assembly];
         }
 
+        internal static Type CreateViewModel<T>()
+        {
+            return CreateViewModel(typeof(T));
+        }
+
         private static ModuleBuilder CreateNewModuleBuilder()
         {
             var assemblyName = new AssemblyName($"RoxorBot.DynamicTypes.{Guid.NewGuid():N}");

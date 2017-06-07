@@ -20,7 +20,7 @@ namespace RoxorBot.Data.ViewHelpers
     /// </summary>
     public partial class EventToCommand
     {
-        public DependencyProperty CommandProperty = DependencyProperty.Register("Command", typeof(ICommand), typeof(EventToCommand));
+        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register("Command", typeof(ICommand), typeof(EventToCommand));
 
         public ICommand Command
         {

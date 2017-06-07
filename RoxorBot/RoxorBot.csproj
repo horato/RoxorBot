@@ -171,6 +171,7 @@
     <Compile Include="Data\Attributes\CommandAttribute.cs" />
     <Compile Include="Data\Constants\Regions.cs" />
     <Compile Include="Data\Converters\AutomatedMessagesLabelContentConverter.cs" />
+    <Compile Include="Data\Converters\DebugConverter.cs" />
     <Compile Include="Data\Converters\RewardTimerLabelContentConverter.cs" />
     <Compile Include="Data\Converters\LabelForegroundConverter.cs" />
     <Compile Include="Data\Enums\ChatConnectionState.cs" />
