@@ -25,9 +25,29 @@ namespace RoxorBot.Logic.Managers
         private System.Timers.Timer _floodTimer;
         private System.Timers.Timer _disconnectCheckTimer;
         private int _floodTicksElapsed;
+        private bool _isConnected;
+        private bool _isConnecting;
 
-        public bool IsConnecting { get; private set; }
-        public bool IsConnected { get; private set; }
+        public bool IsConnecting
+        {
+            get { return _isConnecting; }
+            private set
+            {
+                _isConnecting = value;
+                _aggregator.GetEvent<RaiseButtonsEnabled>().Publish();
+            }
+        }
+
+        public bool IsConnected
+        {
+            get { return _isConnected; }
+            private set
+            {
+                _isConnected = value;
+                _aggregator.GetEvent<RaiseButtonsEnabled>().Publish();
+            }
+        }
+
         public int FloodQueueCount => _floodQueue.Count;
 
         public ChatManager(IEventAggregator aggregator, ILogger logger)
@@ -108,7 +128,7 @@ namespace RoxorBot.Logic.Managers
                     Password = Properties.Settings.Default.twitch_oauth
                 });
 
-                if (resetEvent.Wait(10000))
+                if (!resetEvent.Wait(10000))
                     return false;
 
                 _client.SendRawMessage("CAP REQ :twitch.tv/membership");

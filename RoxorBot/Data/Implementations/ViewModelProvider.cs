@@ -12,6 +12,7 @@ namespace RoxorBot.Data.Implementations
     public static class ViewModelProvider
     {
         public const string CommandSuffix = "Command";
+        public const string CanExecutePrefix = "Can";
 
         private static readonly Dictionary<Assembly, ModuleBuilder> Builders;
 
@@ -55,6 +56,7 @@ namespace RoxorBot.Data.Implementations
                 if (!containsMyCommandAttribute)
                     continue;
 
+                var methodToExecute = CreateMethodWrapperWithRaise(method, typeBuilder);
                 var canMethod = GetCanMethod(method, type);
 
                 var propertyName = $"{method.Name}{CommandSuffix}";
@@ -62,7 +64,7 @@ namespace RoxorBot.Data.Implementations
 
                 var getMethod = typeBuilder.DefineMethod($"get_{propertyName}", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName, typeof(ICommand), null);
                 var ilGenerator = getMethod.GetILGenerator();
-                CreateGetterBody(ilGenerator, field, method, canMethod);
+                CreateGetterBody(ilGenerator, field, methodToExecute, canMethod);
 
                 var commandProperty = typeBuilder.DefineProperty(propertyName, PropertyAttributes.None, typeof(ICommand), null);
                 commandProperty.SetGetMethod(getMethod);
@@ -72,9 +74,43 @@ namespace RoxorBot.Data.Implementations
             return newViewModelType;
         }
 
+        private static MethodInfo CreateMethodWrapperWithRaise(MethodInfo method, TypeBuilder typeBuilder)
+        {
+            var returnsVoid = method.ReturnType == typeof(void);
+            var parameters = method.GetParameters().OrderBy(x => x.Position).ToList();
+
+            var newMethod = typeBuilder.DefineMethod($"{method.Name}{Guid.NewGuid()}", MethodAttributes.Public,
+                method.ReturnType, parameters.Select(x => x.ParameterType).ToArray());
+            var bodyGenerator = newMethod.GetILGenerator();
+            var label = bodyGenerator.DefineLabel();
+
+            if (!returnsVoid)
+                bodyGenerator.DeclareLocal(method.ReturnType);
+
+            var raiseAllMethod = typeof(ViewModelProviderHelper).GetMethod(nameof(ViewModelProviderHelper.RaiseAllCanExecuteChanged));
+            bodyGenerator.Emit(OpCodes.Nop);
+            bodyGenerator.Emit(OpCodes.Call, raiseAllMethod);
+            bodyGenerator.Emit(OpCodes.Nop);
+
+            bodyGenerator.Emit(OpCodes.Ldarg_0);
+            foreach (var parameter in parameters)
+                bodyGenerator.Emit(OpCodes.Ldarg_S, parameters.IndexOf(parameter) + 1);
+            bodyGenerator.Emit(OpCodes.Call, method);
+
+            if (!returnsVoid)
+            {
+                bodyGenerator.Emit(OpCodes.Stloc_0);
+
+                bodyGenerator.Emit(OpCodes.Ldloc_0);
+            }
+            bodyGenerator.Emit(OpCodes.Ret);
+
+            return newMethod;
+        }
+
         private static MethodInfo GetCanMethod(MethodInfo method, Type type)
         {
-            return type.GetMethods().Where(x => x.Name == $"Can{method.Name}").SingleOrDefault(x => !x.GetParameters().Any() && x.ReturnType == typeof(bool));
+            return type.GetMethods().Where(x => x.Name == $"{CanExecutePrefix}{method.Name}").SingleOrDefault(x => !x.GetParameters().Any() && x.ReturnType == typeof(bool));
         }
 
         private static void CreateConstructors(TypeBuilder typeBuilder, Type type)
@@ -89,15 +125,25 @@ namespace RoxorBot.Data.Implementations
 
         private static ConstructorBuilder BuildConstructor(TypeBuilder type, ConstructorInfo baseConstructor)
         {
-            var parameters = baseConstructor.GetParameters();
+            var parameters = baseConstructor.GetParameters().ToList();
             var constructorBuilder = type.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameters.Select(x => x.ParameterType).ToArray());
-            for (var index = 0; index < parameters.Length; ++index)
-                constructorBuilder.DefineParameter(index + 1, parameters[index].Attributes, parameters[index].Name);
+
+            foreach (var parameter in parameters)
+                constructorBuilder.DefineParameter(parameters.IndexOf(parameter) + 1, parameter.Attributes, parameter.Name);
+
             var ilGenerator = constructorBuilder.GetILGenerator();
             ilGenerator.Emit(OpCodes.Ldarg_0);
-            for (var index = 0; index < parameters.Length; ++index)
-                ilGenerator.Emit(OpCodes.Ldarg_S, index + 1);
+            foreach (var parameter in parameters)
+                ilGenerator.Emit(OpCodes.Ldarg_S, parameters.IndexOf(parameter) + 1);
+
             ilGenerator.Emit(OpCodes.Call, baseConstructor);
+
+            var registerMethod = typeof(ViewModelProviderHelper).GetMethod(nameof(ViewModelProviderHelper.RegisterViewModel), new[] { typeof(object) });
+            ilGenerator.Emit(OpCodes.Nop);
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Call, registerMethod);
+            ilGenerator.Emit(OpCodes.Nop);
+
             ilGenerator.Emit(OpCodes.Ret);
             return constructorBuilder;
         }

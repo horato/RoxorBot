@@ -98,18 +98,7 @@ namespace RoxorBot.Modules.Main.ViewModels
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
 
-            var buttonEnabledRefresher = new Timer(100);
-            buttonEnabledRefresher.AutoReset = true;
-            buttonEnabledRefresher.Elapsed += ButtonEnabledRefresherElapsed;
-            buttonEnabledRefresher.Start();
-
             new Thread(Load).Start();
-        }
-
-        private void ButtonEnabledRefresherElapsed(object sender, ElapsedEventArgs e)
-        {
-            //TODO: better?
-            RaiseCanExecuteChanged();
         }
 
         private void Load()
@@ -165,16 +154,6 @@ namespace RoxorBot.Modules.Main.ViewModels
                 MessageBox.Show(exc.ToString());
                 System.Diagnostics.Debug.WriteLine(exc.ToString());
                 Disconnect();
-            }
-        }
-
-        private void RaiseCanExecuteChanged()
-        {
-            var commands = GetType().GetProperties().Where(x => x.PropertyType == typeof(ICommand));
-            foreach (var command in commands)
-            {
-                var delegateCommand = command.GetValue(this) as DelegateCommandBase;
-                delegateCommand?.RaiseCanExecuteChanged();
             }
         }
 
