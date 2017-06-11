@@ -21,12 +21,16 @@ using Prism.Events;
 using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Events;
+using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Model;
 using RoxorBot.Logic;
 using RoxorBot.Model;
 using RoxorBot.Model.JSON;
-using Timer = System.Timers.Timer;
+using TwitchLib;
+using TwitchLib.Events.Client;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {
@@ -68,7 +72,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public bool IsRewardTimerPaused => _rewardTimerManager.IsPaused;
         public bool AreAutomatedMessagesRunning => _automatedMessagesManager.IsRunning;
         public bool AreAutomatedMessagesPaused => _automatedMessagesManager.IsPaused;
-        public ObservableCollection<string> UsersList { get; } = new ObservableCollection<string>();
+        public ObservableCollection<UserWrapper> UsersList { get; } = new ObservableCollection<UserWrapper>();
 
 
 
@@ -78,6 +82,15 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.TwitchId))
+                Properties.Settings.Default.TwitchId = Prompt.ShowDialog("Specify twitch clientId", "Twitch client Id");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
+                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Twitch oauth");
+            Properties.Settings.Default.Save();
+
+            TwitchAPI.Settings.ClientId = Properties.Settings.Default.TwitchId;
+            TwitchAPI.Settings.AccessToken = Properties.Settings.Default.twitch_oauth;
+
             _logger = logger;
             _aggregator = aggregator;
             _chatManager = chatManager;
@@ -90,6 +103,7 @@ namespace RoxorBot.Modules.Main.ViewModels
 
             _aggregator.GetEvent<UpdateStatusLabelsEvent>().Subscribe(UpdateStatusLabels);
             _aggregator.GetEvent<UpdateOnlineUsersList>().Subscribe(UpdateOnlineUsersList);
+            _aggregator.GetEvent<ChatChannelJoined>().Subscribe(OnChatConnected);
             // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
 
             _logger.Log("Program init...");
@@ -116,26 +130,6 @@ namespace RoxorBot.Modules.Main.ViewModels
             Properties.Settings.Default.Save();
 
             StatusText = "Connecting...";
-
-            try
-            {
-                using (var client = new WebClient { Encoding = Encoding.UTF8 })
-                {
-                    var json = client.DownloadString("http://tmi.twitch.tv/group/user/roxork0/chatters?rand=" + Environment.TickCount);
-                    var chatters = new JavaScriptSerializer().Deserialize<Chatters>(json);
-                    _usersManager.InitUsers(chatters.chatters.staff, Role.Saff);
-                    _usersManager.InitUsers(chatters.chatters.admins, Role.Admins);
-                    _usersManager.InitUsers(chatters.chatters.global_mods, Role.Global_mods);
-                    _usersManager.InitUsers(chatters.chatters.moderators, Role.Moderators);
-                    _usersManager.InitUsers(chatters.chatters.viewers, Role.Viewers);
-                    UpdateOnlineUsersList();
-                    AddToConsole("Loaded " + chatters.chatter_count + " online viewers.");
-                }
-            }
-            catch (Exception ee)
-            {
-                AddToConsole(ee.ToString());
-            }
 
             try
             {
@@ -212,15 +206,24 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         private void UpdateOnlineUsersList()
         {
-            UsersList.Clear();
-            var users = _usersManager.GetAllUsers();
-            var temp = users.Where(x => x.isOnline).Select(x => new User { Name = x.Name, Role = x.Role }).ToList();
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                UsersList.Clear();
+                var users = _usersManager.GetAllUsers();
+                var temp = users.Where(x => x.IsOnline).Select(x => new UserWrapper(x)).ToList();
+                foreach (var u in temp.Where(x => x.Role != Role.Viewers))
+                    u.DisplayAsModerator();
 
-            foreach (var u in temp.Where(x => x.Role != Role.Viewers))
-                u.Name = "(o) " + u.Name;
+                temp = temp.OrderBy(x => x.Name).ToList();
+                UsersList.AddRange(temp);
+            }));
+        }
 
-            temp = temp.OrderBy(x => x.Name).ToList();
-            UsersList.AddRange(temp.Select(x => x.Name));
+        private void OnChatConnected(JoinedChannel e)
+        {
+            _usersManager.InitUsers(e);
+            UpdateOnlineUsersList();
+            AddToConsole("Loaded " + UsersList.Count + " online viewers.");
         }
 
         public void AddToConsole(string text)

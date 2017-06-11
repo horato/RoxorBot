@@ -8,6 +8,7 @@ using IrcDotNet;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot
 {
@@ -64,43 +65,37 @@ namespace RoxorBot
             _pointsManager = pointsManager;
             _usersManager = usersManager;
 
-            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(OnIrcMessageReceived);
+            _aggregator.GetEvent<ChatMessageReceivedEvent>().Subscribe(OnChatMessageReceived);
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing RaffleManager...");
         }
 
-        private void OnIrcMessageReceived(IrcRawMessageEventArgs obj)
+        private void OnChatMessageReceived(ChatMessage e)
         {
-            var e = obj;
             if (e == null)
                 return;
-            if (!IsRunning || (e.Message.Source.Name.ToLower() == Properties.Settings.Default.twitch_login.ToLower()))
+            if (!IsRunning || string.Equals(e.Username, Properties.Settings.Default.twitch_login, StringComparison.CurrentCultureIgnoreCase))
                 return;
-            if (e.Message.Parameters.Count < 2)
+            if (!_acceptedWords.Contains(e.Message))
                 return;
-            var msg = e.Message.Parameters[1];
 
-            if (_acceptedWords.Contains(msg))
-            {
-                var user = _usersManager.GetUser(e.Message.Source.Name);
+            var user = _usersManager.GetUser(e.Username);
+            if (user == null)
+                return;
+            if (_users.Contains(user))
+                return;
+            if (_isFollowersOnly && !user.IsFollower)
+                return;
+            if (_pointsManager.GetPointsForUser(user.InternalName) < _entryPointsRequired)
+                return;
 
-                if (user == null)
-                    return;
-                if (_users.Contains(user))
-                    return;
-                if (_isFollowersOnly && !user.IsFollower)
-                    return;
-                if (_pointsManager.GetPointsForUser(user.InternalName) < _entryPointsRequired)
-                    return;
+            _pointsManager.RemovePoints(user.InternalName, _entryPointsRequired);
+            lock (_users)
+                _users.Add(user);
 
-                _pointsManager.RemovePoints(user.InternalName, _entryPointsRequired);
-                lock (_users)
-                    _users.Add(user);
+            if (OnUserAdd != null)
+                OnUserAdd(this, user);
 
-                if (OnUserAdd != null)
-                    OnUserAdd(this, user);
-
-                Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
-            }
+            Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
         }
 
         public void StartRaffle()

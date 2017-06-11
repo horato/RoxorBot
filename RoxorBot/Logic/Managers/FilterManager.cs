@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot
 {
@@ -33,8 +34,6 @@ namespace RoxorBot
             _usersManager = usersManager;
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Loading FilterManager...");
-            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(IrcMessageReceived);
-
             _filters = LoadFilters();
             LoadAllowedUsers();
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _filters.Count + " filtered words from database.");
@@ -77,9 +76,9 @@ namespace RoxorBot
 
                 var user = _usersManager.GetUser(name);
                 if (user == null)
-                    user = _usersManager.AddUser(name, Role.Viewers);
+                    user = _usersManager.AddOrGetUser(name, Role.Viewers);
 
-                user.isAllowed = isAllowed;
+                user.IsAllowed = isAllowed;
             }
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + reader.StepCount + " allowed users from database.");
@@ -145,34 +144,30 @@ namespace RoxorBot
             RemoveFilterWord(filter.id);
         }
 
-        private bool CheckFilter(IrcRawMessageEventArgs e)
+        public bool CheckFilter(ChatMessage e)
         {
-            if (IsAdminOrAllowed(e.Message.Source.Name.ToLower()))
+            if (e == null)
                 return false;
-            if (e.Message.Parameters.Count < 2)
+            if (IsAdminOrAllowed(e.Username))
                 return false;
-            var msg = e.Message.Parameters[1];
 
-            var items = _filters.FindAll(x => msg.ToLower().Contains(x.word.ToLower()));
-            var exists = (items != null && items.Count > 0);
+            var items = _filters.FindAll(x => e.Message.ToLower().Contains(x.word.ToLower()));
+            var exists = items.Count > 0;
             if (exists && items.Any(x => x.isWhitelist))
                 return false;
+            if (exists)
+                return true;
 
-            if (!exists)
-            {
-                var temp = _filters.FindAll(x => x.isRegex);
-                var toCheck = new List<FilterItem>();
+            var temp = _filters.FindAll(x => x.isRegex);
+            var toCheck = new List<FilterItem>();
+            foreach (var filter in temp)
+                if (Regex.IsMatch(e.Message, filter.word))
+                    toCheck.Add(filter);
 
-                foreach (var filter in temp)
-                    if (Regex.IsMatch(msg, filter.word))
-                        toCheck.Add(filter);
+            if (toCheck.Count > 0 && toCheck.Any(x => x.isWhitelist))
+                return false;
 
-                if (toCheck.Count > 0 && toCheck.Any(x => x.isWhitelist))
-                    return false;
-
-                exists = toCheck.Count > 0;
-            }
-            return exists;
+            return toCheck.Count > 0;
         }
 
         private bool IsAdminOrAllowed(string user)
@@ -212,130 +207,6 @@ namespace RoxorBot
                 }
             }
             return result;
-        }
-
-
-        private void IrcMessageReceived(IrcRawMessageEventArgs e)
-        {
-            if (e.Message.Parameters.Count < 2)
-                return;
-
-            var msg = e.Message.Parameters[1];
-            if (msg.StartsWith("!addfilter ") && _usersManager.IsAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 3)
-                    return;
-
-                string word = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                if (FilterExists(word))
-                    return;
-
-                AddFilterWord(word, value, e.Message.Source.Name, false, false);
-
-                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully added to database. Reward: " + (value == -1 ? "permanent ban." : value + "s timeout."));
-            }
-            if (msg.StartsWith("!whitelist ") && _usersManager.IsAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    return;
-
-                string word = commands[1].ToLower();
-
-                if (FilterExists(word))
-                    return;
-
-                AddFilterWord(word, 1, e.Message.Source.Name, false, true);
-
-                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " is now whitelisted.");
-            }
-            else if ((msg.StartsWith("!removefilter ") || msg.StartsWith("!removewhitelist ")) && _usersManager.IsAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    return;
-
-                string word = commands[1].ToLower();
-
-                if (!FilterExists(word))
-                    return;
-
-                RemoveFilterWord(word);
-
-                _chatManager.SendChatMessage(e.Message.Source.Name + ": the word " + word + " was successfully removed from database.");
-            }
-            else if (msg.StartsWith("!allow ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    return;
-
-                string name = commands[1].ToLower();
-
-                var user = _usersManager.GetUser(name);
-                if (user != null)
-                {
-                    _usersManager.AllowUser(name);
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + user.Name + " is now allowed.");
-                }
-            }
-            else if (msg.StartsWith("!unallow ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    return;
-
-                string name = commands[1].ToLower();
-
-                var user = _usersManager.GetUser(name);
-                if (user != null)
-                {
-                    _usersManager.RevokeAllowUser(name);
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": Successfully revoked allow from " + user.Name + ".");
-                }
-            }
-            else if (msg.StartsWith("!isallowed ") && _usersManager.IsAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    return;
-
-                string name = commands[1].ToLower();
-                var u = _usersManager.GetUser(name);
-                if (u == null)
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + name + " not found.");
-                else
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + u.Name + " " + (u.isAllowed ? "is" : "is not") + " allowed");
-            }
-            else if (CheckFilter(e))
-            {
-                var item = GetFilter(msg);
-                if (item == null)
-                {
-                    var temp = GetAllFilters(FilterMode.Regex);
-                    foreach (var filter in temp)
-                        if (Regex.IsMatch(msg, filter.word))
-                            item = filter;
-                }
-
-                if (item == null)
-                    return;
-
-                if (item.duration == -1)
-                    _chatManager.SendChatMessage(".ban " + e.Message.Source.Name, true);
-                else
-                    _chatManager.SendChatMessage(".timeout " + e.Message.Source.Name + " " + item.duration, true);
-
-                if (Properties.Settings.Default.notifyChatRestriction)
-                    _chatManager.SendChatMessage(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                _aggregator.GetEvent<AddLogEvent>().Publish(e.Message.Source.Name + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
-            }
         }
     }
 

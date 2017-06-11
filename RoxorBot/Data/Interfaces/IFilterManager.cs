@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RoxorBot.Model;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Interfaces
 {
@@ -18,5 +19,6 @@ namespace RoxorBot.Data.Interfaces
         FilterItem GetFilter(int id);
         FilterItem GetFilter(string word);
         List<FilterItem> GetAllFilters(FilterMode mode);
+        bool CheckFilter(ChatMessage e);
     }
 }

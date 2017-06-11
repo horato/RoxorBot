@@ -11,7 +11,8 @@ namespace RoxorBot.Model
         Moderators,
         Saff,
         Admins,
-        Global_mods,
-        Viewers
+        GlobalMods,
+        Viewers,
+        Broadcaster
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RoxorBot.Model;
 
 namespace RoxorBot.Data.Interfaces
 {
@@ -14,5 +15,7 @@ namespace RoxorBot.Data.Interfaces
         void Connect();
         void Disconnect();
         void SendChatMessage(string message, bool overrideFloodQueue = false);
+        void TimeoutUser(string user, TimeSpan duration);
+        void BanUser(string user);
     }
 }

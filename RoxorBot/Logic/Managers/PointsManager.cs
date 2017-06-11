@@ -27,59 +27,8 @@ namespace RoxorBot
             _usersManager = usersManager;
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing PointsManager...");
-            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(ChatMessageReceived);
             LoadViewers();
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + GetUsersCount() + " viewers from database.");
-        }
-
-        private void ChatMessageReceived(IrcRawMessageEventArgs e)
-        {
-            if (e.Message.Parameters.Count < 2)
-                return;
-
-            var msg = e.Message.Parameters[1];
-            if (msg.StartsWith("!points"))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 2)
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": You have " + GetPointsForUser(e.Message.Source.Name) + " points.");
-                else
-                    _chatManager.SendChatMessage(e.Message.Source.Name + ": " + commands[1] + " has " + GetPointsForUser(commands[1]) + " points.");
-            }
-            else if (msg.StartsWith("!addpoints ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 3)
-                    return;
-
-                string name = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                AddPoints(name, value);
-                _chatManager.SendChatMessage(e.Message.Source.Name + ": Added " + value + " points to " + name + ".");
-            }
-            else if (msg.StartsWith("!removepoints ") && _usersManager.IsSuperAdmin(e.Message.Source.Name))
-            {
-                string[] commands = msg.Split(' ');
-                if (commands.Length < 3)
-                    return;
-
-                string name = commands[1].ToLower();
-                int value;
-
-                if (!int.TryParse(commands[2], out value))
-                    return;
-
-                if (UserExists(name))
-                {
-                    RemovePoints(name, value);
-
-                    _chatManager.SendChatMessage(e.Message.Source.Name + " Subtracted " + value + " points from " + name + ". " + name + " now has " + GetPointsForUser(name) + " points.");
-                }
-            }
         }
 
         public void AddPoints(string user, int points)
@@ -89,6 +38,9 @@ namespace RoxorBot
 
         public void RemovePoints(string user, int points)
         {
+            if (!UserExists(user))
+                return;
+
             if (GetPointsForUser(user) < points)
                 SetPoints(user, 0);
             else
@@ -99,7 +51,7 @@ namespace RoxorBot
         {
             var u = _usersManager.GetUser(user);
             if (u == null)
-                u = _usersManager.AddUser(user, Model.Role.Viewers);
+                u = _usersManager.AddOrGetUser(user, Model.Role.Viewers);
 
             u.Points = points;
 

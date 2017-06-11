@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RoxorBot.Model;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Interfaces
 {
     public interface IUsersManager
     {
         int UsersCount { get; }
-        void InitUsers(string[] list, Role role);
-        User AddUser(string user, Role role);
+        void InitUsers(JoinedChannel channel);
+        User AddOrGetUser(string user, Role role);
         void AllowUser(string nick);
         void RevokeAllowUser(string nick);
         void ChangeOnlineStatus(string user, bool isOnline);

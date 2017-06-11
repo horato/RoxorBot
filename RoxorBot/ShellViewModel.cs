@@ -8,6 +8,7 @@ using Prism.Commands;
 using Prism.Events;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Enums;
+using RoxorBot.Data.Events;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Logic;
@@ -32,9 +33,10 @@ namespace RoxorBot
             _aggregator.GetEvent<RaiseButtonsEnabled>().Subscribe(OnRaiseButtonsEnabled);
         }
 
-        private static void OnRaiseButtonsEnabled()
+        private void OnRaiseButtonsEnabled()
         {
             ViewModelProviderHelper.RaiseAllCanExecuteChanged();
+            _aggregator.GetEvent<UpdateStatusLabelsEvent>().Publish();
         }
 
         [Command]

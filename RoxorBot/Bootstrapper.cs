@@ -12,7 +12,9 @@ using Prism.Modularity;
 using Prism.Mvvm;
 using Prism.Regions;
 using RoxorBot.Data.Implementations;
+using RoxorBot.Data.Implementations.Providers;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Providers;
 using RoxorBot.Logic.Managers;
 using RoxorBot.Modules.Main;
 using RoxorBot.Modules.Output;
@@ -75,6 +77,8 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IUsersManager), typeof(UsersManager), true);
             RegisterTypeIfMissing(typeof(IYoutubeManager), typeof(YoutubeManager), true);
             RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
+            RegisterTypeIfMissing(typeof(ITwitchLibTranslationService), typeof(TwitchLibTranslationService), false);
+            RegisterTypeIfMissing(typeof(IChatHandlersProvider), typeof(ChatHandlersProvider), false);
         }
     }
 }

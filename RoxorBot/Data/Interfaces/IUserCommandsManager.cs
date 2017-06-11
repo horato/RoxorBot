@@ -13,5 +13,6 @@ namespace RoxorBot.Data.Interfaces
         void RemoveCommand(int id);
         int CommandsCount { get; }
         List<UserCommand> GetAllCommands();
+        bool IsUserCommand(string command);
     }
 }

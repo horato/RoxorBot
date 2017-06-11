@@ -13,66 +13,19 @@ namespace RoxorBot
     public class UserCommandsManager : IUserCommandsManager
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IChatManager _chatManager;
         private readonly IDatabaseManager _databaseManager;
-        private readonly IUsersManager _usersManager;
 
         private readonly List<UserCommand> _commands;
         public int CommandsCount => _commands.Count;
 
-        public UserCommandsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
+        public UserCommandsManager(IEventAggregator aggregator, IDatabaseManager databaseManager)
         {
             _aggregator = aggregator;
-            _chatManager = chatManager;
             _databaseManager = databaseManager;
-            _usersManager = usersManager;
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing UserCommandsManager...");
             _commands = LoadCommands();
-            _aggregator.GetEvent<IrcMessageReceived>().Subscribe(ChatMessageReceived);
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + CommandsCount + " user commands from database.");
-        }
-
-        private void ChatMessageReceived(IrcRawMessageEventArgs e)
-        {
-            if (e.Message.Parameters.Count < 2)
-                return;
-
-            var msg = e.Message.Parameters[1];
-            if (CommandsContains(msg))
-            {
-                List<UserCommand> commandList;
-                lock (_commands)
-                    commandList = _commands.FindAll(x => x.command.ToLower() == msg.ToLower());
-
-                var num = new Random().Next(0, commandList.Count - 1);
-                var command = commandList[num];
-                _chatManager.SendChatMessage(command.reply);
-            }
-            else if (msg.StartsWith("!addcomm ") && _usersManager.IsAdmin(e.Message.Source.Name))
-            {
-                var sb = new StringBuilder();
-                var split = msg.Split(' ');
-
-                if (split.Length < 3)
-                    return;
-
-                var command = split[1];
-                for (int i = 2; i < split.Length; i++)
-                    sb.Append(split[i]);
-                var reply = sb.ToString();
-
-                AddCommand(command, reply);
-                _chatManager.SendChatMessage(e.Message.Source.Name + ": Command " + command + " added.");
-            }
-            /* else if (msg.StartsWith("!delcomm ") && UsersManager.getInstance().isAdmin(e.Message.Source.Name))
-             {
-                 var split = msg.Split(' ');
-                 var command = split[1];
-
-                 if (removeCommand(command))
-                     mainWindow.sendChatMessage(e.Message.Source.Name + ": Command " + command + " removed.");
-             }*/
         }
 
         public void AddCommand(string command, string reply, int id = 0)
@@ -90,15 +43,15 @@ namespace RoxorBot
                 id = reader.GetInt32(0);
             }
 
-            var cmd = _commands.Find(x => x.id == id);
+            var cmd = _commands.Find(x => x.Id == id);
             if (cmd == null)
             {
-                _commands.Add(new UserCommand { id = id, command = command.ToLower(), reply = reply });
+                _commands.Add(new UserCommand { Id = id, Command = command.ToLower(), Reply = reply });
             }
             else
             {
-                cmd.command = command;
-                cmd.reply = reply;
+                cmd.Command = command;
+                cmd.Reply = reply;
             }
         }
 
@@ -117,12 +70,12 @@ namespace RoxorBot
         public void RemoveCommand(int id)
         {
             _databaseManager.ExecuteNonQuery("DELETE FROM userCommands WHERE id=" + id + ";");
-            _commands.RemoveAll(x => x.id == id);
+            _commands.RemoveAll(x => x.Id == id);
         }
 
         private bool CommandsContains(string msg)
         {
-            return _commands.Exists(x => x.command.ToLower() == msg.ToLower());
+            return _commands.Exists(x => x.Command.ToLower() == msg.ToLower());
         }
 
         private List<UserCommand> LoadCommands()
@@ -134,9 +87,9 @@ namespace RoxorBot
             {
                 temp.Add(new UserCommand
                 {
-                    id = Convert.ToInt32(reader["id"]),
-                    command = (string)reader["command"],
-                    reply = (string)reader["reply"]
+                    Id = Convert.ToInt32(reader["id"]),
+                    Command = (string)reader["command"],
+                    Reply = (string)reader["reply"]
                 });
             }
             return temp;
@@ -144,7 +97,12 @@ namespace RoxorBot
 
         public List<UserCommand> GetAllCommands()
         {
-            return _commands;
+            return _commands.ToList();
+        }
+
+        public bool IsUserCommand(string command)
+        {
+            return CommandsContains(command);
         }
     }
 }

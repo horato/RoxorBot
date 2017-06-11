@@ -46,7 +46,7 @@ namespace RoxorBot.Logic.Managers
 
             foreach (var user in users)
             {
-                if (!user.IsFollower || !user.isOnline)
+                if (!user.IsFollower || !user.IsOnline)
                     continue;
                 if (user.RewardTimer < 25)
                 {

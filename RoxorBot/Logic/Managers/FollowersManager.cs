@@ -42,7 +42,7 @@ namespace RoxorBot
                 foreach (var user in followers)
                 {
                     user.IsFollower = false;
-                    user.IsFollowerSince = new DateTime(999, 12, 30);
+                    user.IsFollowerSince = null;
                 }
 
                 _logger.Log("Followers updated. Detected total of " + GetFollowersCount() + " followers and " + followers.Count + " unfollows.");
@@ -73,10 +73,10 @@ namespace RoxorBot
 
                 foreach (var follower in followers.follows)
                 {
-                    var u = _usersManager.AddUser(follower.user.display_name, Role.Viewers);
+                    var u = _usersManager.AddOrGetUser(follower.user.display_name, Role.Viewers);
                     u.IsFollower = true;
                     u.IsFollowerSince = TimeParser.GetDuration(follower.created_at);
-                    if (u.IsFollowerSince.Year == 999)
+                    if (u.IsFollowerSince == null)
                         _logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }

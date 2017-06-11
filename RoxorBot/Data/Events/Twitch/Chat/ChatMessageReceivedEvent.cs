@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using IrcDotNet;
 using Prism.Events;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Events
 {
-    public class IrcMessageReceived : PubSubEvent<IrcRawMessageEventArgs>
+    public class ChatMessageReceivedEvent : PubSubEvent<ChatMessage>
     {
-
     }
 }

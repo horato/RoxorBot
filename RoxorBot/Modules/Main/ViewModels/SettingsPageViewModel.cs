@@ -236,10 +236,10 @@ namespace RoxorBot.Modules.Main.ViewModels
         {
             if (SelectedCustomCommand == null)
                 return;
-            if (!Prompt.Ask("Do you wish to delete " + SelectedCustomCommand.command + "?", "Delete"))
+            if (!Prompt.Ask("Do you wish to delete " + SelectedCustomCommand.Command + "?", "Delete"))
                 return;
 
-            _userCommandsManager.RemoveCommand(SelectedCustomCommand.id);
+            _userCommandsManager.RemoveCommand(SelectedCustomCommand.Id);
             InitCommands();
         }
 
@@ -259,9 +259,9 @@ namespace RoxorBot.Modules.Main.ViewModels
 
             if (SelectedCustomCommand != null)
             {
-                dialog.CommandBox.Text = SelectedCustomCommand.command;
-                dialog.ReplyBox.Text = SelectedCustomCommand.reply;
-                dialog.id = SelectedCustomCommand.id;
+                dialog.CommandBox.Text = SelectedCustomCommand.Command;
+                dialog.ReplyBox.Text = SelectedCustomCommand.Reply;
+                dialog.id = SelectedCustomCommand.Id;
             }
 
             dialog.ShowDialog();

@@ -10,23 +10,29 @@ using IrcDotNet;
 using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
+using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Model;
 using RoxorBot.Model.JSON;
+using TwitchLib;
+using TwitchLib.Enums;
+using TwitchLib.Events.Client;
+using TwitchLib.Extensions.Client;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot.Logic.Managers
 {
     public class ChatManager : IChatManager
     {
-        private StandardIrcClient _client;
+        private TwitchClient _client;
         private readonly IEventAggregator _aggregator;
         private readonly ILogger _logger;
         private readonly List<DateTime> _floodQueue = new List<DateTime>();
         private System.Timers.Timer _floodTimer;
-        private System.Timers.Timer _disconnectCheckTimer;
-        private int _floodTicksElapsed;
+
         private bool _isConnected;
         private bool _isConnecting;
+        private JoinedChannel _channel;
 
         public bool IsConnecting
         {
@@ -67,7 +73,6 @@ namespace RoxorBot.Logic.Managers
             {
                 if (!task.Result)
                 {
-                    _client.Dispose();
                     System.Diagnostics.Debug.WriteLine("timed out");
                     IsConnecting = false;
                     IsConnected = false;
@@ -78,63 +83,43 @@ namespace RoxorBot.Logic.Managers
                 IsConnecting = false;
                 IsConnected = true;
 
-                _floodTimer = new System.Timers.Timer(1000);
-                _floodTimer.AutoReset = true;
-                _floodTimer.Elapsed += (arg1, arg2) =>
-                {
-                    _floodTicksElapsed++;
-                    if (_disconnectCheckTimer.Enabled || _floodTicksElapsed <= 15)
-                        return;
-
-                    _floodTicksElapsed = 0;
-                    _disconnectCheckTimer.Start();
-                    _client.SendRawMessage("PING tmi.twitch.tv");
-                };
-                _floodTimer.Start();
 
                 _aggregator.GetEvent<ChatConnectionChangedEvent>().Publish(ChatConnectionState.Connected);
-                if (_disconnectCheckTimer != null)
-                    return;
 
-                _disconnectCheckTimer = new System.Timers.Timer(5000);
-                _disconnectCheckTimer.AutoReset = false;
-                _disconnectCheckTimer.Elapsed += (a, b) =>
-                {
-                    _aggregator.GetEvent<AddLogEvent>().Publish("Chat blocked, reconnecting...");
-                    Disconnect();
-                    Connect();
-                };
             });
         }
 
         private bool DoConnect()
         {
+            //TODO: config
+            var channel = "horato2";
             try
             {
                 var resetEvent = new ManualResetEventSlim();
-
-                _client = new StandardIrcClient();
-                _client.Connected += (a, b) =>
+                var credentials = new ConnectionCredentials(Properties.Settings.Default.twitch_login, Properties.Settings.Default.twitch_oauth);
+                _client = new TwitchClient(credentials, channel, '!', '!', true, false);
+                _client.OnConnected += (a, b) =>
                 {
                     resetEvent.Set();
                     resetEvent.Dispose();
                 };
-                _client.RawMessageReceived += OnRawMessageReceived;
-                _client.RawMessageSent += Client_RawMessageSent;
-                _client.Connect("irc.twitch.tv", 6667, false, new IrcUserRegistrationInfo
-                {
-                    UserName = Properties.Settings.Default.twitch_login,
-                    NickName = Properties.Settings.Default.twitch_login,
-                    Password = Properties.Settings.Default.twitch_oauth
-                });
+                _client.OnIncorrectLogin += OnIncorrectLogin;
+                _client.OnMessageReceived += OnMessageReceived;
+                _client.OnChatCommandReceived += OnChatCommandReceived;
+                _client.OnConnected += OnConnected;
+                _client.OnSendReceiveData += OnDataReceivedSent;
+                _client.OnJoinedChannel += ClientOnOnJoinedChannel;
+                _client.OnLeftChannel += ClientOnOnLeftChannel;
+                _client.OnUserJoined += ClientOnOnUserJoined;
+                _client.OnModeratorJoined += ClientOnOnModeratorJoined;
+                _client.OnUserLeft += ClientOnUserLeft;
+                _client.OnModeratorLeft += ClientOnOnModeratorLeft;
+                _client.OnModeratorsReceived += ClientOnOnModeratorsReceived;
+                _client.Connect();
 
                 if (!resetEvent.Wait(10000))
                     return false;
 
-                _client.SendRawMessage("CAP REQ :twitch.tv/membership");
-                _client.SendRawMessage("CAP REQ :twitch.tv/commands");
-
-                _client.SendRawMessage("JOIN #roxork0");
                 return true;
             }
             catch
@@ -143,60 +128,74 @@ namespace RoxorBot.Logic.Managers
             }
         }
 
-        private void OnRawMessageReceived(object sender, IrcRawMessageEventArgs e)
+        private void ClientOnOnModeratorsReceived(object sender, OnModeratorsReceivedArgs e)
         {
-            System.Diagnostics.Debug.Write("RawMessageReceived: Command: " + e.Message.Command + (e.Message.Source == null ? "" : " From: " + e.Message.Source.Name) + " Parameters: ");
-            foreach (string s in e.Message.Parameters)
-                if (!string.IsNullOrEmpty(s))
-                    System.Diagnostics.Debug.Write(s + ",");
-            System.Diagnostics.Debug.WriteLine("");
-
-            var msg = e.Message.Parameters[1];
-            //RawMessageReceived: Command: NOTICE From: tmi.twitch.tv Parameters: *,Error logging in,
-            if (e.Message.Command == "NOTICE")
-            {
-                if (msg.ToLower().Contains("error logging in"))
-                {
-                    _aggregator.GetEvent<AddLogEvent>().Publish("Error logging in. Wrong password/oauth?");
-                    Disconnect();
-                }
-                else
-                {
-                    string notice = "";
-                    foreach (string s in e.Message.Parameters)
-                        if (!string.IsNullOrEmpty(s))
-                            notice += s + ",";
-                    _logger.Log("NOTICE RECEIVED: " + notice);
-                }
-            }
-            else if (e.Message.Command == "PING")
-            {
-                _client.SendRawMessage("PONG tmi.twitch.tv");
-            }
-            else if (e.Message.Command == "PONG")
-            {
-                _disconnectCheckTimer.Stop();
-            }
-            else
-            {
-                _aggregator.GetEvent<IrcMessageReceived>().Publish(e);
-            }
-        }
-
-        public void SendChatMessage(string message, bool overrideFloodQueue = false)
-        {
-            if (_floodQueue.Count > 90 && !overrideFloodQueue)
-            {
-                _logger.Log("Queue limit reached. Ignoring: " + message);
+            if (e?.Moderators == null)
                 return;
-            }
-            _client.SendRawMessage("PRIVMSG #roxork0 :" + message);
+
+            _aggregator.GetEvent<ModeratorsListReceivedEvent>().Publish(e.Moderators);
         }
 
-        private void Client_RawMessageSent(object sender, IrcRawMessageEventArgs e)
+        private void ClientOnOnModeratorLeft(object sender, OnModeratorLeftArgs e)
         {
-            if (e != null)
-                System.Diagnostics.Debug.WriteLine("sent " + e.RawContent);
+            if (string.IsNullOrEmpty(e?.Username))
+                return;
+
+            _aggregator.GetEvent<ChatUserLeftEvent>().Publish(new ChatUserLeftEventEventArgs(e.Username, true));
+        }
+
+        private void ClientOnUserLeft(object sender, OnUserLeftArgs e)
+        {
+            if (string.IsNullOrEmpty(e?.Username))
+                return;
+
+            _aggregator.GetEvent<ChatUserLeftEvent>().Publish(new ChatUserLeftEventEventArgs(e.Username, false));
+        }
+
+        private void ClientOnOnModeratorJoined(object sender, OnModeratorJoinedArgs e)
+        {
+            if (string.IsNullOrEmpty(e?.Username))
+                return;
+
+            _aggregator.GetEvent<ChatUserJoinedEvent>().Publish(new ChatUserJoinedEventArgs(e.Username, true));
+        }
+
+        private void ClientOnOnUserJoined(object sender, OnUserJoinedArgs e)
+        {
+            if (string.IsNullOrEmpty(e?.Username))
+                return;
+
+            _aggregator.GetEvent<ChatUserJoinedEvent>().Publish(new ChatUserJoinedEventArgs(e.Username, false));
+        }
+
+        private void ClientOnOnLeftChannel(object sender, OnLeftChannelArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(e?.Channel))
+                return;
+            if (_channel?.Channel == e.Channel)
+                _channel = null;
+        }
+
+        private void ClientOnOnJoinedChannel(object sender, OnJoinedChannelArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(e?.Channel))
+                return;
+
+            SendChatMessage("ItsBoshyTime KAPOW Keepo");
+
+            _channel = _client.GetJoinedChannel(e.Channel);
+            if (_channel == null)
+                return;
+
+            _aggregator.GetEvent<ChatChannelJoined>().Publish(_channel);
+        }
+
+        private void OnDataReceivedSent(object sender, OnSendReceiveDataArgs e)
+        {
+            if (e?.Direction != SendReceiveDirection.Sent)
+                return;
+
+            System.Diagnostics.Debug.WriteLine("sent " + e.Data);
 
             lock (_floodQueue)
             {
@@ -214,15 +213,56 @@ namespace RoxorBot.Logic.Managers
             }
         }
 
+        private void OnConnected(object sender, OnConnectedArgs e)
+        {
+            if (e == null)
+                return;
+
+            _aggregator.GetEvent<ChatConnectedEvent>().Publish(e);
+        }
+
+        private void OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
+        {
+            if (e?.Command == null)
+                return;
+
+            _aggregator.GetEvent<ChatCommandReceivedEvent>().Publish(e.Command);
+        }
+
+        private void OnMessageReceived(object sender, OnMessageReceivedArgs e)
+        {
+            if (e?.ChatMessage == null)
+                return;
+
+            System.Diagnostics.Debug.WriteLine("RECEIVED: " + e.ChatMessage.RawIrcMessage);
+
+            _aggregator.GetEvent<ChatMessageReceivedEvent>().Publish(e.ChatMessage);
+        }
+
+        private void OnIncorrectLogin(object sender, OnIncorrectLoginArgs e)
+        {
+            _aggregator.GetEvent<AddLogEvent>().Publish("Error logging in. Wrong password/oauth?");
+        }
+
+        public void SendChatMessage(string message, bool overrideFloodQueue = false)
+        {
+            if (_floodQueue.Count > 90 && !overrideFloodQueue)
+            {
+                _logger.Log("Queue limit reached. Ignoring: " + message);
+                return;
+            }
+            _client.SendMessage(message);
+        }
+
         public void Disconnect()
         {
             _floodTimer?.Stop();
-            _disconnectCheckTimer.Stop();
             _floodQueue.Clear();
 
             try
             {
-                _client.SendRawMessage("PART #roxork0");
+                if (_channel != null)
+                    _client.LeaveChannel(_channel);
                 _client.Disconnect();
             }
             catch
@@ -235,6 +275,22 @@ namespace RoxorBot.Logic.Managers
 
             _aggregator.GetEvent<UpdateStatusLabelsEvent>().Publish();
             _aggregator.GetEvent<ChatConnectionChangedEvent>().Publish(ChatConnectionState.Disconnected);
+        }
+
+        public void TimeoutUser(string user, TimeSpan duration)
+        {
+            if (string.IsNullOrWhiteSpace(user))
+                return;
+
+            _client.TimeoutUser(user, duration);
+        }
+
+        public void BanUser(string user)
+        {
+            if (string.IsNullOrWhiteSpace(user))
+                return;
+
+            _client.BanUser(user);
         }
     }
 }

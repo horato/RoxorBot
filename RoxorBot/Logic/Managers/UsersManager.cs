@@ -4,57 +4,95 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Prism.Events;
+using RoxorBot.Data.Events;
+using RoxorBot.Data.Events.Twitch.Chat;
+using RoxorBot.Data.Extensions;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
+using TwitchLib;
+using TwitchLib.Models.Client;
 
 namespace RoxorBot
 {
     public class UsersManager : IUsersManager
     {
+        private readonly IEventAggregator _aggregator;
         private readonly ILogger _logger;
         private readonly IDatabaseManager _databaseManager;
+        private readonly ITwitchLibTranslationService _translationService;
         private readonly List<User> _users;
         private readonly List<string> _superAdmins;
 
         public int UsersCount => _users.Count;
 
-        public UsersManager(ILogger logger, IDatabaseManager databaseManager)
+        public UsersManager(IEventAggregator aggregator, ILogger logger, IDatabaseManager databaseManager, ITwitchLibTranslationService translationService)
         {
+            _aggregator = aggregator;
             _logger = logger;
             _databaseManager = databaseManager;
+            _translationService = translationService;
             _logger.Log("Loading UsersManager...");
 
             _users = new List<User>();
-            _superAdmins = new List<string>() { "roxork0", "horato2" };
+            _superAdmins = new List<string> { "roxork0", "horato2" };
+            _aggregator.GetEvent<ChatUserJoinedEvent>().Subscribe(OnChatUserJoined);
+            _aggregator.GetEvent<ChatUserLeftEvent>().Subscribe(OnChatUserLeft);
+            _aggregator.GetEvent<ModeratorsListReceivedEvent>().Subscribe(OnModeratorsListReceived);
+        }
+
+        private void OnModeratorsListReceived(List<string> e)
+        {
+            foreach (var user in e)
+                SetAsModerator(user);
+
+            _aggregator.GetEvent<UpdateOnlineUsersList>().Publish();
+        }
+
+        private void OnChatUserJoined(ChatUserJoinedEventArgs obj)
+        {
+            var user = AddOrGetUser(obj.Name, Role.Viewers);
+            ChangeOnlineStatus(user.InternalName, true);
+            if (obj.IsModerator)
+                SetAsModerator(user.InternalName);
+
+            _aggregator.GetEvent<UpdateOnlineUsersList>().Publish();
+        }
+
+        private void OnChatUserLeft(ChatUserLeftEventEventArgs obj)
+        {
+            var user = GetUser(obj.Name);
+            if (user == null)
+                return;
+
+            ChangeOnlineStatus(user.InternalName, false);
+            _aggregator.GetEvent<UpdateOnlineUsersList>().Publish();
         }
 
         /// <summary>
-        /// Don't forget to call OnListChanged!
         /// Added user is automatically set as online with 0 points!
         /// </summary>
-        /// <param name="list"></param>
-        /// <param name="role"></param>
-        public void InitUsers(string[] list, Role role)
+        /// <param name="channel"></param>
+        public void InitUsers(JoinedChannel channel)
         {
-            foreach (var s in list)
+            if (channel == null)
+                throw new ArgumentNullException(nameof(channel));
+
+            var users = TwitchAPI.Undocumented.GetChatters(channel.Channel).WaitAndReturn();
+            foreach (var user in users)
             {
-                var u = AddUser(s, role);
-                u.isOnline = true;
+                var type = _translationService.TranslateUserType(user.UserType);
+                var u = AddOrGetUser(user.Username, type);
+                u.IsOnline = true;
             }
         }
 
-        /// <summary>
-        /// Don't forget to call OnListChanged!
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="role"></param>
-        public User AddUser(string user, Role role)
+        public User AddOrGetUser(string user, Role role)
         {
             var u = GetUser(user);
-
             if (u == null)
             {
-                u = new User { Name = user, InternalName = user.ToLower(), Role = role, isOnline = false, Points = 0, IsFollower = false };
+                u = new User { Name = user, InternalName = user.ToLower(), Role = role, IsOnline = false, Points = 0, IsFollower = false };
                 lock (_users)
                     _users.Add(u);
             }
@@ -68,7 +106,7 @@ namespace RoxorBot
             if (user == null)
                 return;
 
-            user.isAllowed = true;
+            user.IsAllowed = true;
             _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 1);");
         }
 
@@ -78,22 +116,17 @@ namespace RoxorBot
             if (user == null)
                 return;
 
-            user.isAllowed = false;
+            user.IsAllowed = false;
             _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 0);");
         }
 
-        /// <summary>
-        /// Don't forget to call OnListChanged!<br>
-        /// This resets reward timer!
-        /// </summary>
-        /// <param name="user"></param>
         public void ChangeOnlineStatus(string user, bool isOnline)
         {
-            var u = _users.Find(x => x.InternalName == user.ToLower());
+            var u = GetUser(user);
             if (u == null)
                 return;
 
-            u.isOnline = isOnline;
+            u.IsOnline = isOnline;
             //u.RewardTimer = 0;
         }
 
@@ -134,7 +167,7 @@ namespace RoxorBot
         /// <returns></returns>
         public bool IsSuperAdmin(string user)
         {
-            return _superAdmins.Contains(user.ToLower());
+            return _superAdmins.Any(x => string.Equals(x, user, StringComparison.CurrentCultureIgnoreCase));
         }
 
         public bool IsAllowed(string name)
@@ -148,12 +181,16 @@ namespace RoxorBot
             if (user == null)
                 return false;
 
-            return user.isAllowed;
+            return user.IsAllowed;
         }
 
-        public int getUsersCount()
+        private void SetAsModerator(string userName)
         {
-            return _users.Count;
+            var u = GetUser(userName);
+            if (u == null || u.Role != Role.Viewers)
+                return;
+
+            u.Role = Role.Moderators;
         }
     }
 }

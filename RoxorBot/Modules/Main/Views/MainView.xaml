@@ -8,9 +8,15 @@
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:viewHelpers="clr-namespace:RoxorBot.Data.ViewHelpers"
              xmlns:converters="clr-namespace:RoxorBot.Data.Converters"
+             xmlns:model="clr-namespace:RoxorBot.Data.Model"
              mc:Ignorable="d"
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <DataTemplate x:Key="UsersListItemTemplate" DataType="model:UserWrapper">
+            <TextBlock Text="{Binding Name}" />
+        </DataTemplate>
+    </UserControl.Resources>
     <Grid x:Name="MainGrid">
         <Button Content="Connect" Command="{Binding ConnectCommand}" HorizontalAlignment="Left" Margin="10,23,0,0" VerticalAlignment="Top" Width="120" Background="Black" Foreground="White" />
         <TextBlock  HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="{Binding StatusText}" VerticalAlignment="Top" Width="132" Height="18"/>
@@ -23,7 +29,7 @@
         <Button Content="Show Commands" Command="{Binding CommandsCommand}" HorizontalAlignment="Left" Margin="135,239,0,0" VerticalAlignment="Top" Width="120" Foreground="#FFF9F9F9" Background="Black"/>
         <Button Content="Settings" Command="{Binding SettingsCommand}" HorizontalAlignment="Left" Margin="528,573,0,0" VerticalAlignment="Top" Width="120" Foreground="#FFF9F9F9" Background="Black"/>
         <Button Content="Youtube Player" Command="{Binding ShowYoutubeWindowCommand}" HorizontalAlignment="Left" Margin="10,573,0,0" VerticalAlignment="Top" Width="120" Foreground="#FFF9F9F9" Background="Black"/>
-        <ListView ItemsSource="{Binding UsersList}"  HorizontalAlignment="Left" Height="369" Margin="467,179,0,0" VerticalAlignment="Top" Width="181" />
+        <ListView ItemsSource="{Binding UsersList}" ItemTemplate="{StaticResource UsersListItemTemplate}"  HorizontalAlignment="Left" Height="369" Margin="467,179,0,0" VerticalAlignment="Top" Width="181" />
         <Label Content="{Binding FloodQueueCount}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="467,10,0,0" VerticalAlignment="Top" Height="38" Width="191"/>
         <Label HorizontalAlignment="Left" Margin="269,179,0,0" VerticalAlignment="Top" Width="193">
             <Label.Foreground>

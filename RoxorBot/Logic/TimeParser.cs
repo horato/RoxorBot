@@ -18,13 +18,13 @@ namespace RoxorBot
         /// </summary>
         /// <param name="durationStr">The duration string.</param>
         /// <returns>return ticks of the song</returns>
-        public static DateTime GetDuration(string durationStr)
+        public static DateTime? GetDuration(string durationStr)
         {
             var m = Regex.Match(durationStr, durationRegexExpression1);
             if (!m.Success)
                 m = Regex.Match(durationStr, durationRegexExpression2);
             if (!m.Success)
-                return new DateTime(999, 12, 30);
+                return null;
 
             int year = int.Parse(m.Groups[1].Value);
             int month = int.Parse(m.Groups[2].Value);
