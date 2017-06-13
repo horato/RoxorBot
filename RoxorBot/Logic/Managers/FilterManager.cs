@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using RoxorBot.Model;
 using System.Data.SQLite;
-using IrcDotNet;
 using System.Text.RegularExpressions;
 using Prism.Events;
 using RoxorBot.Data.Events;

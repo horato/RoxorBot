@@ -66,12 +66,16 @@
     <Reference Include="EntityFramework.SqlServer">
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="FluentNHibernate, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentNHibernate.2.0.3.0\lib\net40\FluentNHibernate.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="IrcDotNet, Version=0.5.0.0, Culture=neutral, PublicKeyToken=44f6d157e750246b, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\IrcDotNet.0.5.0\lib\net45\IrcDotNet.dll</HintPath>
+    <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.1.0.0.0\lib\net45\MahApps.Metro.dll</HintPath>
@@ -94,6 +98,10 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NHibernate, Version=4.0.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <HintPath>..\packages\NHibernate.4.0.0.4000\lib\net40\NHibernate.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Prism, Version=6.3.0.0, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
@@ -201,12 +209,16 @@
     <Compile Include="Data\Events\Twitch\Chat\ModeratorsListReceivedEvent.cs" />
     <Compile Include="Data\Events\UpdateOnlineUsersList.cs" />
     <Compile Include="Data\Events\UpdateStatusLabelsEvent.cs" />
+    <Compile Include="Data\Events\Youtube\GetCurrentSong.cs" />
+    <Compile Include="Data\Events\Youtube\GetSetVolumeEvent.cs" />
+    <Compile Include="Data\Events\Youtube\SkipCurrentSongEvent.cs" />
     <Compile Include="Data\Extensions\TaskExtensions.cs" />
     <Compile Include="Data\Implementations\Chat\ChatMessageHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\AddFilterCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\AddPointsCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\AllowCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\IsAllowedCommandHandler.cs" />
+    <Compile Include="Data\Implementations\Chat\Handlers\NotifyNextSongCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\PointsCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\RemoveFilterCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\RemovePointsCommandHandler.cs" />
@@ -215,9 +227,13 @@
     <Compile Include="Data\Implementations\Chat\Handlers\GetTimerCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\IsFollowerCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\SinceCommandHandler.cs" />
+    <Compile Include="Data\Implementations\Chat\Handlers\SkipSongCommandHandler.cs" />
+    <Compile Include="Data\Implementations\Chat\Handlers\SongCommandHandler.cs" />
+    <Compile Include="Data\Implementations\Chat\Handlers\SongRequestCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\UnallowCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\UptimeCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\UserCommandCommandHandler.cs" />
+    <Compile Include="Data\Implementations\Chat\Handlers\VolumeCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\WhitelistCommandHandler.cs" />
     <Compile Include="Data\Implementations\Logger.cs" />
     <Compile Include="Data\Implementations\Providers\ChatHandlersProvider.cs" />
@@ -282,6 +298,7 @@
     <Compile Include="Data\Model\Youtube\VideoInfoHeader.cs" />
     <Compile Include="Data\Model\Youtube\VideoParseException.cs" />
     <Compile Include="Data\Model\Youtube\YoutubeVideo.cs" />
+    <Compile Include="Logic\Whispers.cs" />
     <Compile Include="Modules\Main\MainModule.cs" />
     <Compile Include="Modules\Main\ViewModels\MainViewModel.cs" />
     <Compile Include="Modules\Main\ViewModels\RaffleViewModel.cs" />
@@ -304,7 +321,6 @@
     <Compile Include="Logic\TimeParser.cs" />
     <Compile Include="Data\Model\User.cs" />
     <Compile Include="Logic\Managers\UsersManager.cs" />
-    <Compile Include="Logic\Whispers.cs" />
     <Compile Include="Modules\Main\Views\RaffleView.xaml.cs">
       <DependentUpon>RaffleView.xaml</DependentUpon>
     </Compile>

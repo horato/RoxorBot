@@ -15,7 +15,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using IrcDotNet;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
@@ -75,8 +74,6 @@ namespace RoxorBot.Modules.Main.ViewModels
         public ObservableCollection<UserWrapper> UsersList { get; } = new ObservableCollection<UserWrapper>();
 
 
-
-        public static event EventHandler<IrcRawMessageEventArgs> ChatMessageReceived;
         private YoutubeWindow plugDjWindow;
         private bool onSettingsPage = false;
 

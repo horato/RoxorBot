@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
-using IrcDotNet;
 using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;

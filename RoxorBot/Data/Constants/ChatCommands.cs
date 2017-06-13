@@ -24,5 +24,10 @@ namespace RoxorBot.Data.Constants
         public const string Points = "points";
         public const string AddPoints = "addpoints";
         public const string RemovePoints = "removepoints";
+        public const string SongRequest = "songrequest";
+        public const string SkipSong = "skipsong";
+        public const string Volume = "volume";
+        public const string NotifyNextSong = "notifynextsong";
+        public const string Song = "song";
     }
 }
