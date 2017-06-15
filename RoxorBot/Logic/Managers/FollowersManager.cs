@@ -7,6 +7,9 @@ using System.Web.Script.Serialization;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Model;
 using RoxorBot.Data.Model.JSON.FollowerManager;
+using TwitchLib;
+using TwitchLib.Models.API.v3.Follows;
+using User = RoxorBot.Data.Model.User;
 
 namespace RoxorBot.Logic.Managers
 {
@@ -60,28 +63,22 @@ namespace RoxorBot.Logic.Managers
 
             while (continueLoading)
             {
-                Followers_FollowerManager followers;
-                using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
-                {
-                    var json = client.DownloadData("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset + "&rand=" + Environment.TickCount);
-                    followers = new DataContractJsonSerializer(typeof(Followers_FollowerManager)).ReadObject(new MemoryStream(json)) as Followers_FollowerManager;
-                }
-
+                var followers = TwitchAPI.Follows.v3.GetFollowers("roxork0", 50, offset).Result;
                 if (followers == null)
                     return new List<User>();
 
-                foreach (var follower in followers.Follows)
+                foreach (var follower in followers.Followers)
                 {
                     var u = _usersManager.AddOrGetUser(follower.User.DisplayName, Role.Viewers);
                     u.IsFollower = true;
-                    u.IsFollowerSince = TimeParser.GetDuration(follower.CreatedAt);
+                    u.IsFollowerSince = follower.CreatedAt;
                     if (u.IsFollowerSince == null)
                         _logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }
 
                 offset += 50;
-                if (followers.Follows.Length == 0)
+                if (followers.Followers.Length == 0)
                     continueLoading = false;
             }
 

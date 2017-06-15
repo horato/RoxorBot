@@ -12,6 +12,7 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Logic;
+using TwitchLib;
 
 namespace RoxorBot
 {
@@ -25,6 +26,15 @@ namespace RoxorBot
 
         public ShellViewModel(IEventAggregator aggregator, IPointsManager pointsManager, IDatabaseManager databaseManager)
         {
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.TwitchId))
+                Properties.Settings.Default.TwitchId = Prompt.ShowDialog("Specify twitch clientId", "Twitch client Id");
+            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
+                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Twitch oauth");
+            Properties.Settings.Default.Save();
+
+            TwitchAPI.Settings.ClientId = Properties.Settings.Default.TwitchId;
+            TwitchAPI.Settings.AccessToken = Properties.Settings.Default.twitch_oauth;
+
             _aggregator = aggregator;
             _pointsManager = pointsManager;
             _databaseManager = databaseManager;

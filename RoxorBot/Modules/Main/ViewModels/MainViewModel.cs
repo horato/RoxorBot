@@ -73,20 +73,10 @@ namespace RoxorBot.Modules.Main.ViewModels
         public ObservableCollection<UserWrapper> UsersList { get; } = new ObservableCollection<UserWrapper>();
 
 
-        private Views.YoutubeView plugDjWindow;
-        private bool onSettingsPage = false;
+        private Views.YoutubeView _youtubeWindow;
 
         public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.TwitchId))
-                Properties.Settings.Default.TwitchId = Prompt.ShowDialog("Specify twitch clientId", "Twitch client Id");
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
-                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Twitch oauth");
-            Properties.Settings.Default.Save();
-
-            TwitchAPI.Settings.ClientId = Properties.Settings.Default.TwitchId;
-            TwitchAPI.Settings.AccessToken = Properties.Settings.Default.twitch_oauth;
-
             _logger = logger;
             _aggregator = aggregator;
             _chatManager = chatManager;
@@ -267,10 +257,8 @@ namespace RoxorBot.Modules.Main.ViewModels
         public void Settings()
         {
             var settingsPage = new Views.SettingsPageView();
-            onSettingsPage = true;
             settingsPage.ShowDialog();
             Properties.Settings.Default.Save();
-            onSettingsPage = false;
         }
 
         [Command]
@@ -287,10 +275,10 @@ namespace RoxorBot.Modules.Main.ViewModels
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
             
-            if (plugDjWindow == null)
-                plugDjWindow = new Views.YoutubeView();
+            if (_youtubeWindow == null)
+                _youtubeWindow = new Views.YoutubeView();
 
-            plugDjWindow.Show();
+            _youtubeWindow.Show();
         }
     }
 }

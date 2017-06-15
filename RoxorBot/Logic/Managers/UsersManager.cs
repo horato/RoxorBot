@@ -129,7 +129,7 @@ namespace RoxorBot.Logic.Managers
 
         public List<User> GetAllUsers()
         {
-            return _users;
+            return _users.ToList();
         }
 
         public User GetUser(string nick)

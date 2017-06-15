@@ -163,7 +163,7 @@ namespace RoxorBot.Modules.Main.ViewModels
                 _currentVideo = _youtubeManager.GetNextAndRemove();
                 Player.Play(_currentVideo.EmbedLink);
                 RaisePropertyChanged(nameof(CurrentSongText));
-                OnCurrentSongChanged?.Invoke();Use
+                OnCurrentSongChanged?.Invoke();
 
                 try
                 {
