@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
@@ -13,7 +14,7 @@ using RoxorBot.Model;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {
-    public class SettingsPageViewModel
+    public class SettingsPageViewModel : BindableBase
     {
         private readonly IAutomatedMessagesManager _automatedMessagesManager;
         private readonly IChatManager _chatManager;

@@ -74,7 +74,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public ObservableCollection<UserWrapper> UsersList { get; } = new ObservableCollection<UserWrapper>();
 
 
-        private YoutubeWindow plugDjWindow;
+        private Views.YoutubeView plugDjWindow;
         private bool onSettingsPage = false;
 
         public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
@@ -287,9 +287,9 @@ namespace RoxorBot.Modules.Main.ViewModels
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
-
+            
             if (plugDjWindow == null)
-                plugDjWindow = new YoutubeWindow();
+                plugDjWindow = new Views.YoutubeView();
 
             plugDjWindow.Show();
         }

@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
+using Prism.Events;
+using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot
@@ -16,20 +18,22 @@ namespace RoxorBot
     public class YoutubeManager : IYoutubeManager
     {
         private readonly ILogger _logger;
+        private readonly IEventAggregator _aggregator;
 
-        private List<YoutubeVideo> Videos;
-        private List<YoutubeVideo> BackupPlaylist;
+        private readonly List<YoutubeVideo> _videos;
+        private readonly List<YoutubeVideo> _backupPlaylist;
         private bool isPlaylistLoading = false;
-        public int PlaylistCount => Videos.Count;
-        public int BackupPlaylistCount => BackupPlaylist.Count;
+        public int PlaylistCount => _videos.Count;
+        public int BackupPlaylistCount => _backupPlaylist.Count;
 
-        public YoutubeManager(ILogger logger)
+        public YoutubeManager(ILogger logger, IEventAggregator aggregator)
         {
             _logger = logger;
+            _aggregator = aggregator;
             _logger.Log("Initializing YoutubeManager...");
 
-            Videos = new List<YoutubeVideo>();
-            BackupPlaylist = new List<YoutubeVideo>();
+            _videos = new List<YoutubeVideo>();
+            _backupPlaylist = new List<YoutubeVideo>();
 
             new Thread(InitBackupPlaylist).Start();
         }
@@ -47,14 +51,13 @@ namespace RoxorBot
 
             watch.Stop();
             var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
-            _logger.Log("Loaded " + BackupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " +
-                        elapsed.Seconds + "s.");
+            _logger.Log("Loaded " + _backupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
             isPlaylistLoading = false;
         }
 
         private bool ExistsInPrimaryQueue(string id)
         {
-            return Videos.Any(x => x.id == id);
+            return _videos.Any(x => x.id == id);
         }
 
         private void LoadBackupPlaylist(string playlistID)
@@ -94,17 +97,19 @@ namespace RoxorBot
             GetVideosFromVideoInfo(items);
         }
 
-        private void GetVideosFromVideoInfo(List<VideoInfo> items)
+        private void GetVideosFromVideoInfo(IEnumerable<VideoInfo> items)
         {
             foreach (var item in items)
             {
-                if (item.contentDetails == null || item.contentDetails.videoId == null)
+                if (item.contentDetails?.videoId == null)
                     continue;
                 try
                 {
-                    lock (BackupPlaylist)
-                        BackupPlaylist.Insert(new Random().Next(0, BackupPlaylist.Count),
-                            new YoutubeVideo(item.contentDetails.videoId));
+                    var video = new YoutubeVideo(item.contentDetails.videoId);
+                    lock (_backupPlaylist)
+                        _backupPlaylist.Insert(new Random().Next(0, _backupPlaylist.Count), video);
+
+                    _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(false, video));
                 }
                 catch (VideoParseException e)
                 {
@@ -120,48 +125,58 @@ namespace RoxorBot
         /// <returns></returns>
         public YoutubeVideo AddSong(string id)
         {
-            if (!ExistsInPrimaryQueue(id))
-            {
-                var video = new YoutubeVideo(id);
-                lock (Videos)
-                {
-                    Videos.Add(video);
-                }
-                return video;
-            }
-            return null;
+            if (ExistsInPrimaryQueue(id))
+                return null;
+
+            var video = new YoutubeVideo(id);
+            lock (_videos)
+                _videos.Add(video);
+
+            _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(true, video));
+            return video;
         }
 
         public void RemoveSong(string id)
         {
-            lock (Videos)
-                Videos.RemoveAll(x => x.id == id);
+            lock (_videos)
+            {
+                var video = _videos.FirstOrDefault(x => x.id == id);
+                if (video == null)
+                    return;
+
+                _videos.RemoveAll(x => x.id == id);
+                _aggregator.GetEvent<VideoRemovedEvent>().Publish(new VideoRemovedEventArgs(true, video));
+            }
         }
 
         public YoutubeVideo GetNextAndRemove()
         {
-            if (BackupPlaylist.Count < 5 && !isPlaylistLoading)
-                new Thread(new ThreadStart(InitBackupPlaylist)).Start();
+            if (_backupPlaylist.Count < 5 && !isPlaylistLoading)
+                new Thread(InitBackupPlaylist).Start();
 
-            if (Videos.Count > 0)
+            if (_videos.Count > 0)
             {
-                lock (Videos)
+                lock (_videos)
                 {
-                    var temp = Videos[0];
+                    var temp = _videos.FirstOrDefault();
+                    if (temp == null)
+                        return null;
 
-                    Videos.RemoveAt(0);
+                    _videos.Remove(temp);
+                    _aggregator.GetEvent<VideoRemovedEvent>().Publish(new VideoRemovedEventArgs(true, temp));
                     return temp;
                 }
             }
-            else
-            {
-                lock (BackupPlaylist)
-                {
-                    var temp = BackupPlaylist[0];
 
-                    BackupPlaylist.RemoveAt(0);
-                    return temp;
-                }
+            lock (_backupPlaylist)
+            {
+                var temp = _backupPlaylist.FirstOrDefault();
+                if (temp == null)
+                    return null;
+
+                _backupPlaylist.Remove(temp);
+                _aggregator.GetEvent<VideoRemovedEvent>().Publish(new VideoRemovedEventArgs(false, temp));
+                return temp;
             }
         }
 
@@ -217,13 +232,25 @@ namespace RoxorBot
                     descrambler = reg.Groups[1].Value;
 
 
-                string transformations = "", rules = "";
+                string transformations = "", rules = "", helper = "";
 
-                reg = Regex.Match(js, "var ..={(.*?)};function " + descrambler + "\\([^)]*\\){(.*?)}");
+                //reg = Regex.Match(js, "var ..={(.*?)};function " + descrambler + "\\([^)]*\\){(.*?)}");
+                reg = Regex.Match(js, "^" + descrambler + "=function\\([^)]*\\){(.*)};", RegexOptions.Multiline);
+                if (reg.Success)
+                {
+                    rules = reg.Groups[1].Value;
+                }
+
+                reg = Regex.Match(rules, ";(..)\\...\\(");
+                if (reg.Success)
+                {
+                    helper = reg.Groups[1].Value;
+                }
+
+                reg = Regex.Match(js, helper + "={(.*?)};", RegexOptions.Singleline);
                 if (reg.Success)
                 {
                     transformations = reg.Groups[1].Value;
-                    rules = reg.Groups[2].Value;
                 }
 
                 var trans = new Dictionary<string, string>();

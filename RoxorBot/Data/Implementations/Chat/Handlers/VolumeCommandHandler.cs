@@ -54,7 +54,7 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
             if (volume < 1 || volume > 100)
                 return;
 
-            args.NewVolume = volume / 100.0;
+            args.NewVolume = volume;
             _aggregator.GetEvent<GetSetVolumeEvent>().Publish(args);
             _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": Volume set to " + volume);
         }

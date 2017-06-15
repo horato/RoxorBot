@@ -13,7 +13,7 @@ namespace RoxorBot.Data.Events.Youtube
 
     public class GetSetVolumeEventArgs
     {
-        public double NewVolume { get; set; }
-        public double CurrentVolume { get; set; }
+        public int NewVolume { get; set; }
+        public int CurrentVolume { get; set; }
     }
 }
