@@ -204,6 +204,7 @@
     </Compile>
     <Compile Include="Data\Events\Youtube\VideoRemovedEvent.cs" />
     <Compile Include="Data\Events\Youtube\VideoAddedEvent.cs" />
+    <Compile Include="Data\Interfaces\ICurrentSongChangedNotifier.cs" />
     <Compile Include="Modules\Main\ViewModels\YoutubeViewModel.cs" />
     <Compile Include="Modules\Main\Views\YoutubeView.xaml.cs">
       <DependentUpon>YoutubeView.xaml</DependentUpon>

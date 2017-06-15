@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using RoxorBot.Data.Interfaces;
 using RoxorBot.Model.Youtube;
 using Vlc.DotNet.Forms;
 
@@ -30,20 +31,28 @@ namespace RoxorBot.Modules.Main.Views
     public partial class YoutubeView : Window
     {
         public bool close = true;
-        private System.Timers.Timer playTimer;
-        private System.Timers.Timer updateTimer;
-        private YoutubeVideo currentVideo;
 
         public YoutubeView()
         {
+            DataContextChanged += YoutubeViewDataContextChanged;
             InitializeComponent();
 
             var player = Player.Player;
             player.VlcLibDirectoryNeeded += MediaPlayer_VlcLibDirectoryNeeded;
             player.EndInit();
+            InitMarquee();
         }
 
-        private void MediaPlayer_VlcLibDirectoryNeeded(object sender, Vlc.DotNet.Forms.VlcLibDirectoryNeededEventArgs e)
+        private void YoutubeViewDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var notifier = DataContext as ICurrentSongChangedNotifier;
+            if (notifier == null)
+                return;
+
+            notifier.OnCurrentSongChanged = InitMarquee;
+        }
+
+        private void MediaPlayer_VlcLibDirectoryNeeded(object sender, VlcLibDirectoryNeededEventArgs e)
         {
             var currentAssembly = Assembly.GetEntryAssembly();
             var currentDirectory = new FileInfo(currentAssembly.Location).DirectoryName;
@@ -55,25 +64,16 @@ namespace RoxorBot.Modules.Main.Views
                 e.VlcLibDirectory = new DirectoryInfo(Path.Combine(currentDirectory, @"Lib\x64\"));
         }
 
-        private void getNextAndPlay()
+        private void InitMarquee()
         {
-
-            CurrentlyPlayingLabel.Text = currentVideo.name + (string.IsNullOrWhiteSpace(currentVideo.requester) ? "" : " --- Requested by: " + currentVideo.requester);
-            var t = new System.Timers.Timer(500);
-            t.AutoReset = false;
-            t.Elapsed += (a, b) =>
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
             {
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
-                {
-                    if (CurrentlyPlayingLabel.ActualWidth > canMain.Width)
-                        RightToLeftMarquee();
-                    else
-                        CurrentlyPlayingLabel.BeginAnimation(Canvas.RightProperty, null);
-                }));
-            };
+                if (CurrentlyPlayingLabel.ActualWidth > canMain.Width)
+                    RightToLeftMarquee();
+                else
+                    CurrentlyPlayingLabel.BeginAnimation(Canvas.RightProperty, null);
+            }));
 
-
-            t.Start();
         }
 
         private void RightToLeftMarquee()
@@ -94,8 +94,9 @@ namespace RoxorBot.Modules.Main.Views
             {
                 //videoPlayer.pause();
                 //videoPlayer.currentTime = 0;
-                playTimer.Stop();
-                updateTimer.Stop();
+                Player.Player.Stop();
+                Player.Player.Dispose();
+                Player.Dispose();
             }
             else
             {

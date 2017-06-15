@@ -19,7 +19,7 @@ using YoutubeExtractor;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {
-    public class YoutubeViewModel : BindableBase
+    public class YoutubeViewModel : BindableBase, ICurrentSongChangedNotifier
     {
         private readonly IChatManager _chatManager;
         private readonly ILogger _logger;
@@ -34,7 +34,8 @@ namespace RoxorBot.Modules.Main.ViewModels
         public int PrimaryQueueCount => _youtubeManager.PlaylistCount;
         public int SecondaryQueueCount => _youtubeManager.BackupPlaylistCount;
         public float SeekSliderValue { get { return Player.Position; } set { Player.Position = value; RaisePropertyChanged(); } }
-        public string CurrentSongText => _currentVideo.name + (string.IsNullOrWhiteSpace(_currentVideo.requester) ? "" : " --- Requested by: " + _currentVideo.requester);
+        public string CurrentSongText => _currentVideo?.name + (string.IsNullOrWhiteSpace(_currentVideo?.requester) ? "" : " --- Requested by: " + _currentVideo?.requester);
+        public Action OnCurrentSongChanged { get; set; }
         public int Volume
         {
             get { return _volume; }
@@ -47,6 +48,7 @@ namespace RoxorBot.Modules.Main.ViewModels
                 RaisePropertyChanged();
             }
         }
+
 
         public YoutubeViewModel(IChatManager chatManager, ILogger logger, IYoutubeManager youtubeManager, IUsersManager usersManager, IEventAggregator aggregator)
         {
@@ -138,7 +140,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         {
             GetNextAndPlay();
         }
-        
+
         [Command]
         public void Pause()
         {
@@ -159,6 +161,8 @@ namespace RoxorBot.Modules.Main.ViewModels
                 Player.Stop();
                 _currentVideo = _youtubeManager.GetNextAndRemove();
                 Player.Play(_currentVideo.embedLink);
+                RaisePropertyChanged(nameof(CurrentSongText));
+                OnCurrentSongChanged?.Invoke();
 
                 try
                 {

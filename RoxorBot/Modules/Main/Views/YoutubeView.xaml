@@ -23,7 +23,7 @@
         <Slider Value="{Binding SeekSliderValue}" Maximum="1" HorizontalAlignment="Left" Margin="0,453,0,0" VerticalAlignment="Top" Width="350" Focusable="False" LargeChange="0" />
         <Border Background="White" Margin="0,0,0,432">
             <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" Width="340" Height="36" Name="canMain" Margin="10,10,0,0">
-                <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="Red" FontWeight="Black" Text="AAAAAAAAAABBBBBBBBBBAAAAAAAAAABBBBBBBBBB" Height="36" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" />
+                <TextBlock x:Name="CurrentlyPlayingLabel" Foreground="Red" FontWeight="Black" Text="{Binding CurrentSongText}" Height="36" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" />
             </Canvas>
         </Border>
         <Separator HorizontalAlignment="Left" Height="14" Margin="0,46,0,0" VerticalAlignment="Top" Width="364"/>
