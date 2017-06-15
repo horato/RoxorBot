@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization.Json;
 using System.Web.Script.Serialization;
+using RoxorBot.Logic;
+using RoxorBot.Logic.Managers;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
     public class YoutubeVideo
     {
-        public string name { get; set; }
-        public string address { get; set; }
-        public string embedLink { get; set; }
-        public string id { get; set; }
-        public TimeSpan duration { get; set; }
-        public VideoInfo info { get; set; }
-        public string requester { get; set; }
+        public string Name { get; set; }
+        public string Address { get; set; }
+        public string EmbedLink { get; set; }
+        public string Id { get; set; }
+        public TimeSpan Duration { get; set; }
+        public VideoInfo Info { get; set; }
+        public string Requester { get; set; }
 
         private YoutubeVideo()
         {
@@ -27,38 +27,41 @@ namespace RoxorBot.Model.Youtube
         {
             using (var client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
             {
-                string json = client.DownloadString("https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=" + videoID + "&key=" + Properties.Settings.Default.youtubeKey);
+                var json = client.DownloadData("https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=" + videoID + "&key=" + Properties.Settings.Default.youtubeKey);
                 VideoInfoHeader info = null;
                 try
                 {
-                    info = new JavaScriptSerializer().Deserialize<VideoInfoHeader>(json);
+                    info = new DataContractJsonSerializer(typeof(VideoInfoHeader)).ReadObject(new MemoryStream(json)) as VideoInfoHeader;
                 }
-                catch { throw new VideoParseException("Unknown error video: " + videoID); }
-                if (info == null || info.items == null || info.items.Length < 1)
+                catch
+                {
+                    throw new VideoParseException("Unknown error video: " + videoID);
+                }
+                if (info == null || info.Items == null || info.Items.Length < 1)
                     throw new VideoParseException("Video " + videoID + " not found");
-                if (info.items[0].contentDetails == null)
+                if (info.Items[0].ContentDetails == null)
                     throw new VideoParseException("Video " + videoID + " content details not found");
-                if (info.items[0].snippet == null)
+                if (info.Items[0].Snippet == null)
                     throw new VideoParseException("Video " + videoID + " info not found");
-                if (info.items[0].status == null)
+                if (info.Items[0].Status == null)
                     throw new VideoParseException("Video " + videoID + " status not found");
                 /* if (!info.items[0].status.embeddable)
                     throw new VideoParseException("Video is not embedable");*/
-                if (info.items[0].status.privacyStatus == "private")
+                if (info.Items[0].Status.PrivacyStatus == "private")
                     throw new VideoParseException("Video " + videoID + " is private");
 
-                this.info = info.items[0];
-                var status = info.items[0].status;
-                var contentDetails = info.items[0].contentDetails;
-                var snippet = info.items[0].snippet;
+                Info = info.Items[0];
+                var status = info.Items[0].Status;
+                var contentDetails = info.Items[0].ContentDetails;
+                var snippet = info.Items[0].Snippet;
 
-                duration = DurationParser.GetDuration(contentDetails.duration);
+                Duration = DurationParser.GetDuration(contentDetails.Duration);
                 /*if (duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
                     throw new VideoParseException("Video " + videoID + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");*/
-                name = snippet.title;
-                id = videoID;
-                address = "http://www.youtube.com/watch?v=" + videoID;
-                embedLink = YoutubeManager.GetVideoLinkDirect(videoID);
+                Name = snippet.Title;
+                Id = videoID;
+                Address = "http://www.youtube.com/watch?v=" + videoID;
+                EmbedLink = YoutubeManager.GetVideoLinkDirect(videoID);
             }
         }
     }

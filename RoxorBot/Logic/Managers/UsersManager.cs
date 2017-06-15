@@ -1,19 +1,16 @@
-﻿using RoxorBot.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Extensions;
-using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Model;
 using TwitchLib;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class UsersManager : IUsersManager
     {

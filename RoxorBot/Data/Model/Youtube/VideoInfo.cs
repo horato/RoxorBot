@@ -1,18 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class VideoInfo
     {
-        public string kind { get; set; }
-        public string etag { get; set; }
-        public string id { get; set; }
-        public Snippet snippet { get; set; }
-        public ContentDetails contentDetails { get; set; }
-        public Status status { get; set; }
+        [DataMember(Name = "kind")]
+        public string Kind { get; set; }
+
+        [DataMember(Name = "etag")]
+        public string Etag { get; set; }
+
+        [DataMember(Name = "id")]
+        public string Id { get; set; }
+
+        [DataMember(Name = "snippet")]
+        public Snippet Snippet { get; set; }
+
+        [DataMember(Name = "contentDetails")]
+        public ContentDetails ContentDetails { get; set; }
+
+        [DataMember(Name = "status")]
+        public Status Status { get; set; }
+
     }
 }

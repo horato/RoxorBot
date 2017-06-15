@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace FollowerManager
+namespace RoxorBot.Data.Model.JSON.FollowerManager
 {
+    [DataContract]
     public class Followers_FollowerManager
     {
-        public int _total { get; set; }
-        public Links_FollowerManager _links { get; set; }
-        public Follower_FollowerManager[] follows { get; set; }
+        [DataMember(Name = "_total")]
+        public int Total { get; set; }
+
+        [DataMember(Name = "_links")]
+        public Links_FollowerManager Links { get; set; }
+
+        [DataMember(Name = "follows")]
+        public Follower_FollowerManager[] Follows { get; set; }
     }
 }

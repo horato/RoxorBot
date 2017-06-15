@@ -38,7 +38,7 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
             if (args.Video == null)
                 return;
 
-            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + args.Video.name);
+            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + args.Video.Name);
         }
     }
 }

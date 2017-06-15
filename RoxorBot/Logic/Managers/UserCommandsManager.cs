@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Model;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class UserCommandsManager : IUserCommandsManager
     {

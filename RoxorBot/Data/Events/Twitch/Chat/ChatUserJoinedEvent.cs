@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Prism.Events;
-using RoxorBot.Model;
 
 namespace RoxorBot.Data.Events.Twitch.Chat
 {

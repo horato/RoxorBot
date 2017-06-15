@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class PageInfo
     {
-        public int totalResults { get; set; }
-        public int resultsPerPage { get; set; }
+        [DataMember(Name = "totalResults")]
+        public int TotalResults { get; set; }
+
+        [DataMember(Name = "resultsPerPage")]
+        public int ResultsPerPage { get; set; }
     }
 }

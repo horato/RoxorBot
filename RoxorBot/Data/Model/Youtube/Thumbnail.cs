@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class Thumbnail
     {
-        public string url { get; set; }
-        public int width { get; set; }
-        public int height { get; set; }
+        [DataMember(Name = "url")]
+        public string Url { get; set; }
+
+        [DataMember(Name = "width")]
+        public int Width { get; set; }
+
+        [DataMember(Name = "height")]
+        public int Height { get; set; }
     }
 }

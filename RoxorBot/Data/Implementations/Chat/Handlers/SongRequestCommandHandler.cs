@@ -46,15 +46,15 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
                 if (video == null)
                     return;
 
-                if (video.duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
+                if (video.Duration.TotalSeconds > Properties.Settings.Default.maxSongLength)
                 {
-                    _youtubeManager.RemoveSong(video.id);
+                    _youtubeManager.RemoveSong(video.Id);
                     _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": Video " + id + " is too long. Max length is " + Properties.Settings.Default.maxSongLength + "s.");
                     return;
                 }
 
-                video.requester = command.ChatMessage.DisplayName;
-                _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + video.info.snippet.title + " added to queue.");
+                video.Requester = command.ChatMessage.DisplayName;
+                _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + video.Info.Snippet.Title + " added to queue.");
             }
             catch
             {

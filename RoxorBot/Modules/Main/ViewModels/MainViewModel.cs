@@ -23,10 +23,9 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Model;
 using RoxorBot.Logic;
-using RoxorBot.Model;
-using RoxorBot.Model.JSON;
 using TwitchLib;
 using TwitchLib.Events.Client;
 using TwitchLib.Models.Client;
@@ -231,7 +230,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void Raffle()
         {
-            var raffle = new RaffleView();
+            var raffle = new Views.RaffleView();
             raffle.ShowDialog();
         }
 
@@ -267,7 +266,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void Settings()
         {
-            var settingsPage = new SettingsPageView();
+            var settingsPage = new Views.SettingsPageView();
             onSettingsPage = true;
             settingsPage.ShowDialog();
             Properties.Settings.Default.Save();
@@ -277,7 +276,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void Commands()
         {
-            var control = new CommandsListControl();
+            var control = new Controls.CommandsListControl();
             control.ShowDialog();
         }
 

@@ -6,25 +6,10 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Model.Youtube;
 using Vlc.DotNet.Forms;
 
 namespace RoxorBot.Modules.Main.Views
 {
-    #region secret stash
-    // if callbacks are needed in future
-    // JSObject jsobject = browser.CreateGlobalJavascriptObject("VideoCallback");
-    // jsobject.Bind("getNextSongUrl", sasd);
-    // browser.ExecuteJavascript("function playSong(url) { player.src = url; player.load(); player.play(); }");
-    // browser.ExecuteJavascript("playSong('" + YoutubeManager.getInstance().getVideoDirectLink("RSdKmX2BH7o") + "');");
-    /*private JSValue sasd(JSValue[] arguments)
-    {
-        foreach (var a in arguments)
-            System.Diagnostics.Debug.Write(a + " ");
-        System.Diagnostics.Debug.WriteLine("");
-        return "";
-    }*/
-    #endregion
     /// <summary>
     /// Interaction logic for PlugDJWindow.xaml
     /// </summary>

@@ -1,16 +1,10 @@
-﻿using RoxorBot.Model;
-using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class DatabaseManager : IDatabaseManager
     {

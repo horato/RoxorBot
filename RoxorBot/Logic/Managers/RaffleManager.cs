@@ -1,14 +1,16 @@
-﻿using RoxorBot.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Prism.Events;
 using RoxorBot.Data.Events;
+using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class RaffleManager : IRaffleManager
     {

@@ -1,4 +1,4 @@
-﻿namespace RoxorChatBot.Properties {
+﻿namespace RoxorBot {
     
     
     // This class allows you to handle specific events on the settings class:

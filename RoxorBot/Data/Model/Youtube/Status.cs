@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class Status
     {
-        public string uploadStatus { get; set; }
-        public string privacyStatus { get; set; }
-        public string license { get; set; }
-        public bool embeddable { get; set; }
-        public bool publicStatsViewable { get; set; }
+        [DataMember(Name = "uploadStatus")]
+        public string UploadStatus { get; set; }
+
+        [DataMember(Name = "privacyStatus")]
+        public string PrivacyStatus { get; set; }
+
+        [DataMember(Name = "license")]
+        public string License { get; set; }
+
+        [DataMember(Name = "embeddable")]
+        public bool Embeddable { get; set; }
+
+        [DataMember(Name = "publicStatsViewable")]
+        public bool PublicStatsViewable { get; set; }
     }
 }

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RoxorBot.Model;
-using System.Data.SQLite;
 using System.Text.RegularExpressions;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class FilterManager : IFilterManager
     {

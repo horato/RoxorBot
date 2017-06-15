@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Script.Serialization;
+using System.Text.RegularExpressions;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Interfaces.Providers;
-using RoxorBot.Model;
-using RoxorBot.Model.JSON;
+using RoxorBot.Logic.Managers;
 using TwitchLib.Models.Client;
-using System.Text.RegularExpressions;
 
-namespace RoxorBot.Data.Implementations
+namespace RoxorBot.Data.Implementations.Chat
 {
     public class ChatMessageHandler : IChatMessageHandler
     {

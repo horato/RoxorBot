@@ -1,13 +1,11 @@
-﻿using RoxorBot.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class AutomatedMessagesManager : IAutomatedMessagesManager
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Model;
+using RoxorBot.Data.Model;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {

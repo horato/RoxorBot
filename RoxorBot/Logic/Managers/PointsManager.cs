@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Prism.Events;
+﻿using Prism.Events;
 using RoxorBot.Data.Events;
-using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class PointsManager : IPointsManager
     {
@@ -50,7 +45,7 @@ namespace RoxorBot
         {
             var u = _usersManager.GetUser(user);
             if (u == null)
-                u = _usersManager.AddOrGetUser(user, Model.Role.Viewers);
+                u = _usersManager.AddOrGetUser(user, Role.Viewers);
 
             u.Points = points;
 

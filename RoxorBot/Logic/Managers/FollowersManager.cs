@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FollowerManager;
+using System.IO;
 using System.Net;
+using System.Runtime.Serialization.Json;
 using System.Web.Script.Serialization;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Model;
+using RoxorBot.Data.Model;
+using RoxorBot.Data.Model.JSON.FollowerManager;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class FollowersManager : IFollowersManager
     {
@@ -64,25 +63,25 @@ namespace RoxorBot
                 Followers_FollowerManager followers;
                 using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
                 {
-                    string json = client.DownloadString("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset + "&rand=" + Environment.TickCount);
-                    followers = new JavaScriptSerializer().Deserialize<Followers_FollowerManager>(json);
+                    var json = client.DownloadData("https://api.twitch.tv/kraken/channels/roxork0/follows?direction=DESC&limit=50&offset=" + offset + "&rand=" + Environment.TickCount);
+                    followers = new DataContractJsonSerializer(typeof(Followers_FollowerManager)).ReadObject(new MemoryStream(json)) as Followers_FollowerManager;
                 }
 
                 if (followers == null)
                     return new List<User>();
 
-                foreach (var follower in followers.follows)
+                foreach (var follower in followers.Follows)
                 {
-                    var u = _usersManager.AddOrGetUser(follower.user.display_name, Role.Viewers);
+                    var u = _usersManager.AddOrGetUser(follower.User.DisplayName, Role.Viewers);
                     u.IsFollower = true;
-                    u.IsFollowerSince = TimeParser.GetDuration(follower.created_at);
+                    u.IsFollowerSince = TimeParser.GetDuration(follower.CreatedAt);
                     if (u.IsFollowerSince == null)
                         _logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }
 
                 offset += 50;
-                if (followers.follows.Length == 0)
+                if (followers.Follows.Length == 0)
                     continueLoading = false;
             }
 

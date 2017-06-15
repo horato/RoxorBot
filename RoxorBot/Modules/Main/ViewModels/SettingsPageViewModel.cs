@@ -10,7 +10,10 @@ using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Model;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model;
+using RoxorBot.Logic;
+using RoxorBot.Logic.Managers;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {
@@ -106,7 +109,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public void AddFilter()
         {
             //TODO: viewmodel
-            var dialog = new AddFilterDialog();
+            var dialog = new Controls.AddFilterDialog();
             dialog.AddButton.Click += (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(dialog.FilterWordBox.Text) || string.IsNullOrWhiteSpace(dialog.DurationBox.Text))
@@ -154,7 +157,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public void AddAutomatedMessage()
         {
             //TODO: viewmodel
-            var dialog = new AddMessageDialog();
+            var dialog = new Controls.AddMessageDialog();
             dialog.AddButton.Click += (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(dialog.MessageBox.Text) || string.IsNullOrWhiteSpace(dialog.IntervalBox.Text))
@@ -201,7 +204,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public void AddPoints()
         {
             //TODO: viewmodel
-            var dialog = new AddPointsDialog();
+            var dialog = new Controls.AddPointsDialog();
             dialog.AddButton.Click += (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(dialog.NickTextBox.Text) || string.IsNullOrWhiteSpace(dialog.PointsTextBox.Text))
@@ -247,7 +250,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void AddCustomCommand()
         {
-            var dialog = new AddCommandDialog();
+            var dialog = new Controls.AddCommandDialog();
             dialog.AddButton.Click += (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(dialog.CommandBox.Text) || string.IsNullOrWhiteSpace(dialog.ReplyBox.Text))

@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class VideoInfoHeader
     {
-        public string kind { get; set; }
-        public string etag { get; set; }
-        public string nextPageToken { get; set; }
-        public PageInfo pageInfo { get; set; }
-        public VideoInfo[] items { get; set; }
+        [DataMember(Name = "kind")]
+        public string Kind { get; set; }
+
+        [DataMember(Name = "etag")]
+        public string Etag { get; set; }
+
+        [DataMember(Name = "nextPageToken")]
+        public string NextPageToken { get; set; }
+
+        [DataMember(Name = "pageInfo")]
+        public PageInfo PageInfo { get; set; }
+
+        [DataMember(Name = "items")]
+        public VideoInfo[] Items { get; set; }
     }
 }

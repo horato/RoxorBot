@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RoxorBot.Model;
+using RoxorBot.Data.Model;
 using TwitchLib.Enums;
 
 namespace RoxorBot.Data.Interfaces

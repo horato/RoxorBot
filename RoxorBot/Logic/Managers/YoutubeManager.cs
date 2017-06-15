@@ -1,19 +1,18 @@
-﻿using RoxorBot.Model.Youtube;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
+using System.Runtime.Serialization.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
 using Prism.Events;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Model.Youtube;
 
-namespace RoxorBot
+namespace RoxorBot.Logic.Managers
 {
     public class YoutubeManager : IYoutubeManager
     {
@@ -57,7 +56,7 @@ namespace RoxorBot
 
         private bool ExistsInPrimaryQueue(string id)
         {
-            return _videos.Any(x => x.id == id);
+            return _videos.Any(x => x.Id == id);
         }
 
         private void LoadBackupPlaylist(string playlistID)
@@ -74,19 +73,18 @@ namespace RoxorBot
                             "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" +
                             playlistID + "&key=" + Properties.Settings.Default.youtubeKey + "&maxResults=50" +
                             (pageToken != "" ? "&pageToken=" + pageToken : "");
-                        var json = client.DownloadString(url);
-                        var x = new JavaScriptSerializer().Deserialize<VideoInfoHeader>(json);
-
+                        var json = client.DownloadData(url);
+                        var x = new DataContractJsonSerializer(typeof(VideoInfoHeader)).ReadObject(new MemoryStream(json)) as VideoInfoHeader;
                         if (x == null)
                             break;
 
-                        if (!string.IsNullOrWhiteSpace(x.nextPageToken))
-                            pageToken = x.nextPageToken;
+                        if (!string.IsNullOrWhiteSpace(x.NextPageToken))
+                            pageToken = x.NextPageToken;
                         else
                             pageToken = null;
 
-                        if (x.items != null && x.items.Length > 0)
-                            items.AddRange(x.items);
+                        if (x.Items != null && x.Items.Length > 0)
+                            items.AddRange(x.Items);
                     }
                 }
                 catch (Exception e)
@@ -101,11 +99,11 @@ namespace RoxorBot
         {
             foreach (var item in items)
             {
-                if (item.contentDetails?.videoId == null)
+                if (item.ContentDetails?.VideoId == null)
                     continue;
                 try
                 {
-                    var video = new YoutubeVideo(item.contentDetails.videoId);
+                    var video = new YoutubeVideo(item.ContentDetails.VideoId);
                     lock (_backupPlaylist)
                         _backupPlaylist.Insert(new Random().Next(0, _backupPlaylist.Count), video);
 
@@ -125,26 +123,35 @@ namespace RoxorBot
         /// <returns></returns>
         public YoutubeVideo AddSong(string id)
         {
-            if (ExistsInPrimaryQueue(id))
-                return null;
+            try
+            {
+                if (ExistsInPrimaryQueue(id))
+                    return null;
 
-            var video = new YoutubeVideo(id);
-            lock (_videos)
-                _videos.Add(video);
+                var video = new YoutubeVideo(id);
+                lock (_videos)
+                    _videos.Add(video);
 
-            _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(true, video));
-            return video;
+                _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(true, video));
+                return video;
+            }
+            catch
+            {
+                //
+            }
+
+            return null;
         }
 
         public void RemoveSong(string id)
         {
             lock (_videos)
             {
-                var video = _videos.FirstOrDefault(x => x.id == id);
+                var video = _videos.FirstOrDefault(x => x.Id == id);
                 if (video == null)
                     return;
 
-                _videos.RemoveAll(x => x.id == id);
+                _videos.RemoveAll(x => x.Id == id);
                 _aggregator.GetEvent<VideoRemovedEvent>().Publish(new VideoRemovedEventArgs(true, video));
             }
         }

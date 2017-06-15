@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-namespace RoxorBot.Model.Youtube
+namespace RoxorBot.Data.Model.Youtube
 {
+    [DataContract]
     public class RegionRestriction
     {
-        public List<string> blocked { get; set; }
+        [DataMember(Name = "blocked")]
+        public List<string> Blocked { get; set; }
     }
 }

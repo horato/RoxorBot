@@ -12,7 +12,8 @@ using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Model.Youtube;
+using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Model.Youtube;
 using Vlc.DotNet.Core;
 using Vlc.DotNet.Forms;
 using YoutubeExtractor;
@@ -34,7 +35,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         public int PrimaryQueueCount => _youtubeManager.PlaylistCount;
         public int SecondaryQueueCount => _youtubeManager.BackupPlaylistCount;
         public float SeekSliderValue { get { return Player.Position; } set { Player.Position = value; RaisePropertyChanged(); } }
-        public string CurrentSongText => _currentVideo?.name + (string.IsNullOrWhiteSpace(_currentVideo?.requester) ? "" : " --- Requested by: " + _currentVideo?.requester);
+        public string CurrentSongText => _currentVideo?.Name + (string.IsNullOrWhiteSpace(_currentVideo?.Requester) ? "" : " --- Requested by: " + _currentVideo?.Requester);
         public Action OnCurrentSongChanged { get; set; }
         public int Volume
         {
@@ -160,18 +161,18 @@ namespace RoxorBot.Modules.Main.ViewModels
             {
                 Player.Stop();
                 _currentVideo = _youtubeManager.GetNextAndRemove();
-                Player.Play(_currentVideo.embedLink);
+                Player.Play(_currentVideo.EmbedLink);
                 RaisePropertyChanged(nameof(CurrentSongText));
-                OnCurrentSongChanged?.Invoke();
+                OnCurrentSongChanged?.Invoke();Use
 
                 try
                 {
-                    File.WriteAllText("playing.txt", _currentVideo.name);
+                    File.WriteAllText("playing.txt", _currentVideo.Name);
                 }
                 catch { }
 
                 if (Properties.Settings.Default.notifyCurrentPlayingSong)
-                    _chatManager.SendChatMessage("Next song: " + _currentVideo.name);
+                    _chatManager.SendChatMessage("Next song: " + _currentVideo.Name);
             }));
         }
     }
