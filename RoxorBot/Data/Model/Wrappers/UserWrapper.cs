@@ -8,8 +8,8 @@ namespace RoxorBot.Data.Model.Wrappers
     public class UserWrapper : WrapperBase<User>
     {
         public Guid Id => Model.Id;
-        public string Name { get { return GetValue<string>(); } set { SetValue(value); } }
-        public string InternalName { get { return GetValue<string>(); } set { SetValue(value); } }
+        public string VisibleName { get { return GetValue<string>(); } set { SetValue(value); } }
+        public string ValueName { get { return GetValue<string>(); } set { SetValue(value); } }
         public Role Role { get { return GetValue<Role>(); } set { SetValue(value); } }
         public bool IsOnline { get { return GetValue<bool>(); } set { SetValue(value); } }
         public int Points { get { return GetValue<int>(); } set { SetValue(value); } }

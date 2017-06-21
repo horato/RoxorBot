@@ -85,17 +85,17 @@ namespace RoxorBot.Logic.Managers
                 return;
             if (_isFollowersOnly && !user.IsFollower)
                 return;
-            if (_pointsManager.GetPointsForUser(user.InternalName) < _entryPointsRequired)
+            if (_pointsManager.GetPointsForUser(user.ValueName) < _entryPointsRequired)
                 return;
 
-            _pointsManager.RemovePoints(user.InternalName, _entryPointsRequired);
+            _pointsManager.RemovePoints(user.ValueName, _entryPointsRequired);
             lock (_users)
                 _users.Add(user);
 
             if (OnUserAdd != null)
                 OnUserAdd(this, user);
 
-            Whispers.sendPrivateMessage(user.InternalName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
+            Whispers.sendPrivateMessage(user.ValueName, "You are now participating in the raffle. You have " + user.Points + " points remaining.");
         }
 
         public void StartRaffle()
@@ -127,7 +127,7 @@ namespace RoxorBot.Logic.Managers
                 Random rnd = new Random();
                 int num = rnd.Next(0, _users.Count - 1);
                 var winner = _users[num];
-                _chatManager.SendChatMessage("Winner is " + winner.Name + ". Random number selected from interval <0," + (_users.Count - 1) + "> was " + num + ". Congratulations.");
+                _chatManager.SendChatMessage("Winner is " + winner.VisibleName + ". Random number selected from interval <0," + (_users.Count - 1) + "> was " + num + ". Congratulations.");
                 _winnerSelected = true;
                 _users.Clear();
                 if (OnWinnerPicked != null)
@@ -144,7 +144,7 @@ namespace RoxorBot.Logic.Managers
                 {
                     _chatManager.SendChatMessage("Raffle canceled. Refunding " + _entryPointsRequired + " points to " + _users.Count + " users.");
                     foreach (var user in _users)
-                        _pointsManager.AddPoints(user.InternalName, _entryPointsRequired);
+                        _pointsManager.AddPoints(user.ValueName, _entryPointsRequired);
                 }
             }
             _winnerSelected = false;

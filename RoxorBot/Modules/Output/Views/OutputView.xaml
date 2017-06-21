@@ -9,6 +9,6 @@
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-            
+        <TextBox Text="{Binding Output, Mode=OneWay}" IsReadOnly="True" Background="LightBlue" />
     </Grid>
 </UserControl>

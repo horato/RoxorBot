@@ -1,9 +1,8 @@
-﻿<Window x:Class="RoxorBot.Modules.Main.Views.AddFilterDialog"
+﻿<controls:MetroWindow x:Class="RoxorBot.Modules.Main.Views.AddFilterDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignWidth="300" Height="226.866">
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             Width="310" Height="260" WindowStyle="ToolWindow" ResizeMode="NoResize">
     <Grid Background="LightBlue">
         <Label Content="Filter Word" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="280"/>
         <TextBox Text="{Binding FilterWord}" HorizontalAlignment="Left" Height="32" Margin="10,46,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="280"/>
@@ -14,4 +13,5 @@
         <CheckBox IsChecked="{Binding IsRegex}"  Content="Regex" HorizontalAlignment="Left" Height="19" Margin="225,151,0,0" VerticalAlignment="Top" Width="65"/>
         <CheckBox IsChecked="{Binding IsWhitelist}" Content="Whitelist" HorizontalAlignment="Left" Margin="10,152,0,0" VerticalAlignment="Top"/>
     </Grid>
-</Window>
+</controls:MetroWindow>
+

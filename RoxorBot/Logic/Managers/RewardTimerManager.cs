@@ -50,8 +50,8 @@ namespace RoxorBot.Logic.Managers
                 else
                 {
                     user.RewardTimer = 0;
-                    _pointsManager.AddPoints(user.InternalName, Properties.Settings.Default.timerReward);
-                    Whispers.sendPrivateMessage(user.InternalName, "You were awarded " + Properties.Settings.Default.timerReward + " points for staying with us another 30 minutes.");
+                    _pointsManager.AddPoints(user.ValueName, Properties.Settings.Default.timerReward);
+                    Whispers.sendPrivateMessage(user.ValueName, "You were awarded " + Properties.Settings.Default.timerReward + " points for staying with us another 30 minutes.");
                 }
             }
             _aggregator.GetEvent<AddLogEvent>().Publish("Timer tick.");

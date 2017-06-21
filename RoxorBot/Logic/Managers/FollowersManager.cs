@@ -33,7 +33,7 @@ namespace RoxorBot.Logic.Managers
                     return;
 
                 foreach (var user in list)
-                    followers.RemoveAll(x => x.InternalName == user.InternalName);
+                    followers.RemoveAll(x => x.ValueName == user.ValueName);
                 foreach (var user in followers)
                 {
                     user.IsFollower = false;
@@ -67,7 +67,7 @@ namespace RoxorBot.Logic.Managers
                     u.IsFollower = true;
                     u.IsFollowerSince = follower.CreatedAt;
                     if (u.IsFollowerSince == null)
-                        _logger.Log("Failed to parse following since for user " + u.Name + " in " + "https://api.twitch.tv/kraken/users/" + u.InternalName + "/follows/channels/roxork0.");
+                        _logger.Log("Failed to parse following since for user " + u.VisibleName + " in " + "https://api.twitch.tv/kraken/users/" + u.ValueName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }
 

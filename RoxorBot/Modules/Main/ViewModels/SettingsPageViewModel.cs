@@ -162,10 +162,10 @@ namespace RoxorBot.Modules.Main.ViewModels
         {
             if (SelectedPointsRow == null)
                 return;
-            if (!Prompt.Ask("Do you wish to delete all of " + SelectedPointsRow.Name + " points?", "Delete"))
+            if (!Prompt.Ask("Do you wish to delete all of " + SelectedPointsRow.VisibleName + " points?", "Delete"))
                 return;
 
-            _pointsManager.SetPoints(SelectedPointsRow.InternalName, 0);
+            _pointsManager.SetPoints(SelectedPointsRow.ValueName, 0);
             InitPoints();
         }
 
@@ -193,7 +193,7 @@ namespace RoxorBot.Modules.Main.ViewModels
 
             if (SelectedPointsRow != null)
             {
-                dialog.NickTextBox.Text = SelectedPointsRow.Name;
+                dialog.NickTextBox.Text = SelectedPointsRow.VisibleName;
                 dialog.NickTextBox.IsEnabled = false;
                 dialog.PointsTextBox.Text = SelectedPointsRow.Points.ToString();
             }

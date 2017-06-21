@@ -20,7 +20,7 @@ namespace RoxorBot.Data.Model.Wrappers
                 throw new ArgumentNullException(nameof(model));
 
             _model = model;
-            _name = _model.Name;
+            _name = _model.VisibleName;
             Role = _model.Role;
         }
 

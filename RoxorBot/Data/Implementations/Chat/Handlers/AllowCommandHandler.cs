@@ -37,7 +37,7 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
                 return;
 
             _usersManager.AllowUser(name);
-            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + user.Name + " is now allowed.");
+            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + user.VisibleName + " is now allowed.");
         }
     }
 }

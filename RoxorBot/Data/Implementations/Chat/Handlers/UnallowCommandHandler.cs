@@ -37,7 +37,7 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
                 return;
 
             _usersManager.RevokeAllowUser(name);
-            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": Successfully revoked allow from " + user.Name + ".");
+            _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": Successfully revoked allow from " + user.VisibleName + ".");
         }
     }
 }

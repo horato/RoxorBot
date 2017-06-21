@@ -11,7 +11,7 @@
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
         mvvm:ViewModelLocator.AutoWireViewModel="True"
-        Title="ChatBot for #RoXoRk0 by horato" Height="638.075" Width="665.701" ResizeMode="NoResize">
+        Title="ChatBot for #RoXoRk0 by horato" MinHeight="638" MinWidth="665" Height="638" Width="665" Background="LightBlue">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

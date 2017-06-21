@@ -65,9 +65,9 @@ namespace RoxorBot.Logic.Managers
         private void OnChatUserJoined(ChatUserJoinedEventArgs obj)
         {
             var user = AddOrGetUser(obj.Name, Role.Viewers);
-            ChangeOnlineStatus(user.InternalName, true);
+            ChangeOnlineStatus(user.ValueName, true);
             if (obj.IsModerator)
-                SetAsModerator(user.InternalName);
+                SetAsModerator(user.ValueName);
 
             _aggregator.GetEvent<UpdateOnlineUsersList>().Publish();
         }
@@ -78,7 +78,7 @@ namespace RoxorBot.Logic.Managers
             if (user == null)
                 return;
 
-            ChangeOnlineStatus(user.InternalName, false);
+            ChangeOnlineStatus(user.ValueName, false);
             _aggregator.GetEvent<UpdateOnlineUsersList>().Publish();
         }
 
@@ -96,7 +96,7 @@ namespace RoxorBot.Logic.Managers
             {
                 var type = _translationService.TranslateUserType(user.UserType);
                 var u = AddOrGetUser(user.Username, type);
-                ChangeOnlineStatus(u.InternalName, true);
+                ChangeOnlineStatus(u.ValueName, true);
             }
         }
 
@@ -152,7 +152,7 @@ namespace RoxorBot.Logic.Managers
         public UserWrapper GetUser(string nick)
         {
             lock (_users)
-                return _users.Values.SingleOrDefault(x => x.InternalName == nick.ToLower());
+                return _users.Values.SingleOrDefault(x => x.ValueName == nick.ToLower());
         }
 
         public bool IsAdmin(string name)
@@ -169,7 +169,7 @@ namespace RoxorBot.Logic.Managers
             if (user == null)
                 return false;
 
-            if (IsSuperAdmin(user.InternalName))
+            if (IsSuperAdmin(user.ValueName))
                 return true;
 
             return user.Role != Role.Viewers;

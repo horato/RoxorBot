@@ -36,7 +36,7 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
             if (u == null)
                 _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + name + " not found.");
             else
-                _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + u.Name + " " + (u.IsAllowed ? "is" : "is not") + " allowed");
+                _chatManager.SendChatMessage(command.ChatMessage.DisplayName + ": " + u.VisibleName + " " + (u.IsAllowed ? "is" : "is not") + " allowed");
         }
     }
 }

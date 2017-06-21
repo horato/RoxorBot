@@ -1,10 +1,9 @@
-﻿<Window x:Class="RoxorBot.Controls.AddPointsDialog"
+﻿<controls:MetroWindow x:Class="RoxorBot.Controls.AddPointsDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignWidth="300" Height="226.866">
-    <Grid Background="LightBlue" Margin="0,0,0,10">
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             Height="228" Width="307" WindowStyle="ToolWindow" ResizeMode="NoResize">
+    <Grid Background="LightBlue">
         <Label Content="Nick" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top" Width="280"/>
         <TextBox x:Name="NickTextBox" HorizontalAlignment="Left" Height="32" Margin="10,46,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="280"/>
         <Label Content="Points" HorizontalAlignment="Left" Margin="10,83,0,0" VerticalAlignment="Top" Width="280"/>
@@ -12,4 +11,5 @@
         <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_OnClick" HorizontalAlignment="Left" Height="36" Margin="175,158,0,0" VerticalAlignment="Top" Width="115"/>
         <Button x:Name="AddButton" Content="Add" HorizontalAlignment="Left" Height="36" Margin="10,158,0,0" VerticalAlignment="Top" Width="115"/>
     </Grid>
-</Window>
+</controls:MetroWindow>
+

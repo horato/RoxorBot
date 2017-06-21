@@ -39,9 +39,9 @@ namespace RoxorBot.Data.Implementations.Chat.Handlers
                 return;
 
             if (u.IsFollower)
-                _chatManager.SendChatMessage(u.Name + " is following.");
+                _chatManager.SendChatMessage(u.VisibleName + " is following.");
             else
-                _chatManager.SendChatMessage(u.Name + "is not following.");
+                _chatManager.SendChatMessage(u.VisibleName + "is not following.");
         }
     }
 }
