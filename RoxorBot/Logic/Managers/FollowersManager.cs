@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Timers;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Model.Wrappers;
@@ -10,6 +11,7 @@ namespace RoxorBot.Logic.Managers
     {
         private readonly ILogger _logger;
         private readonly IUsersManager _usersManager;
+        private readonly Timer _updateTimer;
 
         public FollowersManager(ILogger logger, IUsersManager usersManager)
         {
@@ -17,14 +19,15 @@ namespace RoxorBot.Logic.Managers
             _usersManager = usersManager;
             _logger.Log("Initializing FollowersManager...");
 
-            var timer = new System.Timers.Timer(2 * 60 * 1000);
-            timer.AutoReset = true;
-            timer.Elapsed += timer_Elapsed;
-            timer.Start();
+            _updateTimer = new Timer(2 * 60 * 1000);
+            _updateTimer.AutoReset = false;
+            _updateTimer.Elapsed += timer_Elapsed;
+            _updateTimer.Start();
         }
 
-        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void timer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            _updateTimer.Stop();
             try
             {
                 var followers = _usersManager.GetAllUsers().FindAll(x => x.IsFollower);
@@ -47,6 +50,7 @@ namespace RoxorBot.Logic.Managers
             {
                 _logger.Log("Failed to update followers.");
             }
+            _updateTimer.Start();
         }
 
         private List<UserWrapper> LoadFollowers()
