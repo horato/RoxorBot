@@ -12,16 +12,18 @@ namespace RoxorBot.Data.Interfaces
     {
         int UsersCount { get; }
         void InitUsers(JoinedChannel channel);
-        User AddOrGetUser(string user, Role role);
+        UserWrapper AddOrGetUser(string user, Role role);
         void AllowUser(string nick);
         void RevokeAllowUser(string nick);
         void ChangeOnlineStatus(string user, bool isOnline);
-        List<User> GetAllUsers();
-        User GetUser(string nick);
+        List<UserWrapper> GetAllUsers();
+        UserWrapper GetUser(string nick);
         bool IsAdmin(string name);
-        bool IsAdmin(User user);
+        bool IsAdmin(UserWrapper user);
         bool IsSuperAdmin(string user);
         bool IsAllowed(string name);
-        bool IsAllowed(User user);
+        bool IsAllowed(UserWrapper user);
+        void Save(UserWrapper user);
+        void SaveAll();
     }
 }

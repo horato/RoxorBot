@@ -40,6 +40,7 @@ namespace RoxorBot
             }
             catch (Exception ea)
             {
+                System.Diagnostics.Debug.WriteLine(ea.ToString());
                 _logger.Log(ea.ToString());
             }
         }

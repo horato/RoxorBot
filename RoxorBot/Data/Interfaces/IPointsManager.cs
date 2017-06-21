@@ -14,6 +14,5 @@ namespace RoxorBot.Data.Interfaces
         bool UserExists(string name);
         int GetPointsForUser(string name);
         int GetUsersCount();
-        void Save();
     }
 }

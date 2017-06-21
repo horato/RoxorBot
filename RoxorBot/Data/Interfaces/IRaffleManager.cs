@@ -19,8 +19,8 @@ namespace RoxorBot.Data.Interfaces
         void StopRaffle();
         void PickWinner();
         void OnUIClosing();
-        IEnumerable<User> GetAllParticipants();
-        event EventHandler<User> OnUserAdd;
+        IEnumerable<UserWrapper> GetAllParticipants();
+        event EventHandler<UserWrapper> OnUserAdd;
         event EventHandler OnWinnerPicked;
     }
 }

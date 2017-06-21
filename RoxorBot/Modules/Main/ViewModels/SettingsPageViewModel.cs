@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Prism.Mvvm;
+using RoxorBot.Controls;
 using RoxorBot.Data.Attributes;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
@@ -26,19 +28,20 @@ namespace RoxorBot.Modules.Main.ViewModels
         private readonly IUsersManager _usersManager;
         private readonly IUserCommandsManager _userCommandsManager;
         private readonly IPointsManager _pointsManager;
+        private readonly IDialogService _dialogService;
 
-        public ObservableCollection<AutomatedMessage> AutomatedMessages { get; } = new ObservableCollection<AutomatedMessage>();
-        public ObservableCollection<FilterItem> Filters { get; } = new ObservableCollection<FilterItem>();
-        public ObservableCollection<FilterItem> Whitelist { get; } = new ObservableCollection<FilterItem>();
-        public ObservableCollection<User> Points { get; } = new ObservableCollection<User>();
-        public ObservableCollection<UserCommand> CustomCommands { get; } = new ObservableCollection<UserCommand>();
+        public ObservableCollection<AutomatedMessageWrapper> AutomatedMessages { get; } = new ObservableCollection<AutomatedMessageWrapper>();
+        public ObservableCollection<FilterWrapper> Filters { get; } = new ObservableCollection<FilterWrapper>();
+        public ObservableCollection<FilterWrapper> Whitelist { get; } = new ObservableCollection<FilterWrapper>();
+        public ObservableCollection<UserWrapper> Points { get; } = new ObservableCollection<UserWrapper>();
+        public ObservableCollection<UserCommandWrapper> CustomCommands { get; } = new ObservableCollection<UserCommandWrapper>();
 
-        public AutomatedMessage SelectedAutomatedMessage { get; set; }
-        public FilterItem SelectedFilter { get; set; }
-        public User SelectedPointsRow { get; set; }
-        public UserCommand SelectedCustomCommand { get; set; }
+        public AutomatedMessageWrapper SelectedAutomatedMessage { get; set; }
+        public FilterWrapper SelectedFilter { get; set; }
+        public UserWrapper SelectedPointsRow { get; set; }
+        public UserCommandWrapper SelectedCustomCommand { get; set; }
 
-        public SettingsPageViewModel(IAutomatedMessagesManager automatedMessagesManager, IChatManager chatManager, ILogger logger, IFilterManager filterManager, IUsersManager usersManager, IUserCommandsManager userCommandsManager, IPointsManager pointsManager)
+        public SettingsPageViewModel(IAutomatedMessagesManager automatedMessagesManager, IChatManager chatManager, ILogger logger, IFilterManager filterManager, IUsersManager usersManager, IUserCommandsManager userCommandsManager, IPointsManager pointsManager, IDialogService dialogService)
         {
             _automatedMessagesManager = automatedMessagesManager;
             _chatManager = chatManager;
@@ -47,6 +50,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             _usersManager = usersManager;
             _userCommandsManager = userCommandsManager;
             _pointsManager = pointsManager;
+            _dialogService = dialogService;
 
             InitFilters();
             InitAutomatedMessages();
@@ -65,14 +69,14 @@ namespace RoxorBot.Modules.Main.ViewModels
         private void InitFilters()
         {
             Filters.Clear();
-            var filters = _filterManager.GetAllFilters(FilterMode.All).Where(x => !x.isWhitelist);
+            var filters = _filterManager.GetAllFilters(FilterMode.All).Where(x => !x.IsWhitelist);
             Filters.AddRange(filters);
         }
 
         private void InitWhitelist()
         {
             Whitelist.Clear();
-            var filters = _filterManager.GetAllFilters(FilterMode.Whitelist).Where(x => x.isWhitelist);
+            var filters = _filterManager.GetAllFilters(FilterMode.Whitelist).Where(x => x.IsWhitelist);
             Whitelist.AddRange(filters);
         }
 
@@ -97,10 +101,10 @@ namespace RoxorBot.Modules.Main.ViewModels
         {
             if (SelectedFilter == null)
                 return;
-            if (!Prompt.Ask("Do you wish to delete " + SelectedFilter.word + "?", "Delete"))
+            if (!Prompt.Ask("Do you wish to delete " + SelectedFilter.Word + "?", "Delete"))
                 return;
 
-            _filterManager.RemoveFilterWord(SelectedFilter.id);
+            _filterManager.RemoveFilterWord(SelectedFilter);
             InitWhitelist();
             InitFilters();
         }
@@ -108,39 +112,26 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void AddFilter()
         {
-            //TODO: viewmodel
-            var dialog = new Controls.AddFilterDialog();
-            dialog.AddButton.Click += (a, b) =>
-            {
-                if (string.IsNullOrWhiteSpace(dialog.FilterWordBox.Text) || string.IsNullOrWhiteSpace(dialog.DurationBox.Text))
-                    return;
-
-                var isWhitelist = (bool)dialog.IsWhitelistCheckBox.IsChecked.Value;
-                int value;
-                if (!int.TryParse(dialog.DurationBox.Text, out value))
-                {
-                    _logger.Log("Failed to int parse " + dialog.DurationBox.Text + " in  dialog.AddButton.Click");
-                    return;
-                }
-                _filterManager.AddFilterWord(dialog.FilterWordBox.Text, value, "AdminConsole", (bool)dialog.IsRegexCheckBox.IsChecked, isWhitelist, dialog.id);
-                InitWhitelist();
-                InitFilters();
-                dialog.Close();
-            };
-
-            if (SelectedFilter != null)
-            {
-                dialog.id = SelectedFilter.id;
-                dialog.FilterWordBox.Text = SelectedFilter.word;
-                dialog.DurationBox.Text = SelectedFilter.duration.ToString();
-                dialog.IsRegexCheckBox.IsChecked = SelectedFilter.isRegex;
-                dialog.IsWhitelistCheckBox.IsChecked = SelectedFilter.isWhitelist;
-            }
-            dialog.ShowDialog();
+            _dialogService.ShowDialog<AddFilterDialog, AddFilterDialogViewModel>();
+            InitWhitelist();
+            InitFilters();
         }
+
+        [Command]
+        public void EditFilter()
+        {
+            if (SelectedFilter == null)
+                return;
+
+            _dialogService.ShowDialog<AddFilterDialog, AddFilterDialogViewModel>(SelectedFilter);
+            InitWhitelist();
+            InitFilters();
+        }
+
         #endregion
 
         #region AutomatedMessages
+
         [Command]
         public void AutomatedMessagesDoubleClick()
         {
@@ -156,40 +147,25 @@ namespace RoxorBot.Modules.Main.ViewModels
         [Command]
         public void AddAutomatedMessage()
         {
-            //TODO: viewmodel
-            var dialog = new Controls.AddMessageDialog();
-            dialog.AddButton.Click += (a, b) =>
-            {
-                if (string.IsNullOrWhiteSpace(dialog.MessageBox.Text) || string.IsNullOrWhiteSpace(dialog.IntervalBox.Text))
-                    return;
-
-                int value;
-                if (!int.TryParse(dialog.IntervalBox.Text, out value))
-                {
-                    _logger.Log("Failed to int parse " + dialog.IntervalBox.Text + " in MessagesManager.getInstance().addAutomatedMessage");
-                    return;
-                }
-
-                _automatedMessagesManager.AddAutomatedMessage(dialog.MessageBox.Text, value, _chatManager.IsConnected, dialog.active, dialog.id);
-                InitAutomatedMessages();
-                dialog.Close();
-            };
-
-            if (SelectedAutomatedMessage != null)
-            {
-                dialog.id = SelectedAutomatedMessage.id;
-                dialog.MessageBox.Text = SelectedAutomatedMessage.message;
-                dialog.IntervalBox.Text = SelectedAutomatedMessage.interval.ToString();
-                dialog.active = SelectedAutomatedMessage.active;
-
-            }
-            dialog.ShowDialog();
+            _dialogService.ShowDialog<AddMessageDialog, AddMessageDialogViewModel>();
+            InitAutomatedMessages();
         }
+
+        [Command]
+        public void EditAutomatedMessage()
+        {
+            if (SelectedAutomatedMessage == null)
+                return;
+
+            _dialogService.ShowDialog<AddMessageDialog, AddMessageDialogViewModel>(SelectedAutomatedMessage);
+            InitAutomatedMessages();
+        }
+
         #endregion
 
         #region Points
         [Command]
-        public void PointsDoubleClickCommand()
+        public void PointsDoubleClick()
         {
             if (SelectedPointsRow == null)
                 return;
@@ -243,33 +219,27 @@ namespace RoxorBot.Modules.Main.ViewModels
             if (!Prompt.Ask("Do you wish to delete " + SelectedCustomCommand.Command + "?", "Delete"))
                 return;
 
-            _userCommandsManager.RemoveCommand(SelectedCustomCommand.Id);
+            _userCommandsManager.RemoveCommand(SelectedCustomCommand);
             InitCommands();
         }
 
         [Command]
         public void AddCustomCommand()
         {
-            var dialog = new Controls.AddCommandDialog();
-            dialog.AddButton.Click += (a, b) =>
-            {
-                if (string.IsNullOrWhiteSpace(dialog.CommandBox.Text) || string.IsNullOrWhiteSpace(dialog.ReplyBox.Text))
-                    return;
-
-                _userCommandsManager.AddCommand(dialog.CommandBox.Text, dialog.ReplyBox.Text, dialog.id);
-                InitCommands();
-                dialog.Close();
-            };
-
-            if (SelectedCustomCommand != null)
-            {
-                dialog.CommandBox.Text = SelectedCustomCommand.Command;
-                dialog.ReplyBox.Text = SelectedCustomCommand.Reply;
-                dialog.id = SelectedCustomCommand.Id;
-            }
-
-            dialog.ShowDialog();
+            _dialogService.ShowDialog<AddCommandDialog, AddCommandDialogViewModel>();
+            InitCommands();
         }
+
+        [Command]
+        public void EditCustomCommand()
+        {
+            if (SelectedCustomCommand == null)
+                return;
+
+            _dialogService.ShowDialog<AddCommandDialog, AddCommandDialogViewModel>(SelectedCustomCommand);
+            InitCommands();
+        }
+
         #endregion
     }
 }

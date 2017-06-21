@@ -70,12 +70,12 @@ namespace RoxorBot.Modules.Main.ViewModels
         public bool IsRewardTimerPaused => _rewardTimerManager.IsPaused;
         public bool AreAutomatedMessagesRunning => _automatedMessagesManager.IsRunning;
         public bool AreAutomatedMessagesPaused => _automatedMessagesManager.IsPaused;
-        public ObservableCollection<UserWrapper> UsersList { get; } = new ObservableCollection<UserWrapper>();
+        public ObservableCollection<UserDisplayWrapper> UsersList { get; } = new ObservableCollection<UserDisplayWrapper>();
 
 
         private Views.YoutubeView _youtubeWindow;
 
-        public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IDatabaseManager databaseManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
+        public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
             _logger = logger;
             _aggregator = aggregator;
@@ -84,7 +84,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             _automatedMessagesManager = automatedMessagesManager;
             _pointsManager = pointsManager;
             _usersManager = usersManager;
-
+            
             chatMessageHandler.Init();
 
             _aggregator.GetEvent<UpdateStatusLabelsEvent>().Subscribe(UpdateStatusLabels);
@@ -171,7 +171,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         {
             _rewardTimerManager.Pause();
             _automatedMessagesManager.PauseAllTimers();
-            _pointsManager.Save();
+            _usersManager.SaveAll();
             _chatManager.Disconnect();
             Whispers.disconnect();
         }
@@ -196,7 +196,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             {
                 UsersList.Clear();
                 var users = _usersManager.GetAllUsers();
-                var temp = users.Where(x => x.IsOnline).Select(x => new UserWrapper(x)).ToList();
+                var temp = users.Where(x => x.IsOnline).Select(x => new UserDisplayWrapper(x)).ToList();
                 foreach (var u in temp.Where(x => x.Role != Role.Viewers))
                     u.DisplayAsModerator();
 
@@ -274,7 +274,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
-            
+
             if (_youtubeWindow == null)
                 _youtubeWindow = new Views.YoutubeView();
 

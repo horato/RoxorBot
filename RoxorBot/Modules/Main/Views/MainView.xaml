@@ -13,7 +13,7 @@
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
-        <DataTemplate x:Key="UsersListItemTemplate" DataType="model:UserWrapper">
+        <DataTemplate x:Key="UsersListItemTemplate" DataType="model:UserDisplayWrapper">
             <TextBlock Text="{Binding Name}" />
         </DataTemplate>
     </UserControl.Resources>

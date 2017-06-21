@@ -1,7 +1,18 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
+using System.Text.RegularExpressions;
+using FluentNHibernate.Cfg;
+using Microsoft.Practices.Unity;
+using NHibernate;
+using NHibernate.Cfg;
+using NHibernate.Event;
 using Prism.Events;
+using RoxorBot.Data;
 using RoxorBot.Data.Events;
+using RoxorBot.Data.Implementations.Database;
+using RoxorBot.Data.Implementations.Database.Changescripts;
 using RoxorBot.Data.Interfaces;
 
 namespace RoxorBot.Logic.Managers
@@ -9,50 +20,74 @@ namespace RoxorBot.Logic.Managers
     public class DatabaseManager : IDatabaseManager
     {
         private readonly IEventAggregator _aggregator;
-        private SQLiteConnection _dbConnection;
 
         public DatabaseManager(IEventAggregator aggregator)
         {
             _aggregator = aggregator;
-            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing DatabaseManager...");
-            InitDatabaseConnection();
         }
 
         private void InitDatabaseConnection()
         {
-            if (!File.Exists("botDatabase.sqlite"))
-            {
-                SQLiteConnection.CreateFile("botDatabase.sqlite");
-                _dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                _dbConnection.Open();
-                new SQLiteCommand("CREATE TABLE points (name VARCHAR(64) PRIMARY KEY, score INT);", _dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE filters (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, duration TEXT, addedBy TEXT, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", _dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, interval INT, 'enabled' BOOL DEFAULT 1);", _dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE allowedUsers (name VARCHAR(64) PRIMARY KEY, allowed BOOL);", _dbConnection).ExecuteNonQuery();
-                new SQLiteCommand("CREATE TABLE userCommands (id INTEGER PRIMARY KEY AUTOINCREMENT, command TEXT, reply TEXT);", _dbConnection).ExecuteNonQuery();
-            }
-            else
-            {
-                _dbConnection = new SQLiteConnection("Data Source=botDatabase.sqlite;Version=3;");
-                _dbConnection.Open();
-            }
+            var xmlConfig = new NHibernate.Cfg.Configuration();
+            xmlConfig.Configure();
+
+            var sessionFactory = Fluently.Configure(xmlConfig)
+                .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Bootstrapper>().Conventions.AddFromAssemblyOf<Bootstrapper>())
+                .ExposeConfiguration(ConfigureDatabaseIfNeeded)
+                .BuildSessionFactory();
+
+            DI.Container.RegisterInstance(sessionFactory, new ContainerControlledLifetimeManager());
         }
 
-        public SQLiteDataReader ExecuteReader(string query)
+        private void ConfigureDatabaseIfNeeded(Configuration obj)
         {
-            return new SQLiteCommand(query, _dbConnection).ExecuteReader();
+            string connectionString;
+            if (!obj.Properties.TryGetValue("connection.connection_string", out connectionString))
+                throw new InvalidOperationException("Connection string not found.");
+
+            CreateTableIfNeeded(connectionString);
+
+            var dbConnection = new SQLiteConnection(connectionString);
+            dbConnection.Open();
+            ChangescriptsHandler.ApplyChangescripts(dbConnection);
+            dbConnection.Close();
+            dbConnection.Dispose();
         }
 
-        public int ExecuteNonQuery(string query)
+        private void CreateTableIfNeeded(string connectionString)
         {
-            return new SQLiteCommand(query, _dbConnection).ExecuteNonQuery();
+            var regex = Regex.Match(connectionString, "Data Source=(.*?)(;|$)");
+            if (!regex.Success)
+                throw new InvalidOperationException($"Invalid connection string {connectionString}");
+
+            var dbFileName = regex.Groups[1].Value;
+            if (File.Exists(dbFileName))
+                return;
+
+            SQLiteConnection.CreateFile(dbFileName);
+            var dbConnection = new SQLiteConnection(connectionString);
+            dbConnection.Open();
+
+            var createChangescriptTable = @"
+CREATE TABLE Changescripts(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	CurrentVersion INTEGER NOT NULL,
+	PreviousVersion INTEGER NOT NULL,
+	ChangescriptDescription Text NULL,
+	CreatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO Changescripts (CurrentVersion,PreviousVersion,ChangescriptDescription) SELECT '1', '0', 'Initialize';
+";
+            new SQLiteCommand(createChangescriptTable, dbConnection).ExecuteNonQuery();
+            dbConnection.Close();
+            dbConnection.Dispose();
         }
 
-        public void Close()
+        public void Init()
         {
-            _dbConnection.Close();
-            _dbConnection.Dispose();
-            _dbConnection = null;
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing DatabaseManager...");
+            InitDatabaseConnection();
         }
     }
 }

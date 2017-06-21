@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Prism.Events;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Providers;
+using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model;
 using TwitchLib.Models.Client;
 
@@ -13,123 +17,92 @@ namespace RoxorBot.Logic.Managers
 {
     public class FilterManager : IFilterManager
     {
-        private readonly ILogger _logger;
         private readonly IEventAggregator _aggregator;
-        private readonly IChatManager _chatManager;
-        private readonly IDatabaseManager _databaseManager;
         private readonly IUsersManager _usersManager;
-        private readonly List<FilterItem> _filters;
+        private readonly IFilterWrapperFactory _filterWrapperFactory;
+        private readonly IFilterRepository _repository;
+        private readonly Dictionary<Guid, FilterWrapper> _filters;
 
         public int FiltersCount => _filters.Count;
 
-        public FilterManager(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
+        public FilterManager(IEventAggregator aggregator, IUsersManager usersManager, IFilterWrapperFactory filterWrapperFactory, IFilterRepository filterRepository)
         {
-            _logger = logger;
             _aggregator = aggregator;
-            _chatManager = chatManager;
-            _databaseManager = databaseManager;
             _usersManager = usersManager;
-
+            _filterWrapperFactory = filterWrapperFactory;
+            _repository = filterRepository;
             _aggregator.GetEvent<AddLogEvent>().Publish("Loading FilterManager...");
             _filters = LoadFilters();
-            LoadAllowedUsers();
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _filters.Count + " filtered words from database.");
         }
 
-        private List<FilterItem> LoadFilters()
+        private Dictionary<Guid, FilterWrapper> LoadFilters()
         {
-            var result = new List<FilterItem>();
-            var reader = _databaseManager.ExecuteReader("SELECT * FROM filters;");
+            var filters = _repository.GetAll();
+            var result = new Dictionary<Guid, FilterWrapper>();
+            foreach (var filter in filters)
+                result.Add(filter.Id, _filterWrapperFactory.CreateNew(filter));
 
-            while (reader.Read())
-            {
-                int value;
-                if (!int.TryParse((string)reader["duration"], out value))
-                    value = 600;
-
-                result.Add(new FilterItem
-                {
-                    id = Convert.ToInt32(reader["id"]),
-                    word = (string)reader["word"],
-                    duration = value,
-                    addedBy = (string)reader["addedBy"],
-                    isRegex = (bool)reader["isRegex"],
-                    isWhitelist = (bool)reader["isWhitelist"]
-                });
-            }
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + result.Count + " filters from database.");
-
             return result;
         }
 
-        private void LoadAllowedUsers()
+        public bool FilterExists(Guid id)
         {
-            var reader = _databaseManager.ExecuteReader("SELECT * FROM allowedUsers;");
-
-            while (reader.Read())
-            {
-                var name = (string)reader["name"];
-                var isAllowed = (bool)reader["allowed"];
-
-                var user = _usersManager.GetUser(name);
-                if (user == null)
-                    user = _usersManager.AddOrGetUser(name, Role.Viewers);
-
-                user.IsAllowed = isAllowed;
-            }
-
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + reader.StepCount + " allowed users from database.");
-        }
-
-        public bool FilterExists(int id)
-        {
-            return _filters.Any(x => x.id == id);
+            return _filters.ContainsKey(id);
         }
 
         public bool FilterExists(string word)
         {
-            return _filters.Any(x => x.word == word);
+            lock (_filters)
+                return _filters.Values.Any(x => x.Word == word);
         }
 
-        public void AddFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist, int id = 0)
+        public void AddFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
         {
-            if (id > 0)
-            {
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO filters (id, word, duration, addedBy, isRegex, isWhitelist) VALUES (" + id + ", \"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
-            }
-            else
-            {
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO filters (word, duration, addedBy, isRegex, isWhitelist) VALUES (\"" + word + "\",\"" + banDuration + "\",\"" + addedBy + "\"," + (isRegex ? "1" : "0") + ", " + (isWhitelist ? "1" : "0") + ");");
-                var reader = _databaseManager.ExecuteReader("SELECT last_insert_rowid()");
-                if (!reader.Read())
-                    return;
-                id = reader.GetInt32(0);
-            }
+            var filter = _filterWrapperFactory.CreateNew(word, banDuration, addedBy, isRegex, isWhitelist);
             lock (_filters)
-            {
-                if (FilterExists(id))
-                {
-                    var filter = GetFilter(id);
-                    filter.word = word;
-                    filter.addedBy = addedBy;
-                    filter.duration = banDuration;
-                    filter.isRegex = isRegex;
-                    filter.isWhitelist = isWhitelist;
-                }
-                else
-                {
-                    _filters.Add(new FilterItem { id = id, word = word, duration = banDuration, addedBy = addedBy, isRegex = isRegex, isWhitelist = isWhitelist });
-                }
-            }
+                _filters.Add(filter.Id, filter);
         }
 
-        public void RemoveFilterWord(int id)
+        public void UpdateFilterWord(Guid id, string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
         {
+            UpdateModel(id, word, banDuration, addedBy, isRegex, isWhitelist);
+            if (!_filters.ContainsKey(id))
+                return;
+
+            var filter = _filters[id];
+            filter.Word = word;
+            filter.Author = addedBy;
+            filter.BanDuration = banDuration;
+            filter.IsRegex = isRegex;
+            filter.IsWhitelist = isWhitelist;
+        }
+
+        private void UpdateModel(Guid id, string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
+        {
+            var filter = _repository.FindById(id);
+            if (filter == null)
+                return;
+
+            filter.Word = word;
+            filter.BanDuration = banDuration;
+            filter.Author = addedBy;
+            filter.IsRegex = isRegex;
+            filter.IsWhitelist = isWhitelist;
+            _repository.Save(filter);
+            _repository.FlushSession();
+        }
+
+        public void RemoveFilterWord(FilterWrapper wrapper)
+        {
+            if (wrapper == null)
+                return;
+
+            _repository.Remove(wrapper.Model);
+            _repository.FlushSession();
             lock (_filters)
-            {
-                _filters.RemoveAll(x => x.id == id);
-                _databaseManager.ExecuteNonQuery("DELETE FROM filters WHERE id=" + id + ";");
-            }
+                _filters.Remove(wrapper.Id);
         }
 
         public void RemoveFilterWord(string word)
@@ -138,33 +111,31 @@ namespace RoxorBot.Logic.Managers
             if (filter == null)
                 return;
 
-            RemoveFilterWord(filter.id);
+            RemoveFilterWord(filter);
         }
 
-        public bool CheckFilter(ChatMessage e)
+        public FilterWrapper CheckFilter(ChatMessage e)
         {
             if (e == null)
-                return false;
+                return null;
             if (IsAdminOrAllowed(e.Username))
-                return false;
+                return null;
 
-            var items = _filters.FindAll(x => e.Message.ToLower().Contains(x.word.ToLower()));
-            var exists = items.Count > 0;
-            if (exists && items.Any(x => x.isWhitelist))
-                return false;
-            if (exists)
-                return true;
+            lock (_filters)
+            {
+                var items = _filters.Select(x => x.Value).Where(x => e.Message.ToLower().Contains(x.Word.ToLower())).ToList();
+                if (items.Any(x => x.IsWhitelist))
+                    return null;
+                if (items.Any())
+                    return items.First();
 
-            var temp = _filters.FindAll(x => x.isRegex);
-            var toCheck = new List<FilterItem>();
-            foreach (var filter in temp)
-                if (Regex.IsMatch(e.Message, filter.word))
-                    toCheck.Add(filter);
+                var temp = _filters.Select(x => x.Value).Where(x => x.IsRegex);
+                var toCheck = temp.Where(x => Regex.IsMatch(e.Message, x.Word)).ToList();
+                if (toCheck.Any(x => x.IsWhitelist))
+                    return null;
 
-            if (toCheck.Count > 0 && toCheck.Any(x => x.isWhitelist))
-                return false;
-
-            return toCheck.Count > 0;
+                return toCheck.FirstOrDefault();
+            }
         }
 
         private bool IsAdminOrAllowed(string user)
@@ -172,46 +143,42 @@ namespace RoxorBot.Logic.Managers
             return _usersManager.IsAdmin(user) || _usersManager.IsAllowed(user);
         }
 
-        public FilterItem GetFilter(int id)
+        public FilterWrapper GetFilter(Guid id)
         {
-            return _filters.Find(x => x.id == id);
+            if (!_filters.ContainsKey(id))
+                return null;
+
+            return _filters[id];
         }
 
-        public FilterItem GetFilter(string word)
+        public FilterWrapper GetFilter(string word)
         {
-            return _filters.Find(x => x.word == word);
+            lock (_filters)
+                return _filters.Values.FirstOrDefault(x => x.Word == word);
         }
 
-        public List<FilterItem> GetAllFilters(FilterMode mode)
+        public List<FilterWrapper> GetAllFilters(FilterMode mode)
         {
-            var result = new List<FilterItem>();
+            var result = new List<FilterWrapper>();
             lock (_filters)
             {
                 switch (mode)
                 {
                     case FilterMode.All:
-                        result.AddRange(_filters.FindAll(x => !x.isWhitelist));
+                        result.AddRange(_filters.Values.Where(x => !x.IsWhitelist));
                         break;
                     case FilterMode.Plain:
-                        result.AddRange(_filters.FindAll(x => !x.isRegex && !x.isWhitelist));
+                        result.AddRange(_filters.Values.Where(x => !x.IsRegex && !x.IsWhitelist));
                         break;
                     case FilterMode.Regex:
-                        result.AddRange(_filters.FindAll(x => x.isRegex && !x.isWhitelist));
+                        result.AddRange(_filters.Values.Where(x => x.IsRegex && !x.IsWhitelist));
                         break;
                     case FilterMode.Whitelist:
-                        result.AddRange(_filters.FindAll(x => x.isWhitelist));
+                        result.AddRange(_filters.Values.Where(x => x.IsWhitelist));
                         break;
                 }
             }
             return result;
         }
-    }
-
-    public enum FilterMode
-    {
-        All,
-        Regex,
-        Plain,
-        Whitelist
     }
 }

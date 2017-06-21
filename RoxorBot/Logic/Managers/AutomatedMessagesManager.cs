@@ -1,108 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Prism.Events;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Database;
+using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Providers;
 using RoxorBot.Data.Model;
+using RoxorBot.Data.Model.Database.Entities;
 
 namespace RoxorBot.Logic.Managers
 {
     public class AutomatedMessagesManager : IAutomatedMessagesManager
     {
         private readonly ILogger _logger;
-        private readonly IChatManager _chatManager;
-        private readonly IDatabaseManager _databaseManager;
+        private readonly IEventAggregator _aggregator;
+        private readonly IAutomatedMessageWrapperFactory _wrapperFactory;
+        private readonly IAutomatedMessagesRepository _repository;
 
-        private readonly Dictionary<int, AutomatedMessage> _messages;
+        private readonly Dictionary<Guid, AutomatedMessageWrapper> _messages;
         public bool IsPaused { get; private set; }
         public bool IsRunning { get; private set; }
 
-        public AutomatedMessagesManager(ILogger logger, IChatManager chatManager, IDatabaseManager databaseManager)
+        public AutomatedMessagesManager(ILogger logger, IEventAggregator aggregator, IAutomatedMessageWrapperFactory wrapperFactory, IAutomatedMessagesRepository repository)
         {
             _logger = logger;
-            _chatManager = chatManager;
-            _databaseManager = databaseManager;
+            _aggregator = aggregator;
+            _wrapperFactory = wrapperFactory;
+            _repository = repository;
 
             logger.Log("Initializing MessagesManager...");
             _messages = LoadMessages();
             IsRunning = false;
         }
 
-        public void AddAutomatedMessage(string msg, int interval, bool start, bool enabled, int id = 0)
+        public void AddAutomatedMessage(string text, int interval, bool start, bool enabled)
         {
-            if (id > 0)
-            {
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO messages (id, message, interval, enabled) VALUES (" + id + ", '" + msg + "', " + interval + ", " + (enabled ? "1" : "0") + ");");
-            }
-            else
-            {
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO messages (message, interval, enabled) VALUES ('" + msg + "', " + interval + ", 1);");
-                var reader = _databaseManager.ExecuteReader("SELECT last_insert_rowid()");
-                if (!reader.Read())
-                    return;
-                id = reader.GetInt32(0);
-            }
-            var message = GetMessage(id);
-            if (message == null)
-            {
-                message = new AutomatedMessage();
-                message.id = id;
-                message.active = true;
-                _messages.Add(id, message);
-            }
-            message.message = msg;
-            message.interval = interval;
-
-            if (message.timer != null && message.timer.Enabled)
-                message.timer.Stop();
-            message.timer = new System.Timers.Timer(message.interval * 60 * 1000);
-            message.timer.AutoReset = true;
-            message.timer.Elapsed += (a, b) =>
-            {
-                if (IsRunning && message.active)
-                    _chatManager.SendChatMessage(message.message);
-            };
-            if (start)
-                message.timer.Start();
-        }
-
-        public void RemoveMessage(AutomatedMessage msg)
-        {
+            var message = _wrapperFactory.CreateNew(text, interval, enabled);
             lock (_messages)
-            {
-                msg.timer?.Stop();
-                _messages.Remove(msg.id);
-                _databaseManager.ExecuteNonQuery("DELETE FROM messages WHERE id=" + msg.id + ";");
-            }
+                _messages.Add(message.Id, message);
+            if (start)
+                message.Start();
         }
 
-        private Dictionary<int, AutomatedMessage> LoadMessages()
+        public void UpdateAutomatedMessage(Guid id, string msg, int interval, bool start, bool enabled)
         {
-            var result = new Dictionary<int, AutomatedMessage>();
-            var reader = _databaseManager.ExecuteReader("SELECT * FROM messages;");
+            if (id == Guid.Empty)
+                return;
 
-            while (reader.Read())
+            UpdateModel(id, msg, interval, enabled);
+            if (!_messages.ContainsKey(id))
+                return;
+
+            var message = _messages[id];
+            message.Stop();
+            message.Message = msg;
+            message.Interval = interval;
+            message.Enabled = enabled;
+            if (start)
+                message.Start();
+        }
+
+        private void UpdateModel(Guid id, string msg, int interval, bool enabled)
+        {
+            var message = _repository.FindById(id);
+            if (message == null)
+                return;
+
+            message.Message = msg;
+            message.Interval = interval;
+            message.Enabled = enabled;
+            _repository.Save(message);
+            _repository.FlushSession();
+        }
+
+        public void RemoveMessage(AutomatedMessageWrapper msg)
+        {
+            msg.Stop();
+            msg.Dispose();
+
+            lock (_messages)
+                _messages.Remove(msg.Id);
+
+            _repository.Remove(msg.Model);
+            _repository.FlushSession();
+        }
+
+        private Dictionary<Guid, AutomatedMessageWrapper> LoadMessages()
+        {
+            var result = new Dictionary<Guid, AutomatedMessageWrapper>();
+            var messages = _repository.GetAll();
+
+            foreach (var msg in messages)
             {
-                var id = Convert.ToInt32(reader["id"]);
-                var msg = (string)reader["message"];
-                var interval = (int)reader["interval"];
-                var enabled = (bool)reader["enabled"];
-                var timer = new System.Timers.Timer(interval * 60 * 1000);
-                timer.AutoReset = true;
-                timer.Elapsed += (a, b) =>
-                {
-                    var message = GetMessage(id);
-                    if (IsRunning && message.active)
-                        _chatManager.SendChatMessage(message.message);
-                };
-                result.Add(id, new AutomatedMessage
-                {
-                    id = id,
-                    message = msg,
-                    interval = interval,
-                    timer = timer,
-                    active = enabled
-                });
+                result.Add(msg.Id, _wrapperFactory.CreateNew(msg));
             }
 
             _logger.Log("Loaded " + result.Count + " automated messages from database.");
@@ -110,28 +103,24 @@ namespace RoxorBot.Logic.Managers
             return result;
         }
 
-        /// <summary>
-        /// Don't forget to change button's enabled status!
-        /// </summary>
         public void StartAllTimers()
         {
             foreach (var msg in _messages.Values)
-                msg.timer?.Start();
+                msg.Start();
 
             IsRunning = true;
             IsPaused = false;
+            _aggregator.GetEvent<RaiseButtonsEnabled>().Publish();
         }
 
-        /// <summary>
-        /// Don't forget to change button's enabled status!
-        /// </summary>
         public void StopAllTimers()
         {
             foreach (var msg in _messages.Values)
-                msg.timer?.Stop();
+                msg.Stop();
 
             IsRunning = false;
             IsPaused = false;
+            _aggregator.GetEvent<RaiseButtonsEnabled>().Publish();
         }
 
         public void PauseAllTimers()
@@ -140,12 +129,12 @@ namespace RoxorBot.Logic.Managers
             IsPaused = true;
         }
 
-        public List<AutomatedMessage> GetAllMessages()
+        public List<AutomatedMessageWrapper> GetAllMessages()
         {
             return _messages.Values.ToList();
         }
 
-        public AutomatedMessage GetMessage(int id)
+        public AutomatedMessageWrapper GetMessage(Guid id)
         {
             if (_messages.ContainsKey(id))
                 return _messages[id];

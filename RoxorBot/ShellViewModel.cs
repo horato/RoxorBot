@@ -19,12 +19,11 @@ namespace RoxorBot
     public class ShellViewModel
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IPointsManager _pointsManager;
-        private readonly IDatabaseManager _databaseManager;
+        private readonly IUsersManager _usersManager;
 
         public ICommand ClosingCommand { get; }
 
-        public ShellViewModel(IEventAggregator aggregator, IPointsManager pointsManager, IDatabaseManager databaseManager)
+        public ShellViewModel(IEventAggregator aggregator, IUsersManager usersManager)
         {
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.TwitchId))
                 Properties.Settings.Default.TwitchId = Prompt.ShowDialog("Specify twitch clientId", "Twitch client Id");
@@ -36,8 +35,8 @@ namespace RoxorBot
             TwitchAPI.Settings.AccessToken = Properties.Settings.Default.twitch_oauth;
 
             _aggregator = aggregator;
-            _pointsManager = pointsManager;
-            _databaseManager = databaseManager;
+            _usersManager = usersManager;
+
             ClosingCommand = new DelegateCommand(Closing, CanClosing);
 
             _aggregator.GetEvent<RaiseButtonsEnabled>().Subscribe(OnRaiseButtonsEnabled);
@@ -53,8 +52,7 @@ namespace RoxorBot
         public void Closing()
         {
             Properties.Settings.Default.Save();
-            _pointsManager.Save();
-            _databaseManager.Close();
+            _usersManager.SaveAll();
             Mail.sendMail();
             //if (plugDjWindow != null)
             //{

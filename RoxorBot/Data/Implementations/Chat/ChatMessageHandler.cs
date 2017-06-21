@@ -47,28 +47,23 @@ namespace RoxorBot.Data.Implementations.Chat
                 return;
 
             if (IsSpamMessage(msg))
-                PunishSpam(msg);
-            else if (_filterManager.CheckFilter(msg))
             {
-                var item = _filterManager.GetFilter(msg.Message);
-                if (item == null)
-                {
-                    var temp = _filterManager.GetAllFilters(FilterMode.Regex);
-                    foreach (var filter in temp)
-                        if (Regex.IsMatch(msg.Message, filter.word))
-                            item = filter;
-                }
-
+                PunishSpam(msg);
+            }
+            else
+            {
+                var item = _filterManager.CheckFilter(msg);
                 if (item == null)
                     return;
-                if (item.duration == -1)
+
+                if (item.BanDuration == -1)
                     _chatManager.BanUser(msg.Username);
                 else
-                    _chatManager.TimeoutUser(msg.Username, TimeSpan.FromSeconds(item.duration));
+                    _chatManager.TimeoutUser(msg.Username, TimeSpan.FromSeconds(item.BanDuration));
 
                 if (Properties.Settings.Default.notifyChatRestriction)
-                    _chatManager.SendChatMessage(msg.DisplayName + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word HeyGuys");
-                _aggregator.GetEvent<AddLogEvent>().Publish(msg.DisplayName + " awarded " + (item.duration == -1 ? "permanent ban" : item.duration + "s timeout") + " for filtered word.");
+                    _chatManager.SendChatMessage(msg.DisplayName + " awarded " + (item.BanDuration == -1 ? "permanent ban" : item.BanDuration + "s timeout") + " for filtered word HeyGuys");
+                _aggregator.GetEvent<AddLogEvent>().Publish(msg.DisplayName + " awarded " + (item.BanDuration == -1 ? "permanent ban" : item.BanDuration + "s timeout") + " for filtered word.");
             }
         }
 

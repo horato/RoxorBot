@@ -9,7 +9,6 @@ using RoxorBot.Data.Model;
 using RoxorBot.Data.Model.JSON.FollowerManager;
 using TwitchLib;
 using TwitchLib.Models.API.v3.Follows;
-using User = RoxorBot.Data.Model.User;
 
 namespace RoxorBot.Logic.Managers
 {
@@ -47,6 +46,7 @@ namespace RoxorBot.Logic.Managers
                     user.IsFollowerSince = null;
                 }
 
+                _usersManager.SaveAll();
                 _logger.Log("Followers updated. Detected total of " + GetFollowersCount() + " followers and " + followers.Count + " unfollows.");
             }
             catch
@@ -55,17 +55,17 @@ namespace RoxorBot.Logic.Managers
             }
         }
 
-        private List<User> LoadFollowers()
+        private List<UserWrapper> LoadFollowers()
         {
             var continueLoading = true;
             var offset = 0;
-            var result = new List<User>();
+            var result = new List<UserWrapper>();
 
             while (continueLoading)
             {
                 var followers = TwitchAPI.Follows.v3.GetFollowers("roxork0", 50, offset).Result;
                 if (followers == null)
-                    return new List<User>();
+                    return new List<UserWrapper>();
 
                 foreach (var follower in followers.Followers)
                 {
@@ -82,6 +82,7 @@ namespace RoxorBot.Logic.Managers
                     continueLoading = false;
             }
 
+            _usersManager.SaveAll();
             return result;
         }
 

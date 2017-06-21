@@ -6,7 +6,10 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Extensions;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model;
+using RoxorBot.Data.Model.Database.Entities;
 using TwitchLib;
 using TwitchLib.Models.Client;
 
@@ -16,26 +19,38 @@ namespace RoxorBot.Logic.Managers
     {
         private readonly IEventAggregator _aggregator;
         private readonly ILogger _logger;
-        private readonly IDatabaseManager _databaseManager;
         private readonly ITwitchLibTranslationService _translationService;
-        private readonly List<User> _users;
+        private readonly IUsersRepository _usersRepository;
+        private readonly IUserWrapperFactory _userWrapperFactory;
+        private readonly Dictionary<Guid, UserWrapper> _users;
         private readonly List<string> _superAdmins;
 
         public int UsersCount => _users.Count;
 
-        public UsersManager(IEventAggregator aggregator, ILogger logger, IDatabaseManager databaseManager, ITwitchLibTranslationService translationService)
+        public UsersManager(IEventAggregator aggregator, ILogger logger, ITwitchLibTranslationService translationService, IUsersRepository usersRepository, IUserWrapperFactory factory)
         {
             _aggregator = aggregator;
             _logger = logger;
-            _databaseManager = databaseManager;
             _translationService = translationService;
+            _usersRepository = usersRepository;
+            _userWrapperFactory = factory;
             _logger.Log("Loading UsersManager...");
 
-            _users = new List<User>();
+            _users = LoadUsers();
             _superAdmins = new List<string> { "roxork0", "horato2" };
             _aggregator.GetEvent<ChatUserJoinedEvent>().Subscribe(OnChatUserJoined);
             _aggregator.GetEvent<ChatUserLeftEvent>().Subscribe(OnChatUserLeft);
             _aggregator.GetEvent<ModeratorsListReceivedEvent>().Subscribe(OnModeratorsListReceived);
+        }
+
+        private Dictionary<Guid, UserWrapper> LoadUsers()
+        {
+            var ret = new Dictionary<Guid, UserWrapper>();
+            var users = _usersRepository.GetAll();
+            foreach (var user in users)
+                ret.Add(user.Id, _userWrapperFactory.CreateNew(user));
+
+            return ret;
         }
 
         private void OnModeratorsListReceived(List<string> e)
@@ -80,19 +95,19 @@ namespace RoxorBot.Logic.Managers
             {
                 var type = _translationService.TranslateUserType(user.UserType);
                 var u = AddOrGetUser(user.Username, type);
-                u.IsOnline = true;
+                ChangeOnlineStatus(u.InternalName, true);
             }
         }
 
-        public User AddOrGetUser(string user, Role role)
+        public UserWrapper AddOrGetUser(string user, Role role)
         {
             var u = GetUser(user);
-            if (u == null)
-            {
-                u = new User { Name = user, InternalName = user.ToLower(), Role = role, IsOnline = false, Points = 0, IsFollower = false };
-                lock (_users)
-                    _users.Add(u);
-            }
+            if (u != null)
+                return u;
+
+            u = _userWrapperFactory.CreateNew(user, user.ToLower(), role, false, 0, false, null, false);
+            lock (_users)
+                _users.Add(u.Id, u);
 
             return u;
         }
@@ -104,7 +119,7 @@ namespace RoxorBot.Logic.Managers
                 return;
 
             user.IsAllowed = true;
-            _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 1);");
+            UpdateModel(user.Model);
         }
 
         public void RevokeAllowUser(string nick)
@@ -114,27 +129,29 @@ namespace RoxorBot.Logic.Managers
                 return;
 
             user.IsAllowed = false;
-            _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO allowedUsers (name, allowed) VALUES (\"" + user.InternalName + "\", 0);");
+            UpdateModel(user.Model);
         }
 
-        public void ChangeOnlineStatus(string user, bool isOnline)
+        public void ChangeOnlineStatus(string nick, bool isOnline)
         {
-            var u = GetUser(user);
-            if (u == null)
+            var user = GetUser(nick);
+            if (user == null)
                 return;
 
-            u.IsOnline = isOnline;
-            //u.RewardTimer = 0;
+            user.IsOnline = isOnline;
+            UpdateModel(user.Model);
         }
 
-        public List<User> GetAllUsers()
+        public List<UserWrapper> GetAllUsers()
         {
-            return _users.ToList();
+            lock (_users)
+                return _users.Values.ToList();
         }
 
-        public User GetUser(string nick)
+        public UserWrapper GetUser(string nick)
         {
-            return _users.Find(x => x.InternalName == nick.ToLower());
+            lock (_users)
+                return _users.Values.SingleOrDefault(x => x.InternalName == nick.ToLower());
         }
 
         public bool IsAdmin(string name)
@@ -142,11 +159,11 @@ namespace RoxorBot.Logic.Managers
             if (IsSuperAdmin(name))
                 return true;
 
-            var user = _users.Find(x => x.InternalName == name.ToLower());
+            var user = GetUser(name);
             return IsAdmin(user);
         }
 
-        public bool IsAdmin(User user)
+        public bool IsAdmin(UserWrapper user)
         {
             if (user == null)
                 return false;
@@ -169,16 +186,34 @@ namespace RoxorBot.Logic.Managers
 
         public bool IsAllowed(string name)
         {
-            var user = _users.Find(x => x.InternalName == name.ToLower());
+            var user = GetUser(name);
             return IsAllowed(user);
         }
 
-        public bool IsAllowed(User user)
+        public bool IsAllowed(UserWrapper user)
         {
             if (user == null)
                 return false;
 
             return user.IsAllowed;
+        }
+
+        public void Save(UserWrapper user)
+        {
+            if (user == null)
+                return;
+
+            UpdateModel(user.Model);
+        }
+
+        public void SaveAll()
+        {
+            lock (_users)
+            {
+                foreach (var user in _users.Values)
+                    _usersRepository.Save(user.Model);
+                _usersRepository.FlushSession();
+            }
         }
 
         private void SetAsModerator(string userName)
@@ -188,6 +223,16 @@ namespace RoxorBot.Logic.Managers
                 return;
 
             u.Role = Role.Moderators;
+            UpdateModel(u.Model);
+        }
+
+        private void UpdateModel(User model)
+        {
+            if (model == null)
+                return;
+
+            _usersRepository.Save(model);
+            _usersRepository.FlushSession();
         }
     }
 }

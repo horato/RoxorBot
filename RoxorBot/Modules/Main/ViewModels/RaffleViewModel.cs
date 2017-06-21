@@ -58,7 +58,7 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         public bool IsRunning => _raffleManager.IsRunning;
         public bool IsNotRunning => !IsRunning;
-        public ObservableCollection<User> Participants { get; } = new ObservableCollection<User>();
+        public ObservableCollection<UserWrapper> Participants { get; } = new ObservableCollection<UserWrapper>();
 
         public RaffleViewModel(IRaffleManager raffleManager)
         {
@@ -115,7 +115,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             _raffleManager.OnWinnerPicked -= RaffleManagerOnOnWinnerPicked;
         }
 
-        private void RaffleManagerOnOnUserAdd(object sender, User user)
+        private void RaffleManagerOnOnUserAdd(object sender, UserWrapper user)
         {
             Participants.Add(user);
         }

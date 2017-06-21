@@ -11,16 +11,26 @@ using Microsoft.Practices.Unity;
 using Prism.Modularity;
 using Prism.Mvvm;
 using Prism.Regions;
+using RoxorBot.Data;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Implementations.Chat;
+using RoxorBot.Data.Implementations.Database.Repository;
+using RoxorBot.Data.Implementations.Factories;
+using RoxorBot.Data.Implementations.Factories.Entities;
+using RoxorBot.Data.Implementations.Factories.Wrapper;
 using RoxorBot.Data.Implementations.Providers;
+using RoxorBot.Data.Implementations.Repositories;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Database;
+using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Factories.Entities;
 using RoxorBot.Data.Interfaces.Providers;
 using RoxorBot.Logic.Managers;
 using RoxorBot.Modules.Main;
 using RoxorBot.Modules.Output;
 using RoxorBot.Modules.Toolbar;
+using RoxorBot.Data.Interfaces.Repositories;
 
 namespace RoxorBot
 {
@@ -67,6 +77,23 @@ namespace RoxorBot
             base.ConfigureContainer();
 
             RegisterTypeIfMissing(typeof(ILogger), typeof(Logger), true);
+            RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
+            RegisterTypeIfMissing(typeof(ITwitchLibTranslationService), typeof(TwitchLibTranslationService), false);
+            RegisterTypeIfMissing(typeof(IChatHandlersProvider), typeof(ChatHandlersProvider), false);
+            RegisterTypeIfMissing(typeof(IDialogService), typeof(DialogService), false);
+
+            RegisterManagers();
+            RegisterRepositories();
+            RegisterProviders();
+            RegisterFactories();
+
+            DI.Container = Container;
+            Container.Resolve<IDatabaseManager>().Init();
+        }
+
+
+        private void RegisterManagers()
+        {
             RegisterTypeIfMissing(typeof(IRaffleManager), typeof(RaffleManager), true);
             RegisterTypeIfMissing(typeof(IChatManager), typeof(ChatManager), true);
             RegisterTypeIfMissing(typeof(IRewardTimerManager), typeof(RewardTimerManager), true);
@@ -78,9 +105,33 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IFollowersManager), typeof(FollowersManager), true);
             RegisterTypeIfMissing(typeof(IUsersManager), typeof(UsersManager), true);
             RegisterTypeIfMissing(typeof(IYoutubeManager), typeof(YoutubeManager), true);
-            RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
-            RegisterTypeIfMissing(typeof(ITwitchLibTranslationService), typeof(TwitchLibTranslationService), false);
-            RegisterTypeIfMissing(typeof(IChatHandlersProvider), typeof(ChatHandlersProvider), false);
+        }
+
+        private void RegisterRepositories()
+        {
+            RegisterTypeIfMissing(typeof(IAutomatedMessagesRepository), typeof(AutomatedMessagesRepository), false);
+            RegisterTypeIfMissing(typeof(IFilterRepository), typeof(FilterRepository), false);
+            RegisterTypeIfMissing(typeof(IUsersRepository), typeof(UsersRepository), false);
+            RegisterTypeIfMissing(typeof(IUserCommandsRepository), typeof(UserCommandsRepository), false);
+        }
+
+        private void RegisterProviders()
+        {
+            RegisterTypeIfMissing(typeof(IAutomatedMessagesProvider), typeof(AutomatedMessagesProvider), false);
+            RegisterTypeIfMissing(typeof(IFilterProvider), typeof(FilterProvider), false);
+            RegisterTypeIfMissing(typeof(IUsersProvider), typeof(UsersProvider), false);
+            RegisterTypeIfMissing(typeof(IUserCommandsProvider), typeof(UserCommandsProvider), false);
+        }
+
+        private void RegisterFactories()
+        {
+            RegisterTypeIfMissing(typeof(IUserFactory), typeof(UserFactory), false);
+            RegisterTypeIfMissing(typeof(IUserCommandFactory), typeof(UserCommandFactory), false);
+
+            RegisterTypeIfMissing(typeof(IAutomatedMessageWrapperFactory), typeof(AutomatedMessageWrapperFactory), false);
+            RegisterTypeIfMissing(typeof(IFilterWrapperFactory), typeof(FilterWrapperFactory), false);
+            RegisterTypeIfMissing(typeof(IUserWrapperFactory), typeof(UserWrapperFactory), false);
+            RegisterTypeIfMissing(typeof(IUserCommandWrapperFactory), typeof(UserCommandWrapperFactory), false);
         }
     }
 }

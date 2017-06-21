@@ -9,20 +9,14 @@ namespace RoxorBot.Logic.Managers
     public class PointsManager : IPointsManager
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IChatManager _chatManager;
-        private readonly IDatabaseManager _databaseManager;
         private readonly IUsersManager _usersManager;
 
-        public PointsManager(IEventAggregator aggregator, IChatManager chatManager, IDatabaseManager databaseManager, IUsersManager usersManager)
+        public PointsManager(IEventAggregator aggregator, IUsersManager usersManager)
         {
             _aggregator = aggregator;
-            _chatManager = chatManager;
-            _databaseManager = databaseManager;
             _usersManager = usersManager;
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing PointsManager...");
-            LoadViewers();
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + GetUsersCount() + " viewers from database.");
         }
 
         public void AddPoints(string user, int points)
@@ -48,9 +42,8 @@ namespace RoxorBot.Logic.Managers
                 u = _usersManager.AddOrGetUser(user, Role.Viewers);
 
             u.Points = points;
-
             if (dbUpdate)
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.ToLower() + "\"," + GetPointsForUser(user) + ");");
+                _usersManager.Save(u);
         }
 
         public bool UserExists(string name)
@@ -70,22 +63,6 @@ namespace RoxorBot.Logic.Managers
         public int GetUsersCount()
         {
             return _usersManager.UsersCount;
-        }
-
-        public void Save()
-        {
-            var users = _usersManager.GetAllUsers();
-            foreach (var user in users)
-                if (user.Points > 0)
-                    _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO points (name, score) VALUES (\"" + user.InternalName + "\"," + user.Points + ");");
-        }
-
-        private void LoadViewers()
-        {
-            var reader = _databaseManager.ExecuteReader("SELECT * FROM points;");
-
-            while (reader.Read())
-                SetPoints((string)reader["name"], (int)reader["score"], false);
         }
     }
 }

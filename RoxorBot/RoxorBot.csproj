@@ -188,24 +188,82 @@
     <Compile Include="Controls\CommandsListControl.xaml.cs">
       <DependentUpon>CommandsListControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AddCommandDialog.xaml.cs">
+    <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
+    <Compile Include="Modules\Main\ViewModels\AddCommandDialogViewModel.cs" />
+    <Compile Include="Modules\Main\Views\AddCommandDialog.xaml.cs">
       <DependentUpon>AddCommandDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\AddPointsDialog.xaml.cs">
       <DependentUpon>AddPointsDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AddMessageDialog.xaml.cs">
+    <Compile Include="Data\Enums\FilterMode.cs" />
+    <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_2_AddUsers.cs" />
+    <Compile Include="Data\Implementations\Factories\Entities\UserFactory.cs" />
+    <Compile Include="Data\Implementations\Factories\Entities\UserCommandFactory.cs" />
+    <Compile Include="Data\Implementations\Factories\Wrapper\FilterWrapperFactory.cs" />
+    <Compile Include="Data\Implementations\Factories\Wrapper\UserCommandWrapperFactory.cs" />
+    <Compile Include="Data\Implementations\Factories\Wrapper\UserWrapperFactory.cs" />
+    <Compile Include="Data\Implementations\Providers\UserCommandsProvider.cs" />
+    <Compile Include="Data\Implementations\Providers\FilterProvider.cs" />
+    <Compile Include="Data\Implementations\Providers\UsersProvider.cs" />
+    <Compile Include="Data\Implementations\Repositories\UserCommandsRepository.cs" />
+    <Compile Include="Data\Implementations\Repositories\FilterRepository.cs" />
+    <Compile Include="Data\Implementations\Repositories\UsersRepository.cs" />
+    <Compile Include="Data\Interfaces\Dialog\IDialogViewModel.cs" />
+    <Compile Include="Data\Interfaces\Factories\Entities\IUserFactory.cs" />
+    <Compile Include="Data\Interfaces\Factories\Entities\IUserCommandFactory.cs" />
+    <Compile Include="Data\Interfaces\Factories\Wrapper\IFilterWrapperFactory.cs" />
+    <Compile Include="Data\Interfaces\Factories\Wrapper\IUserCommandWrapperFactory.cs" />
+    <Compile Include="Data\Interfaces\Factories\Wrapper\IUserWrapperFactory.cs" />
+    <Compile Include="Data\Interfaces\Providers\IUserCommandsProvider.cs" />
+    <Compile Include="Data\Interfaces\Providers\IFilterProvider.cs" />
+    <Compile Include="Data\Interfaces\Providers\IUsersProvider.cs" />
+    <Compile Include="Data\Interfaces\Repositories\IFilterRepository.cs" />
+    <Compile Include="Data\Interfaces\Repositories\IUserCommandsRepository.cs" />
+    <Compile Include="Data\Interfaces\Repositories\IUsersRepository.cs" />
+    <Compile Include="Data\Model\Database\Entities\User.cs" />
+    <Compile Include="Data\Model\Database\Mappings\UserMap.cs" />
+    <Compile Include="Modules\Main\ViewModels\AddFilterDialogViewModel.cs" />
+    <Compile Include="Modules\Main\ViewModels\AddMessageDialogViewModel.cs" />
+    <Compile Include="Modules\Main\Views\AddMessageDialog.xaml.cs">
       <DependentUpon>AddMessageDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AddFilterDialog.xaml.cs">
+    <Compile Include="Modules\Main\Views\AddFilterDialog.xaml.cs">
       <DependentUpon>AddFilterDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Data\Attributes\ChangescriptAttribute.cs" />
+    <Compile Include="Data\Events\AnnounceAutomatedMessage.cs" />
+    <Compile Include="Data\Implementations\Database\Changescripts\ChangescriptsHandler.cs" />
+    <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_1_InitDatabase.cs" />
+    <Compile Include="Data\Constants\SQLTableNames.cs" />
     <Compile Include="Data\Controls\VlcPlayer.xaml.cs">
       <DependentUpon>VlcPlayer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Data\DI.cs" />
     <Compile Include="Data\Events\Youtube\VideoRemovedEvent.cs" />
     <Compile Include="Data\Events\Youtube\VideoAddedEvent.cs" />
+    <Compile Include="Data\Implementations\Repositories\AutomatedMessagesRepository.cs" />
+    <Compile Include="Data\Implementations\Repositories\Repository.cs" />
+    <Compile Include="Data\Implementations\DialogService.cs" />
+    <Compile Include="Data\Implementations\Factories\Wrapper\AutomatedMessageWrapperFactory.cs" />
+    <Compile Include="Data\Implementations\Providers\AutomatedMessagesProvider.cs" />
+    <Compile Include="Data\Interfaces\Repositories\IAutomatedMessagesRepository.cs" />
+    <Compile Include="Data\Interfaces\Repositories\IRepository.cs" />
+    <Compile Include="Data\Interfaces\Factories\Wrapper\IAutomatedMessageWrapperFactory.cs" />
+    <Compile Include="Data\Interfaces\IChangescript.cs" />
     <Compile Include="Data\Interfaces\ICurrentSongChangedNotifier.cs" />
+    <Compile Include="Data\Interfaces\Dialog\IDialog.cs" />
+    <Compile Include="Data\Interfaces\Dialog\IDialogService.cs" />
+    <Compile Include="Data\Interfaces\Providers\IAutomatedMessagesProvider.cs" />
+    <Compile Include="Data\Model\Database\Entities\AutomatedMessage.cs" />
+    <Compile Include="Data\Model\Database\Entities\Entity.cs" />
+    <Compile Include="Data\Model\Database\Entities\Filter.cs" />
+    <Compile Include="Data\Model\Database\Entities\UserCommand.cs" />
+    <Compile Include="Data\Model\Database\Mappings\UserCommandMap.cs" />
+    <Compile Include="Data\Model\Database\Mappings\EntityMap.cs" />
+    <Compile Include="Data\Model\Database\Mappings\FilterMap.cs" />
+    <Compile Include="Data\Model\Database\Mappings\AutomatedMessageMap.cs" />
+    <Compile Include="Data\Base\WrapperBase.cs" />
     <Compile Include="Modules\Main\ViewModels\YoutubeViewModel.cs" />
     <Compile Include="Modules\Main\Views\YoutubeView.xaml.cs">
       <DependentUpon>YoutubeView.xaml</DependentUpon>
@@ -221,7 +279,7 @@
     <Compile Include="Data\Converters\RewardTimerLabelContentConverter.cs" />
     <Compile Include="Data\Converters\LabelForegroundConverter.cs" />
     <Compile Include="Data\Enums\ChatConnectionState.cs" />
-    <Compile Include="Data\Enums\RaiseButtonsEnabled.cs" />
+    <Compile Include="Data\Events\RaiseButtonsEnabled.cs" />
     <Compile Include="Data\Events\AddLogEvent.cs" />
     <Compile Include="Data\Events\ChatBlockedEvent.cs" />
     <Compile Include="Data\Events\ChatConnectionChangedEvent.cs" />
@@ -282,7 +340,7 @@
     <Compile Include="Data\Interfaces\IYoutubeManager.cs" />
     <Compile Include="Data\Interfaces\ITwitchLibTranslationService.cs" />
     <Compile Include="Data\Interfaces\Providers\IChatHandlersProvider.cs" />
-    <Compile Include="Data\Model\UserWrapper.cs" />
+    <Compile Include="Data\Model\Wrappers\UserDisplayWrapper.cs" />
     <Compile Include="Data\ViewHelpers\EventToCommand.xaml.cs">
       <DependentUpon>EventToCommand.xaml</DependentUpon>
     </Compile>
@@ -296,8 +354,8 @@
     <Compile Include="Logic\Managers\RewardTimerManager.cs" />
     <Compile Include="Logic\Managers\UserCommandsManager.cs" />
     <Compile Include="Logic\Managers\YoutubeManager.cs" />
-    <Compile Include="Data\Model\AutomatedMessage.cs" />
-    <Compile Include="Data\Model\FilterItem.cs" />
+    <Compile Include="Data\Model\Wrappers\AutomatedMessageWrapper.cs" />
+    <Compile Include="Data\Model\Wrappers\FilterWrapper.cs" />
     <Compile Include="Data\Model\JSON\ChannelInfo.cs" />
     <Compile Include="Data\Model\JSON\Chatters.cs" />
     <Compile Include="Data\Model\JSON\ChattersList.cs" />
@@ -308,10 +366,10 @@
     <Compile Include="Data\Model\JSON\Followers.cs" />
     <Compile Include="Data\Model\JSON\Links.cs" />
     <Compile Include="Data\Model\JSON\TwitchStream.cs" />
-    <Compile Include="Data\Model\Role.cs" />
+    <Compile Include="Data\Enums\Role.cs" />
     <Compile Include="Logic\Managers\PointsManager.cs" />
     <Compile Include="Logic\Prompt.cs" />
-    <Compile Include="Data\Model\UserCommand.cs" />
+    <Compile Include="Data\Model\Wrappers\UserCommandWrapper.cs" />
     <Compile Include="Data\Model\Youtube\ContentDetails.cs" />
     <Compile Include="Data\Model\Youtube\PageInfo.cs" />
     <Compile Include="Data\Model\Youtube\ResourceId.cs" />
@@ -344,7 +402,7 @@
     <Compile Include="Properties\Settings.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Logic\TimeParser.cs" />
-    <Compile Include="Data\Model\User.cs" />
+    <Compile Include="Data\Model\Wrappers\UserWrapper.cs" />
     <Compile Include="Logic\Managers\UsersManager.cs" />
     <Compile Include="Modules\Main\Views\RaffleView.xaml.cs">
       <DependentUpon>RaffleView.xaml</DependentUpon>
@@ -360,7 +418,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\AddCommandDialog.xaml">
+    <Page Include="Modules\Main\Views\AddCommandDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -368,11 +426,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\AddMessageDialog.xaml">
+    <Page Include="Modules\Main\Views\AddMessageDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\AddFilterDialog.xaml">
+    <Page Include="Modules\Main\Views\AddFilterDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -2288,6 +2346,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.94.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

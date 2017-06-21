@@ -4,103 +4,111 @@ using System.Linq;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Providers;
+using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model;
+using RoxorBot.Data.Model.Database.Entities;
 
 namespace RoxorBot.Logic.Managers
 {
     public class UserCommandsManager : IUserCommandsManager
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IDatabaseManager _databaseManager;
-
-        private readonly List<UserCommand> _commands;
+        private readonly IUserCommandWrapperFactory _wrapperFactory;
+        private readonly IUserCommandsRepository _commandsRepository;
+        private readonly Dictionary<Guid, UserCommandWrapper> _commands;
         public int CommandsCount => _commands.Count;
 
-        public UserCommandsManager(IEventAggregator aggregator, IDatabaseManager databaseManager)
+        public UserCommandsManager(IEventAggregator aggregator, IUserCommandWrapperFactory wrapperFactory, IUserCommandsRepository commandsRepository)
         {
             _aggregator = aggregator;
-            _databaseManager = databaseManager;
+            _wrapperFactory = wrapperFactory;
+            _commandsRepository = commandsRepository;
 
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing UserCommandsManager...");
             _commands = LoadCommands();
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + CommandsCount + " user commands from database.");
         }
 
-        public void AddCommand(string command, string reply, int id = 0)
+        public void AddCommand(string command, string reply)
         {
-            if (id > 0)
-            {
-                _databaseManager.ExecuteNonQuery("INSERT OR REPLACE INTO userCommands(id, command, reply) VALUES (" + id + ", '" + command.ToLower() + "', '" + reply + "');");
-            }
-            else
-            {
-                _databaseManager.ExecuteNonQuery("INSERT INTO userCommands(command, reply) VALUES ('" + command.ToLower() + "', '" + reply + "');");
-                var reader = _databaseManager.ExecuteReader("SELECT last_insert_rowid()");
-                if (!reader.Read())
-                    return;
-                id = reader.GetInt32(0);
-            }
+            var cmd = _wrapperFactory.CreateNew(command.ToLower(), reply);
+            _commands.Add(cmd.Id, cmd);
+        }
 
-            var cmd = _commands.Find(x => x.Id == id);
+        public void UpdateCommand(Guid id, string command, string reply)
+        {
+            var cmd = GetCommand(id);
             if (cmd == null)
-            {
-                _commands.Add(new UserCommand { Id = id, Command = command.ToLower(), Reply = reply });
-            }
-            else
-            {
-                cmd.Command = command;
-                cmd.Reply = reply;
-            }
+                return;
+
+            cmd.Command = command;
+            cmd.Reply = reply;
+            UpdateModel(cmd.Model);
+        }
+
+        private void UpdateModel(UserCommand model)
+        {
+            if (model == null)
+                return;
+
+            _commandsRepository.Save(model);
+            _commandsRepository.FlushSession();
         }
 
         public bool RemoveCommand(string command)
         {
-            var reader = _databaseManager.ExecuteReader("select max(id) from userCommands where command='" + command + "';");
-            if (!reader.Read())
+            var c = _commands.Values.LastOrDefault(x => string.Equals(x.Command, command, StringComparison.CurrentCultureIgnoreCase));
+            if (c == null)
                 return false;
-            var id = reader.GetInt32(0);
 
-            RemoveCommand(id);
-
+            RemoveCommand(c);
             return true;
         }
 
-        public void RemoveCommand(int id)
+        public void RemoveCommand(UserCommandWrapper command)
         {
-            _databaseManager.ExecuteNonQuery("DELETE FROM userCommands WHERE id=" + id + ";");
-            _commands.RemoveAll(x => x.Id == id);
+            if (command == null)
+                return;
+
+            _commandsRepository.Remove(command.Model);
+            _commandsRepository.FlushSession();
+            _commands.Remove(command.Id);
         }
 
-        private bool CommandsContains(string msg)
+        private bool CommandsContains(string command)
         {
-            return _commands.Exists(x => x.Command.ToLower() == msg.ToLower());
+            return _commands.Values.Any(x => string.Equals(x.Command, command, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        private List<UserCommand> LoadCommands()
+        private Dictionary<Guid, UserCommandWrapper> LoadCommands()
         {
-            var reader = _databaseManager.ExecuteReader("SELECT * FROM userCommands;");
-            var temp = new List<UserCommand>();
+            var commands = _commandsRepository.GetAll();
+            var temp = new Dictionary<Guid, UserCommandWrapper>();
 
-            while (reader.Read())
-            {
-                temp.Add(new UserCommand
-                {
-                    Id = Convert.ToInt32(reader["id"]),
-                    Command = (string)reader["command"],
-                    Reply = (string)reader["reply"]
-                });
-            }
+            foreach (var command in commands)
+                temp.Add(command.Id, _wrapperFactory.CreateNew(command));
+
             return temp;
         }
 
-        public List<UserCommand> GetAllCommands()
+        public List<UserCommandWrapper> GetAllCommands()
         {
-            return _commands.ToList();
+            return _commands.Values.ToList();
         }
 
         public bool IsUserCommand(string command)
         {
             return CommandsContains(command);
+        }
+
+        private UserCommandWrapper GetCommand(Guid id)
+        {
+            if (!_commands.ContainsKey(id))
+                return null;
+
+            return _commands[id];
         }
     }
 }

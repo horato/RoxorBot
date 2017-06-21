@@ -46,7 +46,7 @@ namespace RoxorBot.Logic.Managers
         public string RaffleName { get; set; }
         public string AcceptedWords => string.Join(";", _acceptedWords);
         public bool IsRunning { get; private set; }
-        public event EventHandler<User> OnUserAdd;
+        public event EventHandler<UserWrapper> OnUserAdd;
         public event EventHandler OnWinnerPicked;
 
 
@@ -54,7 +54,7 @@ namespace RoxorBot.Logic.Managers
         private bool _isFollowersOnly;
         private int _entryPointsRequired = 100;
         private readonly List<string> _acceptedWords = new List<string> { "!raffle", "!join" };
-        private readonly List<User> _users = new List<User>();
+        private readonly List<UserWrapper> _users = new List<UserWrapper>();
         private bool _winnerSelected;
 
         public RaffleManager(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IPointsManager pointsManager, IUsersManager usersManager)
@@ -167,7 +167,7 @@ namespace RoxorBot.Logic.Managers
                 _acceptedWords.Add(s);
         }
 
-        public IEnumerable<User> GetAllParticipants()
+        public IEnumerable<UserWrapper> GetAllParticipants()
         {
             return _users.ToList();
         }

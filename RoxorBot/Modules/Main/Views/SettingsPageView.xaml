@@ -31,7 +31,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add" Command="{Binding AddFilterCommand}" />
-                                <MenuItem Header="Edit" Command="{Binding AddFilterCommand}" />
+                                <MenuItem Header="Edit" Command="{Binding EditFilterCommand}" />
                                 <MenuItem Header="Remove" Command="{Binding FilterListDoubleClickCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
@@ -79,7 +79,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add" Command="{Binding AddAutomatedMessageCommand}" />
-                                <MenuItem Header="Edit" Command="{Binding AddAutomatedMessageCommand}" />
+                                <MenuItem Header="Edit" Command="{Binding EditAutomatedMessageCommand}" />
                                 <MenuItem Header="Remove" Command="{Binding AutomatedMessagesDoubleClickCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
@@ -121,7 +121,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add" Command="{Binding AddCustomCommandCommand}" />
-                                <MenuItem Header="Edit" Command="{Binding AddCustomCommandCommand}" />
+                                <MenuItem Header="Edit" Command="{Binding EditCustomCommandCommand}" />
                                 <MenuItem Header="Remove"  Command="{Binding CommandsDoubleClickCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
