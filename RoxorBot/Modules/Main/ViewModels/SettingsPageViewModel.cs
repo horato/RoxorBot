@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using Prism.Mvvm;
+using RoxorBot.Controls;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces;
@@ -26,12 +27,12 @@ namespace RoxorBot.Modules.Main.ViewModels
         public ObservableCollection<AutomatedMessageWrapper> AutomatedMessages { get; } = new ObservableCollection<AutomatedMessageWrapper>();
         public ObservableCollection<FilterWrapper> Filters { get; } = new ObservableCollection<FilterWrapper>();
         public ObservableCollection<FilterWrapper> Whitelist { get; } = new ObservableCollection<FilterWrapper>();
-        public ObservableCollection<UserWrapper> Points { get; } = new ObservableCollection<UserWrapper>();
+        public ObservableCollection<UserWrapper> Users { get; } = new ObservableCollection<UserWrapper>();
         public ObservableCollection<UserCommandWrapper> CustomCommands { get; } = new ObservableCollection<UserCommandWrapper>();
 
         public AutomatedMessageWrapper SelectedAutomatedMessage { get; set; }
         public FilterWrapper SelectedFilter { get; set; }
-        public UserWrapper SelectedPointsRow { get; set; }
+        public UserWrapper SelectedUser { get; set; }
         public UserCommandWrapper SelectedCustomCommand { get; set; }
 
         public SettingsPageViewModel(IAutomatedMessagesManager automatedMessagesManager, IChatManager chatManager, ILogger logger, IFilterManager filterManager, IUsersManager usersManager, IUserCommandsManager userCommandsManager, IPointsManager pointsManager, IDialogService dialogService)
@@ -48,7 +49,7 @@ namespace RoxorBot.Modules.Main.ViewModels
             InitFilters();
             InitAutomatedMessages();
             InitWhitelist();
-            InitPoints();
+            InitUsers();
             InitCommands();
         }
 
@@ -73,11 +74,11 @@ namespace RoxorBot.Modules.Main.ViewModels
             Whitelist.AddRange(filters);
         }
 
-        private void InitPoints()
+        private void InitUsers()
         {
-            Points.Clear();
-            var users = _usersManager.GetAllUsers().Where(x => x.Points > 0);
-            Points.AddRange(users);
+            Users.Clear();
+            var users = _usersManager.GetAllUsers();
+            Users.AddRange(users);
         }
 
         private void InitCommands()
@@ -158,47 +159,32 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         #region Points
         [Command]
-        public void PointsDoubleClick()
+        public void UserDoubleClick()
         {
-            if (SelectedPointsRow == null)
+            if (SelectedUser == null)
                 return;
-            if (!Prompt.Ask("Do you wish to delete all of " + SelectedPointsRow.VisibleName + " points?", "Delete"))
+            if (!Prompt.Ask("Do you wish to delete " + SelectedUser.VisibleName + "?", "Delete"))
                 return;
 
-            _pointsManager.SetPoints(SelectedPointsRow.ValueName, 0);
-            InitPoints();
+            _usersManager.RemoveUser(SelectedUser);
+            InitUsers();
         }
 
         [Command]
-        public void AddPoints()
+        public void AddUser()
         {
-            //TODO: viewmodel
-            var dialog = new Controls.AddPointsDialog();
-            dialog.AddButton.Click += (a, b) =>
-            {
-                if (string.IsNullOrWhiteSpace(dialog.NickTextBox.Text) || string.IsNullOrWhiteSpace(dialog.PointsTextBox.Text))
-                    return;
+            _dialogService.ShowDialog<AddUserDialog, AddUserDialogViewModel>();
+            InitUsers();
+        }
 
-                int value;
-                if (!int.TryParse(dialog.PointsTextBox.Text, out value))
-                    return;
+        [Command]
+        public void EditUser()
+        {
+            if (SelectedUser == null)
+                return;
 
-                if (value < 0)
-                    value = 0;
-
-                _pointsManager.SetPoints(dialog.NickTextBox.Text, value);
-                InitPoints();
-                dialog.Close();
-            };
-
-            if (SelectedPointsRow != null)
-            {
-                dialog.NickTextBox.Text = SelectedPointsRow.VisibleName;
-                dialog.NickTextBox.IsEnabled = false;
-                dialog.PointsTextBox.Text = SelectedPointsRow.Points.ToString();
-            }
-
-            dialog.ShowDialog();
+            _dialogService.ShowDialog<AddUserDialog, AddUserDialogViewModel>(SelectedUser);
+            InitUsers();
         }
 
         #endregion

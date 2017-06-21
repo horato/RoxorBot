@@ -102,15 +102,16 @@ namespace RoxorBot.Logic.Managers
 
         public UserWrapper AddOrGetUser(string user, Role role)
         {
-            var u = GetUser(user);
-            if (u != null)
-                return u;
-
-            u = _userWrapperFactory.CreateNew(user, user.ToLower(), role, false, 0, false, null, false);
             lock (_users)
-                _users.Add(u.Id, u);
+            {
+                var u = GetUser(user);
+                if (u != null)
+                    return u;
 
-            return u;
+                u = _userWrapperFactory.CreateNew(user, user.ToLower(), role, false, 0, false, null, false);
+                _users.Add(u.Id, u);
+                return u;
+            }
         }
 
         public void AllowUser(string nick)
@@ -153,6 +154,14 @@ namespace RoxorBot.Logic.Managers
         {
             lock (_users)
                 return _users.Values.SingleOrDefault(x => x.ValueName == nick.ToLower());
+        }
+
+        public UserWrapper GetUser(Guid id)
+        {
+            if (_users.ContainsKey(id))
+                return _users[id];
+
+            return null;
         }
 
         public bool IsAdmin(string name)
@@ -234,6 +243,57 @@ namespace RoxorBot.Logic.Managers
 
             _usersRepository.Save(model);
             _usersRepository.FlushSession();
+        }
+
+        public UserWrapper AddNewUser(string name, Role role, bool isOnline, int points, bool isFollower, DateTime? isFollowerSince, bool isAllowed)
+        {
+            lock (_users)
+            {
+                var user = GetUser(name);
+                if (user != null)
+                    return null;
+
+                var newUser = _userWrapperFactory.CreateNew(name, name.ToLower(), role, isOnline, points, isFollower, isFollowerSince, isAllowed);
+                _users.Add(newUser.Id, newUser);
+                return newUser;
+            }
+        }
+
+        public void UpdateUser(Guid id, string name, Role role, bool isOnline, int points, bool isFollower, DateTime? isFollowerSince, bool isAllowed)
+        {
+            var user = GetUser(id);
+            if (user == null)
+                return;
+
+            user.VisibleName = name;
+            user.ValueName = name.ToLower();
+            user.Role = role;
+            user.IsOnline = isOnline;
+            user.Points = points;
+            user.IsFollower = isFollower;
+            user.IsFollowerSince = isFollowerSince;
+            user.IsAllowed = isAllowed;
+            UpdateModel(user.Model);
+        }
+
+        public void RemoveUser(Guid id)
+        {
+            var user = GetUser(id);
+            if (user == null)
+                return;
+
+            RemoveUser(user);
+        }
+
+        public void RemoveUser(UserWrapper user)
+        {
+            if (user == null)
+                return;
+
+            _usersRepository.Remove(user.Model);
+            _usersRepository.FlushSession();
+            lock (_users)
+                _users.Remove(user.Id);
         }
     }
 }

@@ -35,11 +35,13 @@ namespace RoxorBot.Logic.Managers
 
         public void AddAutomatedMessage(string text, int interval, bool start, bool enabled)
         {
-            var message = _wrapperFactory.CreateNew(text, interval, enabled);
             lock (_messages)
+            {
+                var message = _wrapperFactory.CreateNew(text, interval, enabled);
                 _messages.Add(message.Id, message);
-            if (start)
-                message.Start();
+                if (start)
+                    message.Start();
+            }
         }
 
         public void UpdateAutomatedMessage(Guid id, string msg, int interval, bool start, bool enabled)

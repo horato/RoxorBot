@@ -58,9 +58,11 @@ namespace RoxorBot.Logic.Managers
 
         public void AddFilterWord(string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)
         {
-            var filter = _filterWrapperFactory.CreateNew(word, banDuration, addedBy, isRegex, isWhitelist);
             lock (_filters)
+            {
+                var filter = _filterWrapperFactory.CreateNew(word, banDuration, addedBy, isRegex, isWhitelist);
                 _filters.Add(filter.Id, filter);
+            }
         }
 
         public void UpdateFilterWord(Guid id, string word, int banDuration, string addedBy, bool isRegex, bool isWhitelist)

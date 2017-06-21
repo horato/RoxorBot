@@ -190,13 +190,15 @@
     <Compile Include="Controls\CommandsListControl.xaml.cs">
       <DependentUpon>CommandsListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Data\Base\ViewModelBase.cs" />
     <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
     <Compile Include="Modules\Main\ViewModels\AddCommandDialogViewModel.cs" />
+    <Compile Include="Modules\Main\ViewModels\AddUserDialogViewModel.cs" />
     <Compile Include="Modules\Main\Views\AddCommandDialog.xaml.cs">
       <DependentUpon>AddCommandDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AddPointsDialog.xaml.cs">
-      <DependentUpon>AddPointsDialog.xaml</DependentUpon>
+    <Compile Include="Modules\Main\Views\AddUserDialog.xaml.cs">
+      <DependentUpon>AddUserDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Data\Enums\FilterMode.cs" />
     <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_2_AddUsers.cs" />
@@ -424,7 +426,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\AddPointsDialog.xaml">
+    <Page Include="Modules\Main\Views\AddUserDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

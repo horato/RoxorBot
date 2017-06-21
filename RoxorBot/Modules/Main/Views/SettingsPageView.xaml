@@ -99,23 +99,26 @@
                     <Button Content="Add" Command="{Binding AddAutomatedMessageCommand}" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" />
                 </Grid>
             </TabItem>
-            <TabItem Header="Points">
+            <TabItem Header="Users">
                 <Grid>
-                    <Button Content="Add" Command="{Binding AddPointsCommand}" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" />
-                    <DataGrid ItemsSource="{Binding Points}" SelectedItem="{Binding SelectedPointsRow}" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553">
+                    <Button Content="Add" Command="{Binding AddUserCommand}" HorizontalAlignment="Left" Margin="0,306,0,0" VerticalAlignment="Top" Width="88" Height="32" />
+                    <DataGrid ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}" HorizontalAlignment="Left" CanUserAddRows="False" AutoGenerateColumns="False" Height="283" VerticalAlignment="Top" Width="553">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="User" Binding="{Binding Path=VisibleName}" Width="440" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Points" Binding="{Binding Path=Points}" Width="113" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="User" Binding="{Binding Path=VisibleName}" Width="2*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Path=Role}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Points" Binding="{Binding Path=Points}" Width="*" IsReadOnly="True"/>
+                            <DataGridCheckBoxColumn Header="Follower" Binding="{Binding Path=IsFollower}" Width="*" IsReadOnly="True" />
+                            <DataGridCheckBoxColumn Header="Allowed" Binding="{Binding Path=IsAllowed}" Width="*" IsReadOnly="True" />
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Add" Command="{Binding AddPointsCommand}" />
-                                <MenuItem Header="Edit" Command="{Binding AddPointsCommand}" />
-                                <MenuItem Header="Remove" Command="{Binding PointsDoubleClickCommand}" />
+                                <MenuItem Header="Add" Command="{Binding AddUserCommand}" />
+                                <MenuItem Header="Edit" Command="{Binding EditUserCommand}" />
+                                <MenuItem Header="Remove" Command="{Binding UserDoubleClickCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <i:Interaction.Triggers>
-                            <viewHelpers:EventToCommand EventName="MouseDoubleClick" Command="{Binding PointsDoubleClickCommand}" />
+                            <viewHelpers:EventToCommand EventName="MouseDoubleClick" Command="{Binding UserDoubleClickCommand}" />
                         </i:Interaction.Triggers>
                     </DataGrid>
                 </Grid>
