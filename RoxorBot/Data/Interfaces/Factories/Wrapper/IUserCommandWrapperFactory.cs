@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RoxorBot.Data.Model;
-using RoxorBot.Data.Model.Database.Entities;
+﻿using RoxorBot.Data.Model.Database.Entities;
+using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Data.Interfaces.Factories
+namespace RoxorBot.Data.Interfaces.Factories.Wrapper
 {
     public interface IUserCommandWrapperFactory
     {

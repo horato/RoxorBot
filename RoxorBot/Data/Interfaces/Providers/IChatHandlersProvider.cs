@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using RoxorBot.Data.Interfaces.Chat;
 
 namespace RoxorBot.Data.Interfaces.Providers

@@ -1,15 +1,9 @@
-﻿using RoxorBot.Data.Interfaces.Factories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RoxorBot.Data.Model;
-using RoxorBot.Data.Model.Database.Entities;
-using RoxorBot.Data.Interfaces.Repositories;
+﻿using RoxorBot.Data.Interfaces.Factories.Wrapper;
 using RoxorBot.Data.Interfaces.Providers;
+using RoxorBot.Data.Model.Database.Entities;
+using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Data.Implementations.Factories
+namespace RoxorBot.Data.Implementations.Factories.Wrapper
 {
     public class FilterWrapperFactory : IFilterWrapperFactory
     {

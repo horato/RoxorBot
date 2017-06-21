@@ -1,9 +1,5 @@
 ﻿using RoxorBot.Data.Interfaces.Providers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RoxorBot.Data.Model.Database.Entities;
 using RoxorBot.Data.Interfaces.Repositories;
 

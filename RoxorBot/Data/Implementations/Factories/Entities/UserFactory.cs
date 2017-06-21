@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces.Factories.Entities;
-using RoxorBot.Data.Model;
 using RoxorBot.Data.Model.Database.Entities;
 
 namespace RoxorBot.Data.Implementations.Factories.Entities

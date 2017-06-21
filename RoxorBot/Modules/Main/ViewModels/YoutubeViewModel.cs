@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Prism.Events;
 using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
-using RoxorBot.Data.Enums;
+using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Model.Youtube;
 using Vlc.DotNet.Core;
 using Vlc.DotNet.Forms;
-using YoutubeExtractor;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {

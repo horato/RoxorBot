@@ -1,8 +1,7 @@
 ﻿using Prism.Events;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Data.Interfaces.Chat;
-using RoxorBot.Data.Model;
 
 namespace RoxorBot.Logic.Managers
 {

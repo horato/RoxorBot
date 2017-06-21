@@ -1,4 +1,4 @@
-﻿namespace RoxorBot.Data.Model
+﻿namespace RoxorBot.Data.Enums
 {
     public enum Role
     {

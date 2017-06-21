@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Prism.Mvvm;
+using RoxorBot.Data.Enums;
 
-namespace RoxorBot.Data.Model
+namespace RoxorBot.Data.Model.Wrappers
 {
     /// <summary> Display wrapper for the <see cref="UserWrapper"/> class </summary>
     public class UserDisplayWrapper : BindableBase

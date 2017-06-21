@@ -9,11 +9,12 @@
              xmlns:viewHelpers="clr-namespace:RoxorBot.Data.ViewHelpers"
              xmlns:converters="clr-namespace:RoxorBot.Data.Converters"
              xmlns:model="clr-namespace:RoxorBot.Data.Model"
+             xmlns:wrappers="clr-namespace:RoxorBot.Data.Model.Wrappers"
              mc:Ignorable="d"
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
-        <DataTemplate x:Key="UsersListItemTemplate" DataType="model:UserDisplayWrapper">
+        <DataTemplate x:Key="UsersListItemTemplate" DataType="wrappers:UserDisplayWrapper">
             <TextBlock Text="{Binding Name}" />
         </DataTemplate>
     </UserControl.Resources>

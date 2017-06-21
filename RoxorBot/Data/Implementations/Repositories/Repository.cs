@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using NHibernate;
 using NHibernate.Linq;
-using RoxorBot.Data.Interfaces;
-using RoxorBot.Data.Interfaces.Database;
+using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model.Database.Entities;
 
-namespace RoxorBot.Data.Implementations.Database.Repository
+namespace RoxorBot.Data.Implementations.Repositories
 {
     public abstract class Repository<T> : IRepository<T> where T : Entity
     {

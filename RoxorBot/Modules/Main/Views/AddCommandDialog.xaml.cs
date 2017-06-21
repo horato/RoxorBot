@@ -1,8 +1,7 @@
 ﻿using System.Windows;
-using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Dialog;
 
-namespace RoxorBot.Controls
+namespace RoxorBot.Modules.Main.Views
 {
     /// <summary>
     /// Interaction logic for AddDialog.xaml

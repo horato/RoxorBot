@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentNHibernate.Mapping;
+﻿using FluentNHibernate.Mapping;
 using RoxorBot.Data.Model.Database.Entities;
 
 namespace RoxorBot.Data.Model.Database.Mappings

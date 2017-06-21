@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Text.RegularExpressions;
 using FluentNHibernate.Cfg;
 using Microsoft.Practices.Unity;
-using NHibernate;
 using NHibernate.Cfg;
-using NHibernate.Event;
 using Prism.Events;
 using RoxorBot.Data;
 using RoxorBot.Data.Events;
-using RoxorBot.Data.Implementations.Database;
 using RoxorBot.Data.Implementations.Database.Changescripts;
 using RoxorBot.Data.Interfaces;
 

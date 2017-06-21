@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Prism.Events;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Extensions;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Data.Interfaces.Factories;
+using RoxorBot.Data.Interfaces.Factories.Wrapper;
 using RoxorBot.Data.Interfaces.Repositories;
-using RoxorBot.Data.Model;
 using RoxorBot.Data.Model.Database.Entities;
+using RoxorBot.Data.Model.Wrappers;
 using TwitchLib;
 using TwitchLib.Models.Client;
 

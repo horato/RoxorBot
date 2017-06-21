@@ -1,8 +1,9 @@
 ﻿using System;
+using RoxorBot.Data.Base;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Model.Database.Entities;
-using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Data.Model
+namespace RoxorBot.Data.Model.Wrappers
 {
     public class UserWrapper : WrapperBase<User>
     {

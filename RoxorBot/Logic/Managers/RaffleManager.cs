@@ -7,7 +7,7 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
-using RoxorBot.Data.Model;
+using RoxorBot.Data.Model.Wrappers;
 using TwitchLib.Models.Client;
 
 namespace RoxorBot.Logic.Managers

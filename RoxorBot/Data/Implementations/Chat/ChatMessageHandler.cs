@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Interfaces.Providers;
-using RoxorBot.Logic.Managers;
 using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Implementations.Chat

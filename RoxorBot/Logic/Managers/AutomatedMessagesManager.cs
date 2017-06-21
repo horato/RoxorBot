@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Prism.Events;
-using RoxorBot.Data.Enums;
+using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Data.Interfaces.Chat;
-using RoxorBot.Data.Interfaces.Database;
-using RoxorBot.Data.Interfaces.Factories;
-using RoxorBot.Data.Interfaces.Providers;
-using RoxorBot.Data.Model;
-using RoxorBot.Data.Model.Database.Entities;
+using RoxorBot.Data.Interfaces.Factories.Wrapper;
+using RoxorBot.Data.Interfaces.Repositories;
+using RoxorBot.Data.Model.Wrappers;
 
 namespace RoxorBot.Logic.Managers
 {

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
-using System.Web.Script.Serialization;
 using RoxorBot.Logic;
 using RoxorBot.Logic.Managers;
 

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Prism.Events;
+﻿using Prism.Events;
 using RoxorBot.Data.Constants;
 using RoxorBot.Data.Events.Youtube;
-using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using TwitchLib.Models.Client;
 

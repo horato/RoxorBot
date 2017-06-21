@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
 using Prism.Mvvm;
-using RoxorBot.Controls;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Enums;
-using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
-using RoxorBot.Data.Model;
+using RoxorBot.Data.Interfaces.Dialog;
+using RoxorBot.Data.Model.Wrappers;
 using RoxorBot.Logic;
-using RoxorBot.Logic.Managers;
+using RoxorBot.Modules.Main.Views;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {

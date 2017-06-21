@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Runtime.Serialization.Json;
-using System.Web.Script.Serialization;
+﻿using System.Collections.Generic;
+using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Data.Model;
-using RoxorBot.Data.Model.JSON.FollowerManager;
+using RoxorBot.Data.Model.Wrappers;
 using TwitchLib;
-using TwitchLib.Models.API.v3.Follows;
 
 namespace RoxorBot.Logic.Managers
 {

@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Timers;
 using Prism.Events;
+using RoxorBot.Data.Base;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Model.Database.Entities;
-using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Data.Model
+namespace RoxorBot.Data.Model.Wrappers
 {
     public class AutomatedMessageWrapper : WrapperBase<AutomatedMessage>, IDisposable
     {

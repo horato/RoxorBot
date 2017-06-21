@@ -1,8 +1,8 @@
-﻿using RoxorBot.Data.Model.Database.Entities;
-using RoxorBot.Data.Model.Wrappers;
-using System;
+﻿using System;
+using RoxorBot.Data.Base;
+using RoxorBot.Data.Model.Database.Entities;
 
-namespace RoxorBot.Data.Model
+namespace RoxorBot.Data.Model.Wrappers
 {
     public class FilterWrapper : WrapperBase<Filter>
     {
