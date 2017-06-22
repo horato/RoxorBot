@@ -8,6 +8,7 @@ using Prism.Mvvm;
 using RoxorBot.Data;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Implementations.Chat;
+using RoxorBot.Data.Implementations.Database;
 using RoxorBot.Data.Implementations.Factories.Entities;
 using RoxorBot.Data.Implementations.Factories.Wrapper;
 using RoxorBot.Data.Implementations.Providers;
@@ -30,6 +31,9 @@ namespace RoxorBot
     {
         protected override DependencyObject CreateShell()
         {
+            var sessionFactory = DatabaseConfigurator.Configure();
+            Container.RegisterInstance(sessionFactory, new ContainerControlledLifetimeManager());
+
             return Container.Resolve<Shell>();
         }
 
@@ -77,9 +81,6 @@ namespace RoxorBot
             RegisterRepositories();
             RegisterProviders();
             RegisterFactories();
-
-            DI.Container = Container;
-            Container.Resolve<IDatabaseManager>().Init();
         }
 
 
@@ -92,7 +93,6 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IFilterManager), typeof(FilterManager), true);
             RegisterTypeIfMissing(typeof(IPointsManager), typeof(PointsManager), true);
             RegisterTypeIfMissing(typeof(IUserCommandsManager), typeof(UserCommandsManager), true);
-            RegisterTypeIfMissing(typeof(IDatabaseManager), typeof(DatabaseManager), true);
             RegisterTypeIfMissing(typeof(IFollowersManager), typeof(FollowersManager), true);
             RegisterTypeIfMissing(typeof(IUsersManager), typeof(UsersManager), true);
             RegisterTypeIfMissing(typeof(IYoutubeManager), typeof(YoutubeManager), true);

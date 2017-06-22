@@ -197,6 +197,8 @@
     <Compile Include="Data\Base\DialogBase.cs" />
     <Compile Include="Data\Base\ViewModelBase.cs" />
     <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
+    <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_3_AddUniqueToUsers.cs" />
+    <Compile Include="Data\Implementations\Database\DatabaseConfigurator.cs" />
     <Compile Include="Logic\Logging\ILogger.cs" />
     <Compile Include="Logic\Logging\Logger.cs" />
     <Compile Include="Logic\Logging\LoggerProvider.cs" />
@@ -338,7 +340,6 @@
     <Compile Include="Data\Interfaces\IAutomatedMessagesManager.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatManager.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatMessageHandler.cs" />
-    <Compile Include="Data\Interfaces\IDatabaseManager.cs" />
     <Compile Include="Data\Interfaces\IFilterManager.cs" />
     <Compile Include="Data\Interfaces\IFollowersManager.cs" />
     <Compile Include="Data\Enums\LogType.cs" />
@@ -356,7 +357,6 @@
     </Compile>
     <Compile Include="Logic\Mail.cs" />
     <Compile Include="Logic\Managers\ChatManager.cs" />
-    <Compile Include="Logic\Managers\DatabaseManager.cs" />
     <Compile Include="Logic\Managers\FilterManager.cs" />
     <Compile Include="Logic\Managers\FollowersManager.cs" />
     <Compile Include="Logic\Managers\AutomatedMessagesManager.cs" />

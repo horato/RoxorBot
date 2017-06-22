@@ -8,7 +8,7 @@ namespace RoxorBot.Data.Model.Database.Mappings
         public UserMap()
         {
             Map(x => x.VisibleName).Not.Nullable();
-            Map(x => x.ValueName).Not.Nullable();
+            Map(x => x.ValueName).Not.Nullable().Unique();
             Map(x => x.Role).Not.Nullable();
             Map(x => x.IsOnline).Not.Nullable();
             Map(x => x.Points).Not.Nullable();

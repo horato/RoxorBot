@@ -9,11 +9,11 @@ namespace RoxorBot.Data.Implementations.Database.Changescripts.Scripts
     {
         public void Execute(SQLiteConnection connection)
         {
-            new SQLiteCommand("CREATE TABLE points (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME, name Text NOT NULL, score INT NOT NULL);", connection).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE filters (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME, word TEXT, banDuration int, author TEXT, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", connection).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE messages (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME, message TEXT, interval INT, 'enabled' BOOL DEFAULT 1);", connection).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE allowedUsers (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME, name Text, allowed BOOL);", connection).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE userCommands (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME, command TEXT, reply TEXT);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE points (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, name Text NOT NULL, score INT NOT NULL);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE filters (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, word TEXT NOT NULL, banDuration int, author TEXT NOT NULL, isRegex BOOL DEFAULT 0, isWhitelist BOOL DEFAULT 0);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE messages (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message TEXT NOT NULL, interval INT, 'enabled' BOOL DEFAULT 1);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE allowedUsers (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, name Text, allowed BOOL);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE userCommands (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, command TEXT NOT NULL, reply TEXT NOT NULL);", connection).ExecuteNonQuery();
         }
     }
 }
