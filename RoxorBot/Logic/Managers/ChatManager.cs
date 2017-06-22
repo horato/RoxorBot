@@ -9,6 +9,7 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Logic.Logging;
 using TwitchLib;
 using TwitchLib.Enums;
 using TwitchLib.Events.Client;
@@ -21,7 +22,7 @@ namespace RoxorBot.Logic.Managers
     {
         private TwitchClient _client;
         private readonly IEventAggregator _aggregator;
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = LoggerProvider.GetLogger();
         private readonly List<DateTime> _floodQueue = new List<DateTime>();
         private System.Timers.Timer _floodTimer;
 
@@ -51,10 +52,9 @@ namespace RoxorBot.Logic.Managers
 
         public int FloodQueueCount => _floodQueue.Count;
 
-        public ChatManager(IEventAggregator aggregator, ILogger logger)
+        public ChatManager(IEventAggregator aggregator)
         {
             _aggregator = aggregator;
-            _logger = logger;
         }
 
         public void Connect()
@@ -243,7 +243,7 @@ namespace RoxorBot.Logic.Managers
         {
             if (_floodQueue.Count > 90 && !overrideFloodQueue)
             {
-                _logger.Log("Queue limit reached. Ignoring: " + message);
+                _logger.Info("Queue limit reached. Ignoring: " + message);
                 return;
             }
             _client.SendMessage(message);

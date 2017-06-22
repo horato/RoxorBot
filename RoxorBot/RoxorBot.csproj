@@ -330,7 +330,6 @@
     <Compile Include="Data\Implementations\Chat\Handlers\UserCommandCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\VolumeCommandHandler.cs" />
     <Compile Include="Data\Implementations\Chat\Handlers\WhitelistCommandHandler.cs" />
-    <Compile Include="Data\Implementations\Logger.cs" />
     <Compile Include="Data\Implementations\Providers\ChatHandlersProvider.cs" />
     <Compile Include="Data\Implementations\TwitchLibTranslationService.cs" />
     <Compile Include="Data\Implementations\ViewModelProvider.cs" />
@@ -342,7 +341,6 @@
     <Compile Include="Data\Interfaces\IDatabaseManager.cs" />
     <Compile Include="Data\Interfaces\IFilterManager.cs" />
     <Compile Include="Data\Interfaces\IFollowersManager.cs" />
-    <Compile Include="Data\Interfaces\ILogger.cs" />
     <Compile Include="Data\Enums\LogType.cs" />
     <Compile Include="Data\Interfaces\IPointsManager.cs" />
     <Compile Include="Data\Interfaces\IRaffleManager.cs" />

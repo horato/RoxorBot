@@ -17,7 +17,6 @@ namespace RoxorBot.Modules.Main.ViewModels
     public class YoutubeViewModel : BindableBase, ICurrentSongChangedNotifier
     {
         private readonly IChatManager _chatManager;
-        private readonly ILogger _logger;
         private readonly IYoutubeManager _youtubeManager;
         private readonly IUsersManager _usersManager;
         private readonly IEventAggregator _aggregator;
@@ -45,10 +44,9 @@ namespace RoxorBot.Modules.Main.ViewModels
         }
 
 
-        public YoutubeViewModel(IChatManager chatManager, ILogger logger, IYoutubeManager youtubeManager, IUsersManager usersManager, IEventAggregator aggregator)
+        public YoutubeViewModel(IChatManager chatManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IEventAggregator aggregator)
         {
             _chatManager = chatManager;
-            _logger = logger;
             _youtubeManager = youtubeManager;
             _usersManager = usersManager;
             _aggregator = aggregator;

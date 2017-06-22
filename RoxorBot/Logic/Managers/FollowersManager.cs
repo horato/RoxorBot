@@ -1,23 +1,26 @@
 ﻿using System.Collections.Generic;
 using System.Timers;
+using Prism.Events;
 using RoxorBot.Data.Enums;
+using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Model.Wrappers;
+using RoxorBot.Logic.Logging;
 using TwitchLib;
 
 namespace RoxorBot.Logic.Managers
 {
     public class FollowersManager : IFollowersManager
     {
-        private readonly ILogger _logger;
+        private readonly IEventAggregator _aggregator;
         private readonly IUsersManager _usersManager;
         private readonly Timer _updateTimer;
 
-        public FollowersManager(ILogger logger, IUsersManager usersManager)
+        public FollowersManager(IUsersManager usersManager, IEventAggregator aggregator)
         {
-            _logger = logger;
             _usersManager = usersManager;
-            _logger.Log("Initializing FollowersManager...");
+            _aggregator = aggregator;
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing FollowersManager...");
 
             _updateTimer = new Timer(2 * 60 * 1000);
             _updateTimer.AutoReset = false;
@@ -44,11 +47,11 @@ namespace RoxorBot.Logic.Managers
                 }
 
                 _usersManager.SaveAll();
-                _logger.Log("Followers updated. Detected total of " + GetFollowersCount() + " followers and " + followers.Count + " unfollows.");
+                _aggregator.GetEvent<AddLogEvent>().Publish("Followers updated. Detected total of " + GetFollowersCount() + " followers and " + followers.Count + " unfollows.");
             }
             catch
             {
-                _logger.Log("Failed to update followers.");
+                _aggregator.GetEvent<AddLogEvent>().Publish("Failed to update followers.");
             }
             _updateTimer.Start();
         }
@@ -70,8 +73,6 @@ namespace RoxorBot.Logic.Managers
                     var u = _usersManager.AddOrGetUser(follower.User.DisplayName, Role.Viewers);
                     u.IsFollower = true;
                     u.IsFollowerSince = follower.CreatedAt;
-                    if (u.IsFollowerSince == null)
-                        _logger.Log("Failed to parse following since for user " + u.VisibleName + " in " + "https://api.twitch.tv/kraken/users/" + u.ValueName + "/follows/channels/roxork0.");
                     result.Add(u);
                 }
 

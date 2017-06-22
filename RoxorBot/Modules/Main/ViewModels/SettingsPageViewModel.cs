@@ -18,7 +18,6 @@ namespace RoxorBot.Modules.Main.ViewModels
     {
         private readonly IAutomatedMessagesManager _automatedMessagesManager;
         private readonly IChatManager _chatManager;
-        private readonly ILogger _logger;
         private readonly IFilterManager _filterManager;
         private readonly IUsersManager _usersManager;
         private readonly IUserCommandsManager _userCommandsManager;
@@ -36,11 +35,10 @@ namespace RoxorBot.Modules.Main.ViewModels
         public UserWrapper SelectedUser { get; set; }
         public UserCommandWrapper SelectedCustomCommand { get; set; }
 
-        public SettingsPageViewModel(IAutomatedMessagesManager automatedMessagesManager, IChatManager chatManager, ILogger logger, IFilterManager filterManager, IUsersManager usersManager, IUserCommandsManager userCommandsManager, IPointsManager pointsManager, IDialogService dialogService)
+        public SettingsPageViewModel(IAutomatedMessagesManager automatedMessagesManager, IChatManager chatManager, IFilterManager filterManager, IUsersManager usersManager, IUserCommandsManager userCommandsManager, IPointsManager pointsManager, IDialogService dialogService)
         {
             _automatedMessagesManager = automatedMessagesManager;
             _chatManager = chatManager;
-            _logger = logger;
             _filterManager = filterManager;
             _usersManager = usersManager;
             _userCommandsManager = userCommandsManager;

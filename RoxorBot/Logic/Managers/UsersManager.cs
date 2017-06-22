@@ -19,7 +19,6 @@ namespace RoxorBot.Logic.Managers
     public class UsersManager : IUsersManager
     {
         private readonly IEventAggregator _aggregator;
-        private readonly ILogger _logger;
         private readonly ITwitchLibTranslationService _translationService;
         private readonly IUsersRepository _usersRepository;
         private readonly IUserWrapperFactory _userWrapperFactory;
@@ -28,14 +27,13 @@ namespace RoxorBot.Logic.Managers
 
         public int UsersCount => _users.Count;
 
-        public UsersManager(IEventAggregator aggregator, ILogger logger, ITwitchLibTranslationService translationService, IUsersRepository usersRepository, IUserWrapperFactory factory)
+        public UsersManager(IEventAggregator aggregator, ITwitchLibTranslationService translationService, IUsersRepository usersRepository, IUserWrapperFactory factory)
         {
             _aggregator = aggregator;
-            _logger = logger;
             _translationService = translationService;
             _usersRepository = usersRepository;
             _userWrapperFactory = factory;
-            _logger.Log("Loading UsersManager...");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loading UsersManager...");
 
             _users = LoadUsers();
             _superAdmins = new List<string> { "roxork0", "horato2" };

@@ -14,7 +14,6 @@ namespace RoxorBot.Logic.Managers
 {
     public class RaffleManager : IRaffleManager
     {
-        private readonly ILogger _logger;
         private readonly IEventAggregator _aggregator;
         private readonly IChatManager _chatManager;
         private readonly IPointsManager _pointsManager;
@@ -49,17 +48,15 @@ namespace RoxorBot.Logic.Managers
         public event EventHandler<UserWrapper> OnUserAdd;
         public event EventHandler OnWinnerPicked;
 
-
-
+        
         private bool _isFollowersOnly;
         private int _entryPointsRequired = 100;
         private readonly List<string> _acceptedWords = new List<string> { "!raffle", "!join" };
         private readonly List<UserWrapper> _users = new List<UserWrapper>();
         private bool _winnerSelected;
 
-        public RaffleManager(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IPointsManager pointsManager, IUsersManager usersManager)
+        public RaffleManager(IEventAggregator aggregator, IChatManager chatManager, IPointsManager pointsManager, IUsersManager usersManager)
         {
-            _logger = logger;
             _aggregator = aggregator;
             _chatManager = chatManager;
             _pointsManager = pointsManager;

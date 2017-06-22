@@ -8,28 +8,28 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using Prism.Events;
+using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Model.Youtube;
+using RoxorBot.Logic.Logging;
 
 namespace RoxorBot.Logic.Managers
 {
     public class YoutubeManager : IYoutubeManager
     {
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = LoggerProvider.GetLogger();
         private readonly IEventAggregator _aggregator;
-
         private readonly List<YoutubeVideo> _videos;
         private readonly List<YoutubeVideo> _backupPlaylist;
         private bool isPlaylistLoading = false;
         public int PlaylistCount => _videos.Count;
         public int BackupPlaylistCount => _backupPlaylist.Count;
 
-        public YoutubeManager(ILogger logger, IEventAggregator aggregator)
+        public YoutubeManager(IEventAggregator aggregator)
         {
-            _logger = logger;
             _aggregator = aggregator;
-            _logger.Log("Initializing YoutubeManager...");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing YoutubeManager...");
 
             _videos = new List<YoutubeVideo>();
             _backupPlaylist = new List<YoutubeVideo>();
@@ -50,7 +50,7 @@ namespace RoxorBot.Logic.Managers
 
             watch.Stop();
             var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
-            _logger.Log("Loaded " + _backupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _backupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
             isPlaylistLoading = false;
         }
 
@@ -111,7 +111,7 @@ namespace RoxorBot.Logic.Managers
                 }
                 catch (VideoParseException e)
                 {
-                    _logger.Log("Backup Playlist video load error: " + e.Message);
+                    _logger.Info("Backup Playlist video load error: " + e.Message);
                 }
             }
         }

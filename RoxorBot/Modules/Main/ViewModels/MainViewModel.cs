@@ -20,7 +20,6 @@ namespace RoxorBot.Modules.Main.ViewModels
 {
     public class MainViewModel : BindableBase
     {
-        private readonly ILogger _logger;
         private readonly IEventAggregator _aggregator;
         private readonly IRaffleManager _raffleManager;
         private readonly IChatManager _chatManager;
@@ -28,6 +27,7 @@ namespace RoxorBot.Modules.Main.ViewModels
         private readonly IAutomatedMessagesManager _automatedMessagesManager;
         private readonly IPointsManager _pointsManager;
         private readonly IUsersManager _usersManager;
+        private readonly IChatMessageHandler _chatMessageHandler;
 
         private string _statusText = "Not connected";
         private string _floodQueueCount = "Messages sent in last 30s: 0";
@@ -61,24 +61,22 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         private Views.YoutubeView _youtubeWindow;
 
-        public MainViewModel(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
+        public MainViewModel(IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
-            _logger = logger;
             _aggregator = aggregator;
             _chatManager = chatManager;
             _rewardTimerManager = rewardTimerManager;
             _automatedMessagesManager = automatedMessagesManager;
             _pointsManager = pointsManager;
             _usersManager = usersManager;
-            
-            chatMessageHandler.Init();
+            _chatMessageHandler = chatMessageHandler;
 
             _aggregator.GetEvent<UpdateStatusLabelsEvent>().Subscribe(UpdateStatusLabels);
             _aggregator.GetEvent<UpdateOnlineUsersList>().Subscribe(UpdateOnlineUsersList);
             _aggregator.GetEvent<ChatChannelJoined>().Subscribe(OnChatConnected);
             // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
 
-            _logger.Log("Program init...");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Program init...");
 
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
@@ -89,7 +87,9 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         private void Load()
         {
-            _logger.Log("Program init finished. Keep in mind that followers and backup playlist are still loading!");
+            _chatMessageHandler.Init();
+
+            _aggregator.GetEvent<AddLogEvent>().Publish("Program init finished. Keep in mind that followers and backup playlist are still loading!");
         }
 
         [Command]

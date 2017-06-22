@@ -7,13 +7,13 @@ using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Interfaces.Providers;
+using RoxorBot.Logic.Logging;
 using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Implementations.Chat
 {
     public class ChatMessageHandler : IChatMessageHandler
     {
-        private readonly ILogger _logger;
         private readonly IEventAggregator _aggregator;
         private readonly IChatManager _chatManager;
         private readonly IUsersManager _usersManager;
@@ -21,9 +21,8 @@ namespace RoxorBot.Data.Implementations.Chat
         private readonly IFilterManager _filterManager;
         private readonly List<IChatCommandHandler> _handlers = new List<IChatCommandHandler>();
 
-        public ChatMessageHandler(ILogger logger, IEventAggregator aggregator, IChatManager chatManager, IUsersManager usersManager, IFilterManager filterManager, IChatHandlersProvider handlersProvider)
+        public ChatMessageHandler(IEventAggregator aggregator, IChatManager chatManager, IUsersManager usersManager, IFilterManager filterManager, IChatHandlersProvider handlersProvider)
         {
-            _logger = logger;
             _aggregator = aggregator;
             _chatManager = chatManager;
             _usersManager = usersManager;
@@ -82,7 +81,8 @@ namespace RoxorBot.Data.Implementations.Chat
 
             _chatManager.TimeoutUser(msg.Username, TimeSpan.FromSeconds(120));
             if (Properties.Settings.Default.notifyChatRestriction)
-                _chatManager.SendChatMessage("Pls no spamerino " + msg.Username + " Keepo");
+                _chatManager.SendChatMessage($"Pls no spamerino {msg.Username} Keepo");
+            _aggregator.GetEvent<AddLogEvent>().Publish($"{msg.DisplayName} timeouted for spamming.");
         }
 
         private bool IsSpamMessage(ChatMessage msg)

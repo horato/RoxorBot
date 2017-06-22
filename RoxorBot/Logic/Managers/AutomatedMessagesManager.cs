@@ -12,7 +12,6 @@ namespace RoxorBot.Logic.Managers
 {
     public class AutomatedMessagesManager : IAutomatedMessagesManager
     {
-        private readonly ILogger _logger;
         private readonly IEventAggregator _aggregator;
         private readonly IAutomatedMessageWrapperFactory _wrapperFactory;
         private readonly IAutomatedMessagesRepository _repository;
@@ -21,14 +20,13 @@ namespace RoxorBot.Logic.Managers
         public bool IsPaused { get; private set; }
         public bool IsRunning { get; private set; }
 
-        public AutomatedMessagesManager(ILogger logger, IEventAggregator aggregator, IAutomatedMessageWrapperFactory wrapperFactory, IAutomatedMessagesRepository repository)
+        public AutomatedMessagesManager(IEventAggregator aggregator, IAutomatedMessageWrapperFactory wrapperFactory, IAutomatedMessagesRepository repository)
         {
-            _logger = logger;
             _aggregator = aggregator;
             _wrapperFactory = wrapperFactory;
             _repository = repository;
 
-            logger.Log("Initializing MessagesManager...");
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing MessagesManager...");
             _messages = LoadMessages();
             IsRunning = false;
         }
@@ -97,8 +95,7 @@ namespace RoxorBot.Logic.Managers
                 result.Add(msg.Id, _wrapperFactory.CreateNew(msg));
             }
 
-            _logger.Log("Loaded " + result.Count + " automated messages from database.");
-
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + result.Count + " automated messages from database.");
             return result;
         }
 

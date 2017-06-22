@@ -67,8 +67,7 @@ namespace RoxorBot
         protected override void ConfigureContainer()
         {
             base.ConfigureContainer();
-
-            RegisterTypeIfMissing(typeof(ILogger), typeof(Logger), true);
+            
             RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
             RegisterTypeIfMissing(typeof(ITwitchLibTranslationService), typeof(TwitchLibTranslationService), false);
             RegisterTypeIfMissing(typeof(IChatHandlersProvider), typeof(ChatHandlersProvider), false);
