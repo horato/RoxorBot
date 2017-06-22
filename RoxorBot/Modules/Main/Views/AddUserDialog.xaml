@@ -1,0 +1,21 @@
+﻿<controls:MetroWindow x:Class="RoxorBot.Modules.Main.Views.AddUserDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:converters="clr-namespace:RoxorBot.Data.Converters"
+             Height="316" Width="307" WindowStyle="ToolWindow" ResizeMode="NoResize" Title="Add User">
+    <Grid Background="LightBlue">
+        <Label Content="Nick" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top" Width="280"/>
+        <TextBox Text="{Binding Name}" HorizontalAlignment="Left" Height="32" Margin="10,46,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="280"/>
+        <Label Content="Role" HorizontalAlignment="Left" Margin="10,83,0,0" VerticalAlignment="Top" Width="280"/>
+        <ComboBox SelectedItem="{Binding Role}" HorizontalAlignment="Left" Height="32" Margin="10,109,0,0" ItemsSource="{Binding Roles, Mode=OneWay}" VerticalAlignment="Top" Width="280" />
+        <Label Content="Points" HorizontalAlignment="Left" Margin="10,146,0,0" VerticalAlignment="Top" Width="280"/>
+        <TextBox Text="{Binding Points}" HorizontalAlignment="Left" Height="32" Margin="10,172,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="280" />
+        <Label Content="IsAllowed" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="10,209,0,0" VerticalAlignment="Top" Width="57"/>
+        <CheckBox IsChecked="{Binding IsAllowed}" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="32" Margin="82,209,0,0" VerticalAlignment="Top" Width="26" />
+
+        <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_OnClick" HorizontalAlignment="Left" Height="36" Margin="175,246,0,0" VerticalAlignment="Top" Width="115"/>
+        <Button Command="{Binding AddCommand}" Content="Add" HorizontalAlignment="Left" Height="36" Margin="10,246,0,0" VerticalAlignment="Top" Width="115"/>
+    </Grid>
+</controls:MetroWindow>
+

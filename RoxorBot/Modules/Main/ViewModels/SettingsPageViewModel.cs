@@ -10,6 +10,7 @@ using RoxorBot.Data.Interfaces.Dialog;
 using RoxorBot.Data.Model.Wrappers;
 using RoxorBot.Logic;
 using RoxorBot.Modules.Main.Views;
+using AddUserDialog = RoxorBot.Modules.Main.Views.AddUserDialog;
 
 namespace RoxorBot.Modules.Main.ViewModels
 {

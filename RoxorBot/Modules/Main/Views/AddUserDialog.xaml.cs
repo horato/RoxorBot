@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using RoxorBot.Data.Interfaces.Dialog;
 
-namespace RoxorBot.Controls
+namespace RoxorBot.Modules.Main.Views
 {
     /// <summary>
     /// Interaction logic for AddDialog.xaml
@@ -24,16 +24,6 @@ namespace RoxorBot.Controls
 
             DataContextChanged -= AddUserDialog_DataContextChanged;
             vm.Close = Close;
-        }
-
-        private void PointsTextBox_OnPreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            e.Handled = !(Char.IsNumber(Convert.ToChar(e.Text)));
-        }
-
-        private void PointsTextBox_OnPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            e.Handled = (e.Key == Key.Space);
         }
 
         private void CancelButton_OnClick(object sender, RoutedEventArgs e)
