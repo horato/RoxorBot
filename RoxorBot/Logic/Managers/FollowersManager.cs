@@ -5,7 +5,6 @@ using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Model.Wrappers;
-using RoxorBot.Logic.Logging;
 using TwitchLib;
 
 namespace RoxorBot.Logic.Managers
@@ -70,10 +69,17 @@ namespace RoxorBot.Logic.Managers
 
                 foreach (var follower in followers.Followers)
                 {
-                    var u = _usersManager.AddOrGetUser(follower.User.DisplayName, Role.Viewers);
-                    u.IsFollower = true;
-                    u.IsFollowerSince = follower.CreatedAt;
-                    result.Add(u);
+                    try
+                    {
+                        var u = _usersManager.AddOrGetUser(follower.User.DisplayName, Role.Viewers);
+                        u.IsFollower = true;
+                        u.IsFollowerSince = follower.CreatedAt;
+                        result.Add(u);
+                    }
+                    catch
+                    {
+                        //
+                    }
                 }
 
                 offset += 50;

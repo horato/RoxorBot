@@ -9,7 +9,7 @@ namespace RoxorBot.Data.Model.Database.Mappings
         {
             Id(x => x.Id).GeneratedBy.GuidComb();
             SetTableName();
-            Map(x => x.DbTimestamp).Not.Nullable().Generated.Always().CustomSqlType("DATETIME").Index("IDX_DbTimestamp");
+            Map(x => x.DbTimestamp).Not.Nullable().Generated.Always().CustomSqlType("Timestamp").Index("IDX_DbTimestamp");
         }
 
         private void SetTableName()

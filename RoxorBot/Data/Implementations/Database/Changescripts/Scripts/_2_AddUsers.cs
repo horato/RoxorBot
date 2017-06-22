@@ -11,7 +11,7 @@ namespace RoxorBot.Data.Implementations.Database.Changescripts.Scripts
         {
             new SQLiteCommand("DROP TABLE points;", connection).ExecuteNonQuery();
             new SQLiteCommand("DROP TABLE allowedUsers;", connection).ExecuteNonQuery();
-            new SQLiteCommand("CREATE TABLE users (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP, VisibleName TEXT NOT NULL, ValueName TEXT NOT NULL, Role TEXT NOT NULL, IsOnline BOOL, Points INT, IsFollower BOOL, IsFollowerSince DATETIME, IsAllowed BOOL);", connection).ExecuteNonQuery();
+            new SQLiteCommand("CREATE TABLE users (Id UNIQUEIDENTIFIER PRIMARY KEY, DbTimestamp Timestamp DEFAULT CURRENT_TIMESTAMP, VisibleName TEXT NOT NULL, ValueName TEXT NOT NULL, Role TEXT NOT NULL, IsOnline BOOL, Points INT, IsFollower BOOL, IsFollowerSince DATETIME, IsAllowed BOOL);", connection).ExecuteNonQuery();
         }
     }
 }
