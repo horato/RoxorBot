@@ -1,8 +1,7 @@
-﻿<controls:MetroWindow x:Class="RoxorBot.Modules.Main.Views.AddUserDialog"
+﻿<base:DialogBase x:Class="RoxorBot.Modules.Main.Views.AddUserDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-             xmlns:converters="clr-namespace:RoxorBot.Data.Converters"
+             xmlns:base="clr-namespace:RoxorBot.Data.Base"
              Height="316" Width="307" WindowStyle="ToolWindow" ResizeMode="NoResize" Title="Add User">
     <Grid Background="LightBlue">
         <Label Content="Nick" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top" Width="280"/>
@@ -17,5 +16,7 @@
         <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_OnClick" HorizontalAlignment="Left" Height="36" Margin="175,246,0,0" VerticalAlignment="Top" Width="115"/>
         <Button Command="{Binding AddCommand}" Content="Add" HorizontalAlignment="Left" Height="36" Margin="10,246,0,0" VerticalAlignment="Top" Width="115"/>
     </Grid>
-</controls:MetroWindow>
+</base:DialogBase>
+
+
 

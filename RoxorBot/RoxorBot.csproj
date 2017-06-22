@@ -194,6 +194,7 @@
     <Compile Include="Controls\CommandsListControl.xaml.cs">
       <DependentUpon>CommandsListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Data\Base\DialogBase.cs" />
     <Compile Include="Data\Base\ViewModelBase.cs" />
     <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
     <Compile Include="Logic\Logging\ILogger.cs" />
