@@ -9,6 +9,14 @@
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <TextBox Text="{Binding Output, Mode=OneWay}" IsReadOnly="True" Background="LightBlue" Height="150" />
+        <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged">
+            <TextBox Text="{Binding Output, Mode=OneWay}" 
+                 IsReadOnly="True" 
+                 Background="LightBlue" 
+                 Height="150" 
+                 BorderThickness="0"
+                 TextChanged="TextBoxBase_OnTextChanged"
+                 VerticalScrollBarVisibility="Visible" />
+        </ScrollViewer>
     </Grid>
 </UserControl>
