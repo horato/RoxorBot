@@ -4,7 +4,7 @@ using RoxorBot.Data.Model.Wrappers;
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IRaffleManager
+    public interface IRaffleManager : IManagerBase
     {
         int PointsRequired { get; set; }
         bool IsFollowersOnly { get; set; }

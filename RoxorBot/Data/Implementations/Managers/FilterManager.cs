@@ -19,7 +19,7 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IUsersManager _usersManager;
         private readonly IFilterWrapperFactory _filterWrapperFactory;
         private readonly IFilterRepository _repository;
-        private readonly Dictionary<Guid, FilterWrapper> _filters;
+        private readonly Dictionary<Guid, FilterWrapper> _filters = new Dictionary<Guid, FilterWrapper>();
 
         public int FiltersCount => _filters.Count;
 
@@ -29,20 +29,22 @@ namespace RoxorBot.Data.Implementations.Managers
             _usersManager = usersManager;
             _filterWrapperFactory = filterWrapperFactory;
             _repository = filterRepository;
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loading FilterManager...");
-            _filters = LoadFilters();
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _filters.Count + " filtered words from database.");
         }
 
-        private Dictionary<Guid, FilterWrapper> LoadFilters()
+        public void Init()
         {
-            var filters = _repository.GetAll();
-            var result = new Dictionary<Guid, FilterWrapper>();
-            foreach (var filter in filters)
-                result.Add(filter.Id, _filterWrapperFactory.CreateNew(filter));
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loading FilterManager...");
+            LoadFilters();
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _filters.Count + " filtered words from database.");
 
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + result.Count + " filters from database.");
-            return result;
+        }
+
+        private void LoadFilters()
+        {
+            _filters.Clear();
+            var filters = _repository.GetAll();
+            foreach (var filter in filters)
+                _filters.Add(filter.Id, _filterWrapperFactory.CreateNew(filter));
         }
 
         public bool FilterExists(Guid id)

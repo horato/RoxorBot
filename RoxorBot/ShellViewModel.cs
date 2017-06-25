@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Prism.Commands;
 using Prism.Events;
@@ -19,22 +20,15 @@ namespace RoxorBot
 
         public ICommand ClosingCommand { get; }
 
-        public ShellViewModel(IEventAggregator aggregator, IUsersManager usersManager)
+        public ShellViewModel(IEventAggregator aggregator, IManagersLoader managersLoader, IUsersManager usersManager)
         {
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.TwitchId))
-                Properties.Settings.Default.TwitchId = Prompt.ShowDialog("Specify twitch clientId", "Twitch client Id");
-            if (string.IsNullOrWhiteSpace(Properties.Settings.Default.twitch_oauth))
-                Properties.Settings.Default.twitch_oauth = Prompt.ShowDialog("Specify twitch oauth", "Twitch oauth");
-            Properties.Settings.Default.Save();
-
-            TwitchAPI.Settings.ClientId = Properties.Settings.Default.TwitchId;
-            TwitchAPI.Settings.AccessToken = Properties.Settings.Default.twitch_oauth;
-
+            TwitchHelper.EnsureTwitchLoginCorrect();
             _aggregator = aggregator;
             _usersManager = usersManager;
 
-            ClosingCommand = new DelegateCommand(Closing, CanClosing);
+            Task.Factory.StartNew(managersLoader.Load);
 
+            ClosingCommand = new DelegateCommand(Closing, CanClosing);
             _aggregator.GetEvent<RaiseButtonsEnabled>().Subscribe(OnRaiseButtonsEnabled);
         }
 

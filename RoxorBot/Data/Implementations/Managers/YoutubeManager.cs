@@ -20,21 +20,21 @@ namespace RoxorBot.Data.Implementations.Managers
     {
         private readonly ILogger _logger = LoggerProvider.GetLogger();
         private readonly IEventAggregator _aggregator;
-        private readonly List<YoutubeVideo> _videos;
-        private readonly List<YoutubeVideo> _backupPlaylist;
-        private bool isPlaylistLoading = false;
+        private readonly List<YoutubeVideo> _videos = new List<YoutubeVideo>();
+        private readonly List<YoutubeVideo> _backupPlaylist = new List<YoutubeVideo>();
+        private bool _isPlaylistLoading = false;
         public int PlaylistCount => _videos.Count;
         public int BackupPlaylistCount => _backupPlaylist.Count;
 
         public YoutubeManager(IEventAggregator aggregator)
         {
             _aggregator = aggregator;
+        }
+
+        public void Init()
+        {
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing YoutubeManager...");
-
-            _videos = new List<YoutubeVideo>();
-            _backupPlaylist = new List<YoutubeVideo>();
-
-            new Thread(InitBackupPlaylist).Start();
+            InitBackupPlaylist();
         }
 
         private void InitBackupPlaylist()
@@ -42,7 +42,7 @@ namespace RoxorBot.Data.Implementations.Managers
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
                 return;
 
-            isPlaylistLoading = true;
+            _isPlaylistLoading = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             LoadBackupPlaylist("PL45A01CD33DA7756B"); //Slecna
@@ -51,7 +51,7 @@ namespace RoxorBot.Data.Implementations.Managers
             watch.Stop();
             var elapsed = TimeSpan.FromMilliseconds(watch.ElapsedMilliseconds);
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _backupPlaylist.Count + " songs to backup playlist in " + elapsed.Minutes + "m " + elapsed.Seconds + "s.");
-            isPlaylistLoading = false;
+            _isPlaylistLoading = false;
         }
 
         private bool ExistsInPrimaryQueue(string id)
@@ -158,7 +158,7 @@ namespace RoxorBot.Data.Implementations.Managers
 
         public YoutubeVideo GetNextAndRemove()
         {
-            if (_backupPlaylist.Count < 5 && !isPlaylistLoading)
+            if (_backupPlaylist.Count < 5 && !_isPlaylistLoading)
                 new Thread(InitBackupPlaylist).Start();
 
             if (_videos.Count > 0)

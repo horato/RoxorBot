@@ -1,8 +1,9 @@
 ﻿using System;
+using RoxorBot.Data.Interfaces.Managers;
 
 namespace RoxorBot.Data.Interfaces.Chat
 {
-    public interface IChatManager
+    public interface IChatManager : IManagerBase
     {
         bool IsConnecting { get; }
         bool IsConnected { get; }

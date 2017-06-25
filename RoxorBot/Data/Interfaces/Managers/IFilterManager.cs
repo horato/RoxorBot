@@ -6,7 +6,7 @@ using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IFilterManager
+    public interface IFilterManager : IManagerBase
     {
         int FiltersCount { get; }
         bool FilterExists(Guid id);

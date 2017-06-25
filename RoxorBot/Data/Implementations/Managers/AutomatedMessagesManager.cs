@@ -16,7 +16,7 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IAutomatedMessageWrapperFactory _wrapperFactory;
         private readonly IAutomatedMessagesRepository _repository;
 
-        private readonly Dictionary<Guid, AutomatedMessageWrapper> _messages;
+        private readonly Dictionary<Guid, AutomatedMessageWrapper> _messages = new Dictionary<Guid, AutomatedMessageWrapper>();
         public bool IsPaused { get; private set; }
         public bool IsRunning { get; private set; }
 
@@ -25,10 +25,14 @@ namespace RoxorBot.Data.Implementations.Managers
             _aggregator = aggregator;
             _wrapperFactory = wrapperFactory;
             _repository = repository;
-
-            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing MessagesManager...");
-            _messages = LoadMessages();
             IsRunning = false;
+        }
+
+        public void Init()
+        {
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing MessagesManager...");
+            LoadMessages();
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + _messages.Count + " automated messages from database.");
         }
 
         public void AddAutomatedMessage(string text, int interval, bool start, bool enabled)
@@ -85,18 +89,12 @@ namespace RoxorBot.Data.Implementations.Managers
             _repository.FlushSession();
         }
 
-        private Dictionary<Guid, AutomatedMessageWrapper> LoadMessages()
+        private void LoadMessages()
         {
-            var result = new Dictionary<Guid, AutomatedMessageWrapper>();
+            _messages.Clear();
             var messages = _repository.GetAll();
-
             foreach (var msg in messages)
-            {
-                result.Add(msg.Id, _wrapperFactory.CreateNew(msg));
-            }
-
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + result.Count + " automated messages from database.");
-            return result;
+                _messages.Add(msg.Id, _wrapperFactory.CreateNew(msg));
         }
 
         public void StartAllTimers()

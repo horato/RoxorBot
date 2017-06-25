@@ -4,7 +4,7 @@ using RoxorBot.Data.Model.Wrappers;
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IUserCommandsManager
+    public interface IUserCommandsManager : IManagerBase
     {
         void AddCommand(string command, string reply);
         void UpdateCommand(Guid id, string command, string reply);

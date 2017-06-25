@@ -1,6 +1,6 @@
 ﻿namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IPointsManager
+    public interface IPointsManager : IManagerBase
     {
         void AddPoints(string user, int points);
         void RemovePoints(string user, int points);

@@ -22,11 +22,9 @@ namespace RoxorBot.Modules.Main.ViewModels
     public class MainViewModel : BindableBase
     {
         private readonly IEventAggregator _aggregator;
-        private readonly IRaffleManager _raffleManager;
         private readonly IChatManager _chatManager;
         private readonly IRewardTimerManager _rewardTimerManager;
         private readonly IAutomatedMessagesManager _automatedMessagesManager;
-        private readonly IPointsManager _pointsManager;
         private readonly IUsersManager _usersManager;
         private readonly IChatMessageHandler _chatMessageHandler;
 
@@ -62,13 +60,12 @@ namespace RoxorBot.Modules.Main.ViewModels
 
         private Views.YoutubeView _youtubeWindow;
 
-        public MainViewModel(IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IFilterManager filterManager, IPointsManager pointsManager, IUserCommandsManager userCommandsManager, IFollowersManager followersManager, IYoutubeManager youtubeManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
+        public MainViewModel(IEventAggregator aggregator, IChatManager chatManager, IRewardTimerManager rewardTimerManager, IAutomatedMessagesManager automatedMessagesManager, IUsersManager usersManager, IChatMessageHandler chatMessageHandler)
         {
             _aggregator = aggregator;
             _chatManager = chatManager;
             _rewardTimerManager = rewardTimerManager;
             _automatedMessagesManager = automatedMessagesManager;
-            _pointsManager = pointsManager;
             _usersManager = usersManager;
             _chatMessageHandler = chatMessageHandler;
 
@@ -77,20 +74,9 @@ namespace RoxorBot.Modules.Main.ViewModels
             _aggregator.GetEvent<ChatChannelJoined>().Subscribe(OnChatConnected);
             // var x = Regex.Match("http://www.twitch.tv/", @"((http:|https:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*)");
 
-            _aggregator.GetEvent<AddLogEvent>().Publish("Program init...");
-
             if (string.IsNullOrWhiteSpace(Properties.Settings.Default.youtubeKey))
                 Properties.Settings.Default.youtubeKey = Prompt.ShowDialog("Specify youtube api key", "Api key");
             Properties.Settings.Default.Save();
-
-            new Thread(Load).Start();
-        }
-
-        private void Load()
-        {
-            _chatMessageHandler.Init();
-
-            _aggregator.GetEvent<AddLogEvent>().Publish("Program init finished. Keep in mind that followers and backup playlist are still loading!");
         }
 
         [Command]

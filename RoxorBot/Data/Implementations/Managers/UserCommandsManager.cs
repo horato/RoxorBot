@@ -16,7 +16,7 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IEventAggregator _aggregator;
         private readonly IUserCommandWrapperFactory _wrapperFactory;
         private readonly IUserCommandsRepository _commandsRepository;
-        private readonly Dictionary<Guid, UserCommandWrapper> _commands;
+        private readonly Dictionary<Guid, UserCommandWrapper> _commands = new Dictionary<Guid, UserCommandWrapper>();
         public int CommandsCount => _commands.Count;
 
         public UserCommandsManager(IEventAggregator aggregator, IUserCommandWrapperFactory wrapperFactory, IUserCommandsRepository commandsRepository)
@@ -25,8 +25,12 @@ namespace RoxorBot.Data.Implementations.Managers
             _wrapperFactory = wrapperFactory;
             _commandsRepository = commandsRepository;
 
+        }
+
+        public void Init()
+        {
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing UserCommandsManager...");
-            _commands = LoadCommands();
+            LoadCommands();
             _aggregator.GetEvent<AddLogEvent>().Publish("Loaded " + CommandsCount + " user commands from database.");
         }
 
@@ -81,15 +85,12 @@ namespace RoxorBot.Data.Implementations.Managers
             return _commands.Values.Any(x => string.Equals(x.Command, command, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        private Dictionary<Guid, UserCommandWrapper> LoadCommands()
+        private void LoadCommands()
         {
+            _commands.Clear();
             var commands = _commandsRepository.GetAll();
-            var temp = new Dictionary<Guid, UserCommandWrapper>();
-
             foreach (var command in commands)
-                temp.Add(command.Id, _wrapperFactory.CreateNew(command));
-
-            return temp;
+                _commands.Add(command.Id, _wrapperFactory.CreateNew(command));
         }
 
         public List<UserCommandWrapper> GetAllCommands()

@@ -14,7 +14,10 @@ namespace RoxorBot.Data.Implementations.Managers
         {
             _aggregator = aggregator;
             _usersManager = usersManager;
+        }
 
+        public void Init()
+        {
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing PointsManager...");
         }
 

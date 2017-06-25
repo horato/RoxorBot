@@ -49,7 +49,7 @@ namespace RoxorBot.Data.Implementations.Managers
         public event EventHandler<UserWrapper> OnUserAdd;
         public event EventHandler OnWinnerPicked;
 
-        
+
         private bool _isFollowersOnly;
         private int _entryPointsRequired = 100;
         private readonly List<string> _acceptedWords = new List<string> { "!raffle", "!join" };
@@ -62,9 +62,12 @@ namespace RoxorBot.Data.Implementations.Managers
             _chatManager = chatManager;
             _pointsManager = pointsManager;
             _usersManager = usersManager;
+        }
 
-            _aggregator.GetEvent<ChatMessageReceivedEvent>().Subscribe(OnChatMessageReceived);
+        public void Init()
+        {
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing RaffleManager...");
+            _aggregator.GetEvent<ChatMessageReceivedEvent>().Subscribe(OnChatMessageReceived);
         }
 
         private void OnChatMessageReceived(ChatMessage e)

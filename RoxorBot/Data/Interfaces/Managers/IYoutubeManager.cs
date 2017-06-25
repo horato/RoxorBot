@@ -2,7 +2,7 @@
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IYoutubeManager
+    public interface IYoutubeManager : IManagerBase
     {
         int PlaylistCount { get; }
         int BackupPlaylistCount { get; }

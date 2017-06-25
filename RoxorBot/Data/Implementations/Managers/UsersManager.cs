@@ -23,8 +23,8 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly ITwitchLibTranslationService _translationService;
         private readonly IUsersRepository _usersRepository;
         private readonly IUserWrapperFactory _userWrapperFactory;
-        private readonly Dictionary<Guid, UserWrapper> _users;
-        private readonly List<string> _superAdmins;
+        private readonly Dictionary<Guid, UserWrapper> _users = new Dictionary<Guid, UserWrapper>();
+        private readonly List<string> _superAdmins = new List<string> { "roxork0", "horato2" };
 
         public int UsersCount => _users.Count;
 
@@ -34,23 +34,26 @@ namespace RoxorBot.Data.Implementations.Managers
             _translationService = translationService;
             _usersRepository = usersRepository;
             _userWrapperFactory = factory;
-            _aggregator.GetEvent<AddLogEvent>().Publish("Loading UsersManager...");
+        }
 
-            _users = LoadUsers();
-            _superAdmins = new List<string> { "roxork0", "horato2" };
+        public void Init()
+        {
+            _aggregator.GetEvent<AddLogEvent>().Publish("Loading UsersManager...");
+            LoadUsers();
             _aggregator.GetEvent<ChatUserJoinedEvent>().Subscribe(OnChatUserJoined);
             _aggregator.GetEvent<ChatUserLeftEvent>().Subscribe(OnChatUserLeft);
             _aggregator.GetEvent<ModeratorsListReceivedEvent>().Subscribe(OnModeratorsListReceived);
         }
 
-        private Dictionary<Guid, UserWrapper> LoadUsers()
+        private void LoadUsers()
         {
-            var ret = new Dictionary<Guid, UserWrapper>();
-            var users = _usersRepository.GetAll();
-            foreach (var user in users)
-                ret.Add(user.Id, _userWrapperFactory.CreateNew(user));
-
-            return ret;
+            lock (_users)
+            {
+                _users.Clear();
+                var users = _usersRepository.GetAll();
+                foreach (var user in users)
+                    _users.Add(user.Id, _userWrapperFactory.CreateNew(user));
+            }
         }
 
         private void OnModeratorsListReceived(List<string> e)

@@ -23,7 +23,6 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IEventAggregator _aggregator;
         private readonly ILogger _logger = LoggerProvider.GetLogger();
         private readonly List<DateTime> _floodQueue = new List<DateTime>();
-        private System.Timers.Timer _floodTimer;
 
         private bool _isConnected;
         private bool _isConnecting;
@@ -54,6 +53,11 @@ namespace RoxorBot.Data.Implementations.Managers
         public ChatManager(IEventAggregator aggregator)
         {
             _aggregator = aggregator;
+        }
+
+        public void Init()
+        {
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing ChatManager...");
         }
 
         public void Connect()
@@ -250,7 +254,6 @@ namespace RoxorBot.Data.Implementations.Managers
 
         public void Disconnect()
         {
-            _floodTimer?.Stop();
             _floodQueue.Clear();
 
             try

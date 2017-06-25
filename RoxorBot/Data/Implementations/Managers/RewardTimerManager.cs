@@ -1,4 +1,5 @@
-﻿using Prism.Events;
+﻿using System;
+using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Interfaces.Managers;
@@ -11,9 +12,10 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IEventAggregator _aggregator;
         private readonly IUsersManager _usersManager;
         private readonly IPointsManager _pointsManager;
+        private bool _isInitialized;
 
-        private readonly System.Timers.Timer _rewardTimer;
-        public bool IsRunning => _rewardTimer.Enabled;
+        private System.Timers.Timer _rewardTimer;
+        public bool IsRunning => _rewardTimer?.Enabled ?? false;
         public bool IsPaused { get; private set; }
 
         public RewardTimerManager(IEventAggregator aggregator, IUsersManager usersManager, IPointsManager pointsManager)
@@ -21,10 +23,16 @@ namespace RoxorBot.Data.Implementations.Managers
             _aggregator = aggregator;
             _usersManager = usersManager;
             _pointsManager = pointsManager;
+        }
+
+        public void Init()
+        {
+            _aggregator.GetEvent<AddLogEvent>().Publish("Initializing RewardTimerManager...");
             _rewardTimer = new System.Timers.Timer(5 * 60 * 1000);
             _rewardTimer.AutoReset = true;
             _rewardTimer.Elapsed += _rewardTimer_Elapsed;
             _aggregator.GetEvent<ChatConnectionChangedEvent>().Subscribe(OnChatConnectionChanged);
+            _isInitialized = true;
         }
 
         private void OnChatConnectionChanged(ChatConnectionState obj)
@@ -60,12 +68,18 @@ namespace RoxorBot.Data.Implementations.Managers
 
         public void Start()
         {
+            if(!_isInitialized)
+                throw new InvalidOperationException($"{nameof(RewardTimerManager)} is not initialized.");
+
             _rewardTimer.Start();
             IsPaused = false;
         }
 
         public void Stop()
         {
+            if (!_isInitialized)
+                throw new InvalidOperationException($"{nameof(RewardTimerManager)} is not initialized.");
+
             _rewardTimer.Stop();
             IsPaused = false;
         }

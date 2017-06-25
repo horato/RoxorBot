@@ -1,6 +1,6 @@
 ﻿namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IRewardTimerManager
+    public interface IRewardTimerManager : IManagerBase
     {
         void Start();
         void Stop();

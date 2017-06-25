@@ -15,20 +15,22 @@ namespace RoxorBot.Data.Implementations.Managers
     {
         private readonly IEventAggregator _aggregator;
         private readonly IUsersManager _usersManager;
-        private readonly Timer _updateTimer;
+        private Timer _updateTimer;
 
         public FollowersManager(IUsersManager usersManager, IEventAggregator aggregator)
         {
             _usersManager = usersManager;
             _aggregator = aggregator;
+        }
+
+        public void Init()
+        {
             _aggregator.GetEvent<AddLogEvent>().Publish("Initializing FollowersManager...");
 
             _updateTimer = new Timer(2 * 60 * 1000);
             _updateTimer.AutoReset = false;
             _updateTimer.Elapsed += timer_Elapsed;
-
-            //TODO: init on new thread
-            Task.Factory.StartNew(LoadFollowers);
+            LoadFollowers();
         }
 
         private void timer_Elapsed(object sender, ElapsedEventArgs e)

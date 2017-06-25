@@ -1,6 +1,6 @@
 ﻿namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IFollowersManager
+    public interface IFollowersManager : IManagerBase
     {
         int GetFollowersCount();
     }

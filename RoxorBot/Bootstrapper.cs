@@ -72,7 +72,7 @@ namespace RoxorBot
         protected override void ConfigureContainer()
         {
             base.ConfigureContainer();
-            
+
             RegisterTypeIfMissing(typeof(IChatMessageHandler), typeof(ChatMessageHandler), true);
             RegisterTypeIfMissing(typeof(ITwitchLibTranslationService), typeof(TwitchLibTranslationService), false);
             RegisterTypeIfMissing(typeof(IChatHandlersProvider), typeof(ChatHandlersProvider), false);
@@ -87,6 +87,7 @@ namespace RoxorBot
 
         private void RegisterManagers()
         {
+            RegisterTypeIfMissing(typeof(IManagersLoader), typeof(ManagerLoader), false);
             RegisterTypeIfMissing(typeof(IRaffleManager), typeof(RaffleManager), true);
             RegisterTypeIfMissing(typeof(IChatManager), typeof(ChatManager), true);
             RegisterTypeIfMissing(typeof(IRewardTimerManager), typeof(RewardTimerManager), true);

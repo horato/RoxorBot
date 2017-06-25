@@ -4,7 +4,7 @@ using RoxorBot.Data.Model.Wrappers;
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IAutomatedMessagesManager
+    public interface IAutomatedMessagesManager : IManagerBase
     {
         void AddAutomatedMessage(string msg, int interval, bool start, bool enabled);
         void UpdateAutomatedMessage(Guid id, string msg, int interval, bool start, bool enabled);

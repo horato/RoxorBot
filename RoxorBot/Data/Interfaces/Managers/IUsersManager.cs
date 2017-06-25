@@ -6,7 +6,7 @@ using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Interfaces.Managers
 {
-    public interface IUsersManager
+    public interface IUsersManager : IManagerBase
     {
         int UsersCount { get; }
         void InitUsers(JoinedChannel channel);

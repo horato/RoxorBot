@@ -199,6 +199,9 @@
     <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
     <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_3_AddUniqueToUsers.cs" />
     <Compile Include="Data\Implementations\Database\DatabaseConfigurator.cs" />
+    <Compile Include="Data\Implementations\Managers\ManagerLoader.cs" />
+    <Compile Include="Data\Implementations\TwitchHelper.cs" />
+    <Compile Include="Data\Interfaces\Managers\IManagerBase.cs" />
     <Compile Include="Data\Interfaces\Managers\IManagersLoader.cs" />
     <Compile Include="Data\Implementations\Logging\ILogger.cs" />
     <Compile Include="Data\Implementations\Logging\Logger.cs" />
@@ -339,7 +342,7 @@
     <Compile Include="Data\Implementations\ViewModelProviderHelper.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatCommandHandler.cs" />
     <Compile Include="Data\Interfaces\Managers\IAutomatedMessagesManager.cs" />
-    <Compile Include="Data\Interfaces\Chat\IChatManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IChatManager.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatMessageHandler.cs" />
     <Compile Include="Data\Interfaces\Managers\IFilterManager.cs" />
     <Compile Include="Data\Interfaces\Managers\IFollowersManager.cs" />
