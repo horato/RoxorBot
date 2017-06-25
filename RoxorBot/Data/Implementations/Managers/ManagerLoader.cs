@@ -21,10 +21,11 @@ namespace RoxorBot.Data.Implementations.Managers
         private readonly IRaffleManager _raffleManager;
         private readonly IRewardTimerManager _rewardTimerManager;
         private readonly IUserCommandsManager _userCommandsManager;
+        private readonly IUsersManager _usersManager;
         private readonly IYoutubeManager _youtubeManager;
         private readonly IChatMessageHandler _chatMessageHandler;
 
-        public ManagerLoader(IEventAggregator aggregator, IAutomatedMessagesManager messagesManager, IFilterManager filterManager, IFollowersManager followersManager, IChatManager chatManager, IPointsManager pointsManager, IRaffleManager raffleManager, IRewardTimerManager rewardTimerManager, IUserCommandsManager userCommandsManager, IYoutubeManager youtubeManager, IChatMessageHandler chatMessageHandler)
+        public ManagerLoader(IEventAggregator aggregator, IAutomatedMessagesManager messagesManager, IFilterManager filterManager, IFollowersManager followersManager, IChatManager chatManager, IPointsManager pointsManager, IRaffleManager raffleManager, IRewardTimerManager rewardTimerManager, IUserCommandsManager userCommandsManager, IUsersManager usersManager, IYoutubeManager youtubeManager, IChatMessageHandler chatMessageHandler)
         {
             _aggregator = aggregator;
             _messagesManager = messagesManager;
@@ -35,6 +36,7 @@ namespace RoxorBot.Data.Implementations.Managers
             _raffleManager = raffleManager;
             _rewardTimerManager = rewardTimerManager;
             _userCommandsManager = userCommandsManager;
+            _usersManager = usersManager;
             _youtubeManager = youtubeManager;
             _chatMessageHandler = chatMessageHandler;
         }
@@ -42,8 +44,7 @@ namespace RoxorBot.Data.Implementations.Managers
         public void Load()
         {
             _aggregator.GetEvent<AddLogEvent>().Publish("Program init...");
-            Task.Factory.StartNew(_followersManager.Init);
-            Task.Factory.StartNew(_youtubeManager.Init);
+            _usersManager.Init();
             _messagesManager.Init();
             _filterManager.Init();
             _chatManager.Init();
@@ -52,6 +53,8 @@ namespace RoxorBot.Data.Implementations.Managers
             _rewardTimerManager.Init();
             _userCommandsManager.Init();
             _chatMessageHandler.Init();
+            Task.Factory.StartNew(_followersManager.Init);
+            Task.Factory.StartNew(_youtubeManager.Init);
             _aggregator.GetEvent<AddLogEvent>().Publish("Program init finished. Keep in mind that followers and backup playlist are still loading!");
         }
     }
