@@ -4,7 +4,7 @@ using RoxorBot.Data.Enums;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot.Data.Interfaces
+namespace RoxorBot.Data.Interfaces.Managers
 {
     public interface IFilterManager
     {

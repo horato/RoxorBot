@@ -5,12 +5,13 @@ using System.Text;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
-using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Managers;
+using RoxorBot.Data.Logic;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class RaffleManager : IRaffleManager
     {

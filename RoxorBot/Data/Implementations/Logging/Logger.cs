@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using log4net;
 
-namespace RoxorBot.Logic.Logging
+namespace RoxorBot.Data.Implementations.Logging
 {
     public class Logger : ILogger
     {

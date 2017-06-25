@@ -5,8 +5,8 @@ using System.Threading;
 using System.Windows;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Implementations;
+using RoxorBot.Data.Implementations.Logging;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Logic.Logging;
 
 namespace RoxorBot
 {

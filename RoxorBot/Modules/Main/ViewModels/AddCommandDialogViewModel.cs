@@ -3,6 +3,7 @@ using Prism.Mvvm;
 using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Dialog;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Model.Wrappers;
 
 namespace RoxorBot.Modules.Main.ViewModels

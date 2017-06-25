@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Prism.Events;
 using RoxorBot.Data.Events;
-using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Factories.Wrapper;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model.Database.Entities;
 using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class UserCommandsManager : IUserCommandsManager
     {

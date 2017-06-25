@@ -10,11 +10,11 @@ using System.Web;
 using Prism.Events;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Youtube;
-using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Implementations.Logging;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Model.Youtube;
-using RoxorBot.Logic.Logging;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class YoutubeManager : IYoutubeManager
     {

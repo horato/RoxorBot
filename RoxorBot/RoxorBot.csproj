@@ -199,9 +199,10 @@
     <Compile Include="Data\Extensions\UnityContainerExtensions.cs" />
     <Compile Include="Data\Implementations\Database\Changescripts\Scripts\_3_AddUniqueToUsers.cs" />
     <Compile Include="Data\Implementations\Database\DatabaseConfigurator.cs" />
-    <Compile Include="Logic\Logging\ILogger.cs" />
-    <Compile Include="Logic\Logging\Logger.cs" />
-    <Compile Include="Logic\Logging\LoggerProvider.cs" />
+    <Compile Include="Data\Interfaces\Managers\IManagersLoader.cs" />
+    <Compile Include="Data\Implementations\Logging\ILogger.cs" />
+    <Compile Include="Data\Implementations\Logging\Logger.cs" />
+    <Compile Include="Data\Implementations\Logging\LoggerProvider.cs" />
     <Compile Include="Modules\Main\ViewModels\AddCommandDialogViewModel.cs" />
     <Compile Include="Modules\Main\ViewModels\AddUserDialogViewModel.cs" />
     <Compile Include="Modules\Main\Views\AddCommandDialog.xaml.cs">
@@ -337,33 +338,33 @@
     <Compile Include="Data\Implementations\ViewModelProvider.cs" />
     <Compile Include="Data\Implementations\ViewModelProviderHelper.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatCommandHandler.cs" />
-    <Compile Include="Data\Interfaces\IAutomatedMessagesManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IAutomatedMessagesManager.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatManager.cs" />
     <Compile Include="Data\Interfaces\Chat\IChatMessageHandler.cs" />
-    <Compile Include="Data\Interfaces\IFilterManager.cs" />
-    <Compile Include="Data\Interfaces\IFollowersManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IFilterManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IFollowersManager.cs" />
     <Compile Include="Data\Enums\LogType.cs" />
-    <Compile Include="Data\Interfaces\IPointsManager.cs" />
-    <Compile Include="Data\Interfaces\IRaffleManager.cs" />
-    <Compile Include="Data\Interfaces\IRewardTimerManager.cs" />
-    <Compile Include="Data\Interfaces\IUserCommandsManager.cs" />
-    <Compile Include="Data\Interfaces\IUsersManager.cs" />
-    <Compile Include="Data\Interfaces\IYoutubeManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IPointsManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IRaffleManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IRewardTimerManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IUserCommandsManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IUsersManager.cs" />
+    <Compile Include="Data\Interfaces\Managers\IYoutubeManager.cs" />
     <Compile Include="Data\Interfaces\ITwitchLibTranslationService.cs" />
     <Compile Include="Data\Interfaces\Providers\IChatHandlersProvider.cs" />
     <Compile Include="Data\Model\Wrappers\UserDisplayWrapper.cs" />
     <Compile Include="Data\ViewHelpers\EventToCommand.xaml.cs">
       <DependentUpon>EventToCommand.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Logic\Mail.cs" />
-    <Compile Include="Logic\Managers\ChatManager.cs" />
-    <Compile Include="Logic\Managers\FilterManager.cs" />
-    <Compile Include="Logic\Managers\FollowersManager.cs" />
-    <Compile Include="Logic\Managers\AutomatedMessagesManager.cs" />
-    <Compile Include="Logic\Managers\RaffleManager.cs" />
-    <Compile Include="Logic\Managers\RewardTimerManager.cs" />
-    <Compile Include="Logic\Managers\UserCommandsManager.cs" />
-    <Compile Include="Logic\Managers\YoutubeManager.cs" />
+    <Compile Include="Data\Logic\Mail.cs" />
+    <Compile Include="Data\Implementations\Managers\ChatManager.cs" />
+    <Compile Include="Data\Implementations\Managers\FilterManager.cs" />
+    <Compile Include="Data\Implementations\Managers\FollowersManager.cs" />
+    <Compile Include="Data\Implementations\Managers\AutomatedMessagesManager.cs" />
+    <Compile Include="Data\Implementations\Managers\RaffleManager.cs" />
+    <Compile Include="Data\Implementations\Managers\RewardTimerManager.cs" />
+    <Compile Include="Data\Implementations\Managers\UserCommandsManager.cs" />
+    <Compile Include="Data\Implementations\Managers\YoutubeManager.cs" />
     <Compile Include="Data\Model\Wrappers\AutomatedMessageWrapper.cs" />
     <Compile Include="Data\Model\Wrappers\FilterWrapper.cs" />
     <Compile Include="Data\Model\JSON\ChannelInfo.cs" />
@@ -377,8 +378,8 @@
     <Compile Include="Data\Model\JSON\Links.cs" />
     <Compile Include="Data\Model\JSON\TwitchStream.cs" />
     <Compile Include="Data\Enums\Role.cs" />
-    <Compile Include="Logic\Managers\PointsManager.cs" />
-    <Compile Include="Logic\Prompt.cs" />
+    <Compile Include="Data\Implementations\Managers\PointsManager.cs" />
+    <Compile Include="Data\Logic\Prompt.cs" />
     <Compile Include="Data\Model\Wrappers\UserCommandWrapper.cs" />
     <Compile Include="Data\Model\Youtube\ContentDetails.cs" />
     <Compile Include="Data\Model\Youtube\PageInfo.cs" />
@@ -391,7 +392,7 @@
     <Compile Include="Data\Model\Youtube\VideoInfoHeader.cs" />
     <Compile Include="Data\Model\Youtube\VideoParseException.cs" />
     <Compile Include="Data\Model\Youtube\YoutubeVideo.cs" />
-    <Compile Include="Logic\Whispers.cs" />
+    <Compile Include="Data\Logic\Whispers.cs" />
     <Compile Include="Modules\Main\MainModule.cs" />
     <Compile Include="Modules\Main\ViewModels\MainViewModel.cs" />
     <Compile Include="Modules\Main\ViewModels\RaffleViewModel.cs" />
@@ -411,9 +412,9 @@
     </Compile>
     <Compile Include="Properties\Settings.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Logic\TimeParser.cs" />
+    <Compile Include="Data\Logic\TimeParser.cs" />
     <Compile Include="Data\Model\Wrappers\UserWrapper.cs" />
-    <Compile Include="Logic\Managers\UsersManager.cs" />
+    <Compile Include="Data\Implementations\Managers\UsersManager.cs" />
     <Compile Include="Modules\Main\Views\RaffleView.xaml.cs">
       <DependentUpon>RaffleView.xaml</DependentUpon>
     </Compile>
@@ -464,7 +465,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logic\DurationParser.cs" />
+    <Compile Include="Data\Logic\DurationParser.cs" />
     <Page Include="Modules\Main\Views\RaffleView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

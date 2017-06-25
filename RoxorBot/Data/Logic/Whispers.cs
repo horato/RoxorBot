@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace RoxorBot.Logic
+namespace RoxorBot.Data.Logic
 {
     //TODO: whispers
     static class Whispers

@@ -1,4 +1,4 @@
-﻿namespace RoxorBot.Data.Interfaces
+﻿namespace RoxorBot.Data.Interfaces.Managers
 {
     public interface IFollowersManager
     {

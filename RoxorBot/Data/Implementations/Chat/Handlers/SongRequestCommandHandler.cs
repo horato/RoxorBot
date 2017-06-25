@@ -4,6 +4,7 @@ using RoxorBot.Data.Interfaces.Chat;
 using TwitchLib.Models.Client;
 using System.Text.RegularExpressions;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Managers;
 
 namespace RoxorBot.Data.Implementations.Chat.Handlers
 {

@@ -1,9 +1,9 @@
 ﻿using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
-using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Managers;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class PointsManager : IPointsManager
     {

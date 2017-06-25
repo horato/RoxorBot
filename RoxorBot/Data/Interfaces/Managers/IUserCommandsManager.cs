@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using RoxorBot.Data.Model.Wrappers;
 
-namespace RoxorBot.Data.Interfaces
+namespace RoxorBot.Data.Interfaces.Managers
 {
     public interface IUserCommandsManager
     {

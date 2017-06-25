@@ -8,6 +8,7 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Model.Youtube;
 using Vlc.DotNet.Core;
 using Vlc.DotNet.Forms;

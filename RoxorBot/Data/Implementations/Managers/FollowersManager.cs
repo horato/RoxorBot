@@ -5,11 +5,11 @@ using System.Timers;
 using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
-using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class FollowersManager : IFollowersManager
     {

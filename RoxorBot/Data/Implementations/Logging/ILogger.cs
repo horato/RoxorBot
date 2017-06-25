@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RoxorBot.Logic.Logging
+namespace RoxorBot.Data.Implementations.Logging
 {
     public interface ILogger
     {

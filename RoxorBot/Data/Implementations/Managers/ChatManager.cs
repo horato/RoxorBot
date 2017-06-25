@@ -7,16 +7,15 @@ using Prism.Events;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Twitch.Chat;
-using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Implementations.Logging;
 using RoxorBot.Data.Interfaces.Chat;
-using RoxorBot.Logic.Logging;
 using TwitchLib;
 using TwitchLib.Enums;
 using TwitchLib.Events.Client;
 using TwitchLib.Extensions.Client;
 using TwitchLib.Models.Client;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class ChatManager : IChatManager
     {

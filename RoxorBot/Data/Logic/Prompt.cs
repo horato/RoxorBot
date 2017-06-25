@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace RoxorBot.Logic
+namespace RoxorBot.Data.Logic
 {
     public static class Prompt
     {

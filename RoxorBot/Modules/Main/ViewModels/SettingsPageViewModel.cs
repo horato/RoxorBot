@@ -7,8 +7,9 @@ using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Interfaces.Dialog;
+using RoxorBot.Data.Interfaces.Managers;
+using RoxorBot.Data.Logic;
 using RoxorBot.Data.Model.Wrappers;
-using RoxorBot.Logic;
 using RoxorBot.Modules.Main.Views;
 using AddUserDialog = RoxorBot.Modules.Main.Views.AddUserDialog;
 

@@ -4,6 +4,7 @@ using RoxorBot.Data.Constants;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Chat;
+using RoxorBot.Data.Interfaces.Managers;
 using TwitchLib.Models.Client;
 
 namespace RoxorBot.Data.Implementations.Chat.Handlers

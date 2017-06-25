@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace RoxorBot.Logic
+namespace RoxorBot.Data.Logic
 {
     /// <summary>
     /// Contains logic to exctract duration from YouTube Duration Strings

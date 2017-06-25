@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using RoxorBot.Logic;
+using RoxorBot.Data.Logic;
 
 namespace RoxorBot.Controls
 {

@@ -1,6 +1,6 @@
 ﻿using RoxorBot.Data.Model.Youtube;
 
-namespace RoxorBot.Data.Interfaces
+namespace RoxorBot.Data.Interfaces.Managers
 {
     public interface IYoutubeManager
     {

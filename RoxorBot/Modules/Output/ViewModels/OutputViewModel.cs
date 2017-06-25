@@ -4,8 +4,8 @@ using System.Linq;
 using Prism.Events;
 using Prism.Mvvm;
 using RoxorBot.Data.Events;
+using RoxorBot.Data.Implementations.Logging;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Logic.Logging;
 
 namespace RoxorBot.Modules.Output.ViewModels
 {

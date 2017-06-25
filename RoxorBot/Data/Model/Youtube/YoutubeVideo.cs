@@ -2,8 +2,8 @@
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
-using RoxorBot.Logic;
-using RoxorBot.Logic.Managers;
+using RoxorBot.Data.Implementations.Managers;
+using RoxorBot.Data.Logic;
 
 namespace RoxorBot.Data.Model.Youtube
 {

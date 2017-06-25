@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using log4net;
 
-namespace RoxorBot.Logic.Logging
+namespace RoxorBot.Data.Implementations.Logging
 {
     public static class LoggerProvider
     {

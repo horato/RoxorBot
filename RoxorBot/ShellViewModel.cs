@@ -6,7 +6,8 @@ using RoxorBot.Data.Attributes;
 using RoxorBot.Data.Events;
 using RoxorBot.Data.Implementations;
 using RoxorBot.Data.Interfaces;
-using RoxorBot.Logic;
+using RoxorBot.Data.Interfaces.Managers;
+using RoxorBot.Data.Logic;
 using TwitchLib;
 
 namespace RoxorBot

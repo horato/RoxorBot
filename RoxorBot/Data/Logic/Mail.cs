@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RoxorBot.Logic
+namespace RoxorBot.Data.Logic
 {
     public static class Mail
     {

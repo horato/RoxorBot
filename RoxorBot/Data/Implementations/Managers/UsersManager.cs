@@ -8,14 +8,14 @@ using RoxorBot.Data.Events.Twitch.Chat;
 using RoxorBot.Data.Extensions;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Factories.Wrapper;
+using RoxorBot.Data.Interfaces.Managers;
 using RoxorBot.Data.Interfaces.Repositories;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib;
-using TwitchLib.Models.API.v3.Follows;
 using TwitchLib.Models.Client;
 using User = RoxorBot.Data.Model.Database.Entities.User;
 
-namespace RoxorBot.Logic.Managers
+namespace RoxorBot.Data.Implementations.Managers
 {
     public class UsersManager : IUsersManager
     {

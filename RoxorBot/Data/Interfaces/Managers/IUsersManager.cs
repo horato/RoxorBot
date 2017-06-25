@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib.Models.Client;
-using System;
-using TwitchLib.Models.API.v3.Follows;
 
-namespace RoxorBot.Data.Interfaces
+namespace RoxorBot.Data.Interfaces.Managers
 {
     public interface IUsersManager
     {
