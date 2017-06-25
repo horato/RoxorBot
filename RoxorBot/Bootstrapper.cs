@@ -7,6 +7,7 @@ using Prism.Modularity;
 using Prism.Mvvm;
 using RoxorBot.Data;
 using RoxorBot.Data.Implementations;
+using RoxorBot.Data.Implementations.Cache;
 using RoxorBot.Data.Implementations.Chat;
 using RoxorBot.Data.Implementations.Database;
 using RoxorBot.Data.Implementations.Factories.Entities;
@@ -15,6 +16,7 @@ using RoxorBot.Data.Implementations.Managers;
 using RoxorBot.Data.Implementations.Providers;
 using RoxorBot.Data.Implementations.Repositories;
 using RoxorBot.Data.Interfaces;
+using RoxorBot.Data.Interfaces.Cache;
 using RoxorBot.Data.Interfaces.Chat;
 using RoxorBot.Data.Interfaces.Dialog;
 using RoxorBot.Data.Interfaces.Factories.Entities;
@@ -82,8 +84,8 @@ namespace RoxorBot
             RegisterRepositories();
             RegisterProviders();
             RegisterFactories();
+            RegisterCaches();
         }
-
 
         private void RegisterManagers()
         {
@@ -114,6 +116,8 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IFilterProvider), typeof(FilterProvider), false);
             RegisterTypeIfMissing(typeof(IUsersProvider), typeof(UsersProvider), false);
             RegisterTypeIfMissing(typeof(IUserCommandsProvider), typeof(UserCommandsProvider), false);
+            RegisterTypeIfMissing(typeof(IYoutubeVideoProvider), typeof(YoutubeVideoProvider), false);
+            RegisterTypeIfMissing(typeof(IVideoInfoProvider), typeof(VideoInfoProvider), false);
         }
 
         private void RegisterFactories()
@@ -125,6 +129,12 @@ namespace RoxorBot
             RegisterTypeIfMissing(typeof(IFilterWrapperFactory), typeof(FilterWrapperFactory), false);
             RegisterTypeIfMissing(typeof(IUserWrapperFactory), typeof(UserWrapperFactory), false);
             RegisterTypeIfMissing(typeof(IUserCommandWrapperFactory), typeof(UserCommandWrapperFactory), false);
+        }
+
+        private void RegisterCaches()
+        {
+            RegisterTypeIfMissing(typeof(IYoutubeVideoCache), typeof(YoutubeVideoCache), true);
+            RegisterTypeIfMissing(typeof(IVideoInfoCache), typeof(VideoInfoCache), true);
         }
     }
 }

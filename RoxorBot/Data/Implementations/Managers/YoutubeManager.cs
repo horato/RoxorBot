@@ -12,6 +12,7 @@ using RoxorBot.Data.Events;
 using RoxorBot.Data.Events.Youtube;
 using RoxorBot.Data.Implementations.Logging;
 using RoxorBot.Data.Interfaces.Managers;
+using RoxorBot.Data.Interfaces.Providers;
 using RoxorBot.Data.Model.Youtube;
 
 namespace RoxorBot.Data.Implementations.Managers
@@ -20,15 +21,19 @@ namespace RoxorBot.Data.Implementations.Managers
     {
         private readonly ILogger _logger = LoggerProvider.GetLogger();
         private readonly IEventAggregator _aggregator;
+        private readonly IYoutubeVideoProvider _videoProvider;
         private readonly List<YoutubeVideo> _videos = new List<YoutubeVideo>();
         private readonly List<YoutubeVideo> _backupPlaylist = new List<YoutubeVideo>();
+        private static readonly Dictionary<string, string> JavascriptFunctionsCache = new Dictionary<string, string>();
+
         private bool _isPlaylistLoading = false;
         public int PlaylistCount => _videos.Count;
         public int BackupPlaylistCount => _backupPlaylist.Count;
 
-        public YoutubeManager(IEventAggregator aggregator)
+        public YoutubeManager(IEventAggregator aggregator, IYoutubeVideoProvider youtubeVideoProvider)
         {
             _aggregator = aggregator;
+            _videoProvider = youtubeVideoProvider;
         }
 
         public void Init()
@@ -59,61 +64,16 @@ namespace RoxorBot.Data.Implementations.Managers
             return _videos.Any(x => x.Id == id);
         }
 
-        private void LoadBackupPlaylist(string playlistID)
+        private void LoadBackupPlaylist(string playlistId)
         {
-            var items = new List<VideoInfo>();
-            var pageToken = "";
-            while (pageToken != null)
+            var videos = _videoProvider.GetVideosFromPlaylist(playlistId).Values.ToList();
+            lock (_backupPlaylist)
             {
-                try
-                {
-                    using (WebClient client = new WebClient { Encoding = System.Text.Encoding.UTF8 })
-                    {
-                        var url =
-                            "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" +
-                            playlistID + "&key=" + Properties.Settings.Default.youtubeKey + "&maxResults=50" +
-                            (pageToken != "" ? "&pageToken=" + pageToken : "");
-                        var json = client.DownloadData(url);
-                        var x = new DataContractJsonSerializer(typeof(VideoInfoHeader)).ReadObject(new MemoryStream(json)) as VideoInfoHeader;
-                        if (x == null)
-                            break;
-
-                        if (!string.IsNullOrWhiteSpace(x.NextPageToken))
-                            pageToken = x.NextPageToken;
-                        else
-                            pageToken = null;
-
-                        if (x.Items != null && x.Items.Length > 0)
-                            items.AddRange(x.Items);
-                    }
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine(e.ToString());
-                }
+                foreach (var video in videos)
+                    _backupPlaylist.Insert(new Random().Next(0, _backupPlaylist.Count), video);
             }
-            GetVideosFromVideoInfo(items);
-        }
 
-        private void GetVideosFromVideoInfo(IEnumerable<VideoInfo> items)
-        {
-            foreach (var item in items)
-            {
-                if (item.ContentDetails?.VideoId == null)
-                    continue;
-                try
-                {
-                    var video = new YoutubeVideo(item.ContentDetails.VideoId);
-                    lock (_backupPlaylist)
-                        _backupPlaylist.Insert(new Random().Next(0, _backupPlaylist.Count), video);
-
-                    _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(false, video));
-                }
-                catch (VideoParseException e)
-                {
-                    _logger.Info("Backup Playlist video load error: " + e.Message);
-                }
-            }
+            _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(false, videos));
         }
 
         /// <summary>
@@ -128,11 +88,14 @@ namespace RoxorBot.Data.Implementations.Managers
                 if (ExistsInPrimaryQueue(id))
                     return null;
 
-                var video = new YoutubeVideo(id);
+                var video = _videoProvider.GetVideo(id);
+                if (video == null)
+                    return null;
+
                 lock (_videos)
                     _videos.Add(video);
 
-                _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(true, video));
+                _aggregator.GetEvent<VideoAddedEvent>().Publish(new VideoAddedEventArgs(true, new[] { video }));
                 return video;
             }
             catch
@@ -228,8 +191,10 @@ namespace RoxorBot.Data.Implementations.Managers
             {
                 if (js_url.StartsWith("/"))
                     js_url = "https://www.youtube.com" + js_url;
+                if (!JavascriptFunctionsCache.ContainsKey(js_url))
+                    JavascriptFunctionsCache.Add(js_url, client.DownloadString(js_url));
 
-                var js = client.DownloadString(js_url);
+                var js = JavascriptFunctionsCache[js_url];
                 if (string.IsNullOrEmpty(js))
                     return sig;
 
