@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using RoxorBot.Data.Enums;
 using RoxorBot.Data.Interfaces.Factories.Wrapper;
 using RoxorBot.Data.Interfaces.Providers;
@@ -25,6 +27,12 @@ namespace RoxorBot.Data.Implementations.Factories.Wrapper
         {
             var model = _provider.CreateNew(visibleName, valueName, role, isOnline, points, isFollower, isFollowerSince, isAllowed);
             return CreateNew(model);
+        }
+
+        public IEnumerable<UserWrapper> CreateNew(IEnumerable<string> names, Role role, bool isOnline, int points, bool isFollower, DateTime? isfollowerSince, bool isAllowed)
+        {
+            var models = _provider.CreateNew(names, role, isOnline, points, isFollower, isfollowerSince, isAllowed);
+            return models.Select(CreateNew).ToList();
         }
     }
 }

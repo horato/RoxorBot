@@ -3,6 +3,7 @@ using RoxorBot.Data.Enums;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib.Models.Client;
 using System;
+using TwitchLib.Models.API.v3.Follows;
 
 namespace RoxorBot.Data.Interfaces
 {
@@ -12,6 +13,7 @@ namespace RoxorBot.Data.Interfaces
         void InitUsers(JoinedChannel channel);
         UserWrapper AddOrGetUser(string user, Role role);
         UserWrapper AddNewUser(string name, Role role, bool isOnline, int points, bool isFollower, DateTime? isFollowerSince, bool isAllowed);
+        void AddNewUsers(IEnumerable<string> users, Role role);
         void UpdateUser(Guid id, string name, Role role, bool isOnline, int points, bool isFollower, DateTime? isFollowerSince, bool isAllowed);
         void AllowUser(string nick);
         void RevokeAllowUser(string nick);

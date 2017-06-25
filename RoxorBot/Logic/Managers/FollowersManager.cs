@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using Prism.Events;
 using RoxorBot.Data.Enums;
@@ -24,16 +26,23 @@ namespace RoxorBot.Logic.Managers
             _updateTimer = new Timer(2 * 60 * 1000);
             _updateTimer.AutoReset = false;
             _updateTimer.Elapsed += timer_Elapsed;
-            _updateTimer.Start();
+
+            //TODO: init on new thread
+            Task.Factory.StartNew(LoadFollowers);
         }
 
         private void timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            LoadFollowers();
+        }
+
+        private void LoadFollowers()
         {
             _updateTimer.Stop();
             try
             {
                 var followers = _usersManager.GetAllUsers().FindAll(x => x.IsFollower);
-                var list = LoadFollowers();
+                var list = GetFollowersFromTwitch();
                 if (list.Count < 1)
                     return;
 
@@ -55,7 +64,7 @@ namespace RoxorBot.Logic.Managers
             _updateTimer.Start();
         }
 
-        private List<UserWrapper> LoadFollowers()
+        private List<UserWrapper> GetFollowersFromTwitch()
         {
             var continueLoading = true;
             var offset = 0;
@@ -63,9 +72,12 @@ namespace RoxorBot.Logic.Managers
 
             while (continueLoading)
             {
-                var followers = TwitchAPI.Follows.v3.GetFollowers("roxork0", 50, offset).Result;
+                var followers = TwitchAPI.Follows.v3.GetFollowers("roxork0", 100, offset).Result;
                 if (followers == null)
                     return new List<UserWrapper>();
+
+                var newFollowers = followers.Followers.Where(x => _usersManager.GetUser(x.User.DisplayName) == null);
+                _usersManager.AddNewUsers(newFollowers.Select(x => x.User.DisplayName), Role.Viewers);
 
                 foreach (var follower in followers.Followers)
                 {
@@ -82,7 +94,7 @@ namespace RoxorBot.Logic.Managers
                     }
                 }
 
-                offset += 50;
+                offset += 100;
                 if (followers.Followers.Length == 0)
                     continueLoading = false;
             }

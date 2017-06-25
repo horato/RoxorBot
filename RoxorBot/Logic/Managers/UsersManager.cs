@@ -9,10 +9,11 @@ using RoxorBot.Data.Extensions;
 using RoxorBot.Data.Interfaces;
 using RoxorBot.Data.Interfaces.Factories.Wrapper;
 using RoxorBot.Data.Interfaces.Repositories;
-using RoxorBot.Data.Model.Database.Entities;
 using RoxorBot.Data.Model.Wrappers;
 using TwitchLib;
+using TwitchLib.Models.API.v3.Follows;
 using TwitchLib.Models.Client;
+using User = RoxorBot.Data.Model.Database.Entities.User;
 
 namespace RoxorBot.Logic.Managers
 {
@@ -109,6 +110,20 @@ namespace RoxorBot.Logic.Managers
                 u = _userWrapperFactory.CreateNew(user, user.ToLower(), role, false, 0, false, null, false);
                 _users.Add(u.Id, u);
                 return u;
+            }
+        }
+
+        public void AddNewUsers(IEnumerable<string> users, Role role)
+        {
+            var names = users?.ToList();
+            if (names == null)
+                return;
+
+            lock (_users)
+            {
+                var newUsers = _userWrapperFactory.CreateNew(names, role, false, 0, false, null, false);
+                foreach (var newUser in newUsers)
+                    _users.Add(newUser.Id, newUser);
             }
         }
 
@@ -217,11 +232,7 @@ namespace RoxorBot.Logic.Managers
         public void SaveAll()
         {
             lock (_users)
-            {
-                foreach (var user in _users.Values)
-                    _usersRepository.Save(user.Model);
-                _usersRepository.FlushSession();
-            }
+                _usersRepository.SaveAll(_users.Select(x => x.Value.Model));
         }
 
         private void SetAsModerator(string userName)

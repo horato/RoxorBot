@@ -12,9 +12,11 @@ namespace RoxorBot.Data.Implementations.Repositories
     public abstract class Repository<T> : IRepository<T> where T : Entity
     {
         private ISession _session;
+        protected ISessionFactory SessionFactory;
 
-        public Repository(ISessionFactory factory)
+        protected Repository(ISessionFactory factory)
         {
+            SessionFactory = factory;
             _session = factory.OpenSession();
         }
 
